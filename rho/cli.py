@@ -13,6 +13,7 @@
 
 """ Rho Command Line Interface """
 
+from __future__ import print_function
 import sys
 import os
 import rho.clicommands
@@ -39,9 +40,9 @@ class CLI:
         self.cli_commands[cmd.name] = cmd
 
     def _usage(self):
-        print _("\nUsage: %s [options] MODULENAME --help\n" %
+        print("\nUsage: %s [options] MODULENAME --help\n" %
                 (os.path.basename(sys.argv[0])))
-        print _("Supported modules:\n")
+        print("Supported modules:\n")
 
         # want the output sorted
         items = sorted(self.cli_commands.items())

@@ -11,6 +11,7 @@
 
 """ Rho CLI Commands """
 
+from __future__ import print_function
 import csv
 import os
 import sys
@@ -25,9 +26,13 @@ from copy import copy
 from optparse import OptionParser
 from getpass import getpass
 import gettext
+from babel.support import NullTranslations
 
 t = gettext.translation('rho', 'locale', fallback=True)
-_ = t.ugettext
+if hasattr(t, 'ugettext'):
+    _ = t.ugettext
+else:
+    _ = t.gettext
 
 
 # Call back function for arg-parse
@@ -76,7 +81,7 @@ def _read_in_file(filename):
         hosts = file(os.path.expanduser(os.path.expandvars(filename)))
         result = hosts.read().splitlines()
         hosts.close()
-    except EnvironmentError, e:
+    except EnvironmentError as e:
         sys.stderr.write('Error reading from %s: %s\n' % (filename, e))
         hosts.close()
     return result
@@ -107,8 +112,8 @@ def _check_range_validity(range_list):
                 match = True
         if not match:
             if len(r) <= 1:
-                print _("No such hosts file.")
-            print _("Bad host name/range : '%s'") % r
+                print(_("No such hosts file."))
+            print(_("Bad host name/range : '%s'") % r)
             sys.exit(1)
 
 
@@ -131,7 +136,7 @@ def _edit_playbook(facts, report_path):
                           "  set_fact:\n    fact_list:\n"
         string_to_write = _stringify_facts(string_to_write, facts)
     elif not facts == ['default']:
-        print _("facts can be a file, list or 'default' only")
+        print(_("facts can be a file, list or 'default' only"))
         sys.exit(1)
 
     with open('roles/collect/tasks/main.yml', 'w') as f:
@@ -415,28 +420,28 @@ class ScanCommand(CliCommand):
         CliCommand._validate_options(self)
 
         if not self.options.profile:
-            print _("No profile specified.")
+            print(_("No profile specified."))
             self.parser.print_help()
             sys.exit(1)
 
         if not self.options.facts:
-            print _("No facts specified.")
+            print(_("No facts specified."))
             self.parser.print_help()
             sys.exit(1)
 
         if not self.options.report_path:
-            print _("No report location specified.")
+            print(_("No report location specified."))
             self.parser.print_help()
             sys.exit(1)
 
         if self.options.ansible_forks:
             try:
                 if int(self.options.ansible_forks) <= 0:
-                    print _("ansible_forks can only be a positive integer.")
+                    print(_("ansible_forks can only be a positive integer."))
                     self.parser.print_help()
                     sys.exit(1)
             except ValueError:
-                print _("ansible_forks can only be a positive integer.")
+                print(_("ansible_forks can only be a positive integer."))
                 self.parser.print_help()
                 sys.exit(1)
 
@@ -478,7 +483,7 @@ class ScanCommand(CliCommand):
                     break
 
         if not profile_exists:
-            print _("Invalid profile. Create profile first")
+            print(_("Invalid profile. Create profile first"))
             sys.exit(1)
 
         _edit_playbook(facts, report_path)
@@ -494,7 +499,7 @@ class ScanCommand(CliCommand):
                                        forks)
 
             if not len(success_auths):
-                print _('All auths are invalid for this profile')
+                print(_('All auths are invalid for this profile'))
                 sys.exit(1)
 
             _create_hosts_auths_file(success_map, profile)
@@ -502,8 +507,8 @@ class ScanCommand(CliCommand):
             _create_main_inventory(success_hosts, best_map, profile)
 
         elif not os.path.isfile('data/' + profile + '_hosts'):
-            print (_("Profile '%s' has not been processed. "
-                     "Please use --reset with profile first.") % profile)
+            print("Profile '" + profile + "' has not been processed. " +
+                  "Please use --reset with profile first.")
             sys.exit(1)
 
         cmd_string = 'ansible-playbook rho_playbook.yml -i data/'\
@@ -517,11 +522,11 @@ class ScanCommand(CliCommand):
 
         process.communicate()
 
-        print _("Scanning has completed. The mapping has been"
+        print(_("Scanning has completed. The mapping has been"
                 " stored in file '" + self.options.profile +
                 "_host_auth_map'. The"
                 " facts have been stored in '" +
-                report_path + "'")
+                report_path + "'"))
 
 
 class ProfileShowCommand(CliCommand):
@@ -557,7 +562,7 @@ class ProfileShowCommand(CliCommand):
                 if line_list[0] == self.options.name:
                     profile_exists = True
                     profile_str = ', '.join(line_list[0:2] + [line_list[3]])
-                    print profile_str
+                    print(profile_str)
 
         if not profile_exists:
             print(_("Profile '%s' does not exist.") % self.options.name)
@@ -582,7 +587,7 @@ class ProfileListCommand(CliCommand):
         with open('data/profiles', 'r') as f:
             lines = f.readlines()
             for line in lines:
-                print line
+                print(line)
 
 
 class ProfileEditCommand(CliCommand):
@@ -622,7 +627,7 @@ class ProfileEditCommand(CliCommand):
             sys.exit(1)
 
         if not self.options.hosts and not self.options.auth:
-            print _("Specify either hosts or auths to update.")
+            print(_("Specify either hosts or auths to update."))
             self.parser.print_help()
             sys.exit(1)
 
@@ -698,7 +703,7 @@ class ProfileEditCommand(CliCommand):
                 f.write(line_string + '\n')
 
         if not auth_exists:
-            print _("Auths do not exist.")
+            print(_("Auths do not exist."))
             sys.exit(1)
 
         if not profile_exists:
@@ -874,7 +879,7 @@ class ProfileAddCommand(CliCommand):
                             cred_names.append(line_list[1])
 
                 if not valid:
-                    print _("Auth '%s' does not exist") % a
+                    print("Auth '%s' does not exist") % a
                     sys.exit(1)
 
         with open('data/profiles', 'a') as f:
@@ -928,8 +933,8 @@ class AuthEditCommand(CliCommand):
         if not (self.options.filename or
                 self.options.username or
                 self.options.password):
-            print _("Should specify an option to update:"
-                    " --username, --password or --filename")
+            print(_("Should specify an option to update:"
+                    " --username, --password or --filename"))
             sys.exit(1)
 
     def _do_command(self):
@@ -1053,17 +1058,17 @@ class AuthShowCommand(CliCommand):
                 if line_list[1] == self.options.name:
                     auth_exists = True
                     if line_list[4] and line_list[3]:
-                        print ', '.join(line_list[0:3]) +\
-                              ', ********, ' + line_list[4]
+                        print(', '.join(line_list[0:3]) +
+                              ', ********, ' + line_list[4])
                     elif not line_list[4]:
-                        print ', '.join(line_list[0:3]) +\
-                              ', ********'
+                        print(', '.join(line_list[0:3]) +
+                              ', ********')
                     else:
-                        print ', '.join(line_list[0:3]) +\
-                              ', ' + line_list[4]
+                        print(', '.join(line_list[0:3]) +
+                              ', ' + line_list[4])
 
         if not auth_exists:
-            print _('Auth "%s" does not exist' % self.options.name)
+            print(_('Auth "%s" does not exist' % self.options.name))
             sys.exit(1)
 
 
@@ -1082,7 +1087,7 @@ class AuthListCommand(CliCommand):
 
     def _do_command(self):
         if not os.path.isfile('data/credentials'):
-            print _('No credentials exist yet.')
+            print(_('No credentials exist yet.'))
             sys.exit(1)
 
         with open('data/credentials', 'r') as f:
@@ -1090,14 +1095,14 @@ class AuthListCommand(CliCommand):
             for line in lines:
                 line_list = line.strip().split(',')
                 if line_list[3] and line_list[4]:
-                    print ', '.join(line_list[0:3]) +\
-                          ', ********, ' + line_list[4]
+                    print(', '.join(line_list[0:3]) +
+                          ', ********, ' + line_list[4])
                 elif not line_list[4]:
-                    print ', '.join(line_list[0:3]) +\
-                          ', ********'
+                    print(', '.join(line_list[0:3]) +
+                          ', ********')
                 else:
-                    print ', '.join(line_list[0:3]) +\
-                          ', ' + line_list[4]
+                    print(', '.join(line_list[0:3]) +
+                          ', ' + line_list[4])
 
 
 class AuthAddCommand(CliCommand):

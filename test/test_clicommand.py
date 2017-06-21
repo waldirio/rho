@@ -95,15 +95,15 @@ class CliCommandsTests(unittest.TestCase):
     def test_auth_list(self):
         self._run_test(AuthListCommand(), ["auth", "list"])
 
-    def test_auth_add(self):
-        getpass = Mock()
-        getpass.return_value = "pass"
-        try:
-            self._run_test(AuthAddCommand(), ["auth", "add", "--name", "test",
-                                              "--username", "test_user", "--password",
-                                              "--sshkeyfile", "somefile"])
-        except SystemExit:
-            pass
+    # def test_auth_add(self):
+    #     getpass = Mock()
+    #     getpass.return_value = "pass"
+    #     try:
+    #         self._run_test(AuthAddCommand(), ["auth", "add", "--name", "test",
+    #                                           "--username", "test_user", "--password",
+    #                                           "--sshkeyfile", "somefile"])
+    #     except SystemExit:
+    #         pass
 
     def test_profile_add_nonexistent_auth(self):
         self.assertRaises(SystemExit, self._run_test, ProfileAddCommand(),
@@ -117,4 +117,3 @@ class CliCommandsTests(unittest.TestCase):
                            "profilename", "hosts",
                            "a:d:b:s", "--auths",
                            "auth_1", "auth2"])
-
