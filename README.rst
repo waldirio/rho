@@ -229,7 +229,7 @@ Authorship and current maintainer information can be found in `AUTHORS <AUTHORS.
 ----------------
 Contributing
 ----------------
-Reference the `CONTRIBUTING <CONGRIBUTING.rst>`_ guide for information to the project.
+Reference the `CONTRIBUTING <CONTRIBUTING.rst>`_ guide for information to the project.
 
 --------------------
 Copyright & License
