@@ -822,6 +822,10 @@ class ProfileClearCommand(CliCommand):
 
         # removes all inventories ever.
         elif self.options.all:
+            if not os.path.isfile('data/profiles'):
+                print(_("All network profiles removed"))
+                sys.exit(0)
+
             os.remove('data/profiles')
             for file_list in glob.glob("data/*_hosts"):
                 os.remove(file_list)
