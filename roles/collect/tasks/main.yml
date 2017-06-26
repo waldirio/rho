@@ -12,7 +12,7 @@
       - RedhatPackages_redhat-packages.num_installed_packages
 
 - name: grab info from list
-  runCmds: name=list_facts fact_names={{fact_list}}
+  run_cmds: name=list_facts fact_names={{fact_list}}
   register: facts_selected
 
 - name: record host returned dictionary

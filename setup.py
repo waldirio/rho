@@ -12,12 +12,12 @@
 Rho Setup Script
 """
 
-from setuptools import setup, find_packages
-from setuptools import Command
-
 import glob
 import os
 import subprocess
+
+from setuptools import setup, find_packages
+from setuptools import Command
 
 
 class BuildLangs(Command):
@@ -87,6 +87,7 @@ def get_locale_paths():
 def get_data_files():
     gen_mo_files()
     return get_locale_paths()
+
 
 setup(
     name="rho",

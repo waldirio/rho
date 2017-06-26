@@ -3,7 +3,7 @@
 #This will grab all the core information
 
 - name: grab info
-  runCmds: name=whatever fact_names=default
+  run_cmds: name=whatever fact_names=default
   register: facts_all
   tags:
      - default

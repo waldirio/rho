@@ -41,7 +41,6 @@ lint-flake8:
 	flake8 . --ignore D203
 
 lint-pylint:
-	-for d in $(PYDIRS); do PYTHONPATH=$(TOPDIR)/src pylint $$d/*.py; done
-	-PYTHONPATH=$(TOPDIR)/src pylint bin/rho
+	pylint */*.py
 
-lint: lint-pylint
+lint: lint-flake8 lint-pylint

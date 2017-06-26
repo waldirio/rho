@@ -15,7 +15,7 @@
     - default
 
 - name: write the list to a csv
-  spitResults: name=spit file_path=report.csv vals={{host_facts}}
+  spit_results: name=spit file_path=report.csv vals={{host_facts}}
 
   tags:
     - default

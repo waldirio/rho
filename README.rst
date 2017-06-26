@@ -114,7 +114,6 @@ These python packages are required for the rho install machine to run rho:
  * subprocess
  * xmlrpclib
  * ansible.module_utils.basic
- * babel
 
 The following python packages are required to build & test rho from source:
  * python-devel
