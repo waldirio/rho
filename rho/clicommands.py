@@ -266,8 +266,7 @@ def _create_ping_inventory(profile_ranges, profile_auth_list, forks):
 
         out = out.split('\n')
 
-        # pylint: disable=consider-using-enumerate
-        for line in range(len(out)):
+        for line, _ in enumerate(out):
             if 'pong' in out[line]:
                 tup_auth_item = tuple(auth_item)
                 success_auths.add(tup_auth_item)
