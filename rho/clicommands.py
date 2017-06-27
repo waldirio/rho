@@ -824,19 +824,18 @@ class ProfileClearCommand(CliCommand):
         elif self.options.all:
             if not os.path.isfile('data/profiles'):
                 print(_("All network profiles removed"))
-                sys.exit(0)
+            else:
+                os.remove('data/profiles')
+                for file_list in glob.glob("data/*_hosts"):
+                    os.remove(file_list)
+                    profile = file_list.strip('_hosts')
+                    profile_mapping = 'data/' + profile + '_host_auth_mapping'
+                    if os.path.isfile(profile_mapping):
+                        os.rename(profile_mapping,
+                                  'data/(DELETED PROFILE)' +
+                                  profile + '_host_auth_mapping')
 
-            os.remove('data/profiles')
-            for file_list in glob.glob("data/*_hosts"):
-                os.remove(file_list)
-                profile = file_list.strip('_hosts')
-                profile_mapping = 'data/' + profile + '_host_auth_mapping'
-                if os.path.isfile(profile_mapping):
-                    os.rename(profile_mapping,
-                              'data/(DELETED PROFILE)' +
-                              profile + '_host_auth_mapping')
-
-            print(_("All network profiles removed"))
+                print(_("All network profiles removed"))
 
 
 class ProfileAddCommand(CliCommand):
