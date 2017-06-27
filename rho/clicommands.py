@@ -266,7 +266,7 @@ def _create_ping_inventory(profile_ranges, profile_auth_list, forks):
 
         out = out.split('\n')
 
-        for line in enumerate(out):
+        for line, _ in enumerate(out):
             if 'pong' in out[line]:
                 tup_auth_item = tuple(auth_item)
                 success_auths.add(tup_auth_item)
@@ -433,7 +433,8 @@ class ScanCommand(CliCommand):
 
         self.parser.add_option("--facts", dest="facts", metavar="FACTS",
                                action="callback", callback=multi_arg,
-                               default=[], help=_("'default' or list"))
+                               default=[], help=_("'default' or list " +
+                                                  " - REQUIRED"))
 
         self.parser.add_option("--ansible_forks", dest="ansible_forks",
                                metavar="FORKS",
@@ -606,6 +607,9 @@ class ProfileListCommand(CliCommand):
         CliCommand.__init__(self, "profile list", usage, shortdesc, desc)
 
     def _do_command(self):
+        if not os.path.isfile('data/profiles'):
+            print(_('No profiles exist yet.'))
+            sys.exit(1)
 
         with open('data/profiles', 'r') as profiles_file:
             lines = profiles_file.readlines()
@@ -674,6 +678,13 @@ class ProfileEditCommand(CliCommand):
         # understands.
 
             _check_range_validity(range_list)
+        if not os.path.isfile('data/profiles'):
+            print(_('No profiles exist yet.'))
+            sys.exit(1)
+
+        if not os.path.isfile('data/credentials'):
+            print(_('No credentials exist yet.'))
+            sys.exit(1)
 
         with open('data/profiles', 'r') as profiles_file:
             lines = profiles_file.readlines()
@@ -810,17 +821,20 @@ class ProfileClearCommand(CliCommand):
 
         # removes all inventories ever.
         elif self.options.all:
-            os.remove('data/profiles')
-            for file_list in glob.glob("data/*_hosts"):
-                os.remove(file_list)
-                profile = file_list.strip('_hosts')
-                profile_mapping = 'data/' + profile + '_host_auth_mapping'
-                if os.path.isfile(profile_mapping):
-                    os.rename(profile_mapping,
-                              'data/(DELETED PROFILE)' +
-                              profile + '_host_auth_mapping')
+            if not os.path.isfile('data/profiles'):
+                print(_("All network profiles removed"))
+            else:
+                os.remove('data/profiles')
+                for file_list in glob.glob("data/*_hosts"):
+                    os.remove(file_list)
+                    profile = file_list.strip('_hosts')
+                    profile_mapping = 'data/' + profile + '_host_auth_mapping'
+                    if os.path.isfile(profile_mapping):
+                        os.rename(profile_mapping,
+                                  'data/(DELETED PROFILE)' +
+                                  profile + '_host_auth_mapping')
 
-            print(_("All network profiles removed"))
+                print(_("All network profiles removed"))
 
 
 class ProfileAddCommand(CliCommand):
@@ -831,7 +845,7 @@ class ProfileAddCommand(CliCommand):
     """
 
     def __init__(self):
-        usage = _("usage: %prof profile add [options]")
+        usage = _("usage: %prog profile add [options]")
         shortdesc = _("add a network profile")
         desc = _("add a network profile")
 
@@ -896,6 +910,10 @@ class ProfileAddCommand(CliCommand):
         for auth in self.options.auth:
             for auth_item in auth.strip().split(","):
                 valid = False
+                if not os.path.isfile('data/credentials'):
+                    print(_('No credentials exist yet.'))
+                    sys.exit(1)
+
                 with open('data/credentials', 'r') as credentials_file:
                     lines = credentials_file.readlines()
                     for line in lines:
@@ -1045,6 +1063,7 @@ class AuthClearCommand(CliCommand):
                 os.remove('data/credentials')
             if os.path.isfile('data/cred-temp'):
                 os.remove('data/cred-temp')
+            print(_("All authorization credentials removed"))
 
 
 class AuthShowCommand(CliCommand):
