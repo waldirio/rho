@@ -868,7 +868,7 @@ class DmiRhoCmd(RhoCmd):
             "/usr/sbin/dmidecode "
             "| grep -A4 'System Information' "
             "| grep 'Manufacturer' "
-            "| sed -n -e 's/^.*Manufacturer:\s//p'")
+            "| sed -n -e 's/^.*Manufacturer:\\s//p'")
         self.cmd_strings["bios_processor_fam"] = "usr/sbin/dmidecode -s " \
                                                  "processor-family"
 
@@ -967,7 +967,7 @@ class VirtRhoCmd(CpuRhoCmd):
             "/usr/sbin/dmidecode "
             "| grep -A4 'System Information' "
             "| grep 'Manufacturer' "
-            "| sed -n -e 's/^.*Manufacturer:\s//p'")
+            "| sed -n -e 's/^.*Manufacturer:\\s//p'")
         self.cmd_strings["xen_guest"] = "ps aux | grep xend | grep -v grep"
         self.cmd_strings["privcmd"] = cmd_template % "/proc/xen/privcmd"
         self.cmd_strings["kvm"] = cmd_template % "/dev/kvm"
