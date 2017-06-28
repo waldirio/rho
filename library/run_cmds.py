@@ -864,8 +864,11 @@ class DmiRhoCmd(RhoCmd):
         self.cmd_strings["bios_vendor"] = "/usr/sbin/dmidecode -s bios-vendor"
         self.cmd_strings["bios_version"] = "/usr/sbin/dmidecode " \
                                            "-s bios-version"
-        self.cmd_strings["bios_sys_manu"] = "/usr/sbin/dmidecode " \
-                                            "-s system-manufacturer"
+        self.cmd_strings["bios_sys_manu"] = (
+            "/usr/sbin/dmidecode "
+            "| grep -A4 'System Information' "
+            "| grep 'Manufacturer' "
+            "| sed -n -e 's/^.*Manufacturer:\s//p'")
         self.cmd_strings["bios_processor_fam"] = "usr/sbin/dmidecode -s " \
                                                  "processor-family"
 
@@ -960,7 +963,11 @@ class VirtRhoCmd(CpuRhoCmd):
         self.cmd_names["virt_all_list"] = ["virt.num_guests"]
         self.cmd_names["virt_running_list"] = ["virt.num_running_guests"]
 
-        self.cmd_strings["sys_manu"] = "dmidecode -s system-manufacturer"
+        self.cmd_strings["sys_manu"] = (
+            "/usr/sbin/dmidecode "
+            "| grep -A4 'System Information' "
+            "| grep 'Manufacturer' "
+            "| sed -n -e 's/^.*Manufacturer:\s//p'")
         self.cmd_strings["xen_guest"] = "ps aux | grep xend | grep -v grep"
         self.cmd_strings["privcmd"] = cmd_template % "/proc/xen/privcmd"
         self.cmd_strings["kvm"] = cmd_template % "/dev/kvm"
@@ -1055,6 +1062,10 @@ class VirtRhoCmd(CpuRhoCmd):
 
                     if manuf.find("Microsoft") > -1:
                         self.data["virt.type"] = "virtualpc"
+                        self.data["virt.virt"] = "virt-guest"
+
+                    if manuf.find("QEMU") > -1:
+                        self.data["virt.type"] = "kvm"
                         self.data["virt.virt"] = "virt-guest"
 
     def _check_for_xend(self):
