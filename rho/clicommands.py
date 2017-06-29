@@ -209,10 +209,13 @@ def _stringify_facts(string_to_write, facts):
 
 # Creates the inventory for pinging all hosts and records
 # successful auths and the hosts they worked on
-def _create_ping_inventory(profile_ranges, profile_auth_list, forks):
+# pylint: disable=too-many-statements
+def _create_ping_inventory(profile_ranges, profile_port, profile_auth_list,
+                           forks):
     # pylint: disable=too-many-locals
     success_auths = set()
     success_hosts = set()
+    success_port_map = defaultdict()
     success_map = defaultdict(list)
     best_map = defaultdict(list)
     mapped_hosts = set()
@@ -224,7 +227,8 @@ def _create_ping_inventory(profile_ranges, profile_auth_list, forks):
         profile_range = profile_range.strip(',').strip()
         if not re.match(reg, profile_range):
             string_to_write += profile_range + \
-                ' ansible_host=' + profile_range + "\n"
+                " ansible_host=" + profile_range + " ansible_port=" + \
+                str(profile_port) + "\n"
         else:
             string_to_write += profile_range + "\n"
 
@@ -289,11 +293,13 @@ def _create_ping_inventory(profile_ranges, profile_auth_list, forks):
                     best_map[tup_auth_item].append(host_ip)
                     mapped_hosts.add(host_ip)
                 success_map[host_ip].append(tup_auth_item)
+                success_port_map[host_ip] = profile_port
 
     success_auths = list(success_auths)
     success_hosts = list(success_hosts)
 
-    return success_auths, success_hosts, best_map, success_map
+    return success_auths, success_hosts, best_map, success_map, \
+        success_port_map
 
 
 # Helper function to create a file to store the mapping
@@ -329,11 +335,12 @@ def _create_hosts_auths_file(success_map, profile):
 # used multiple times later after a profile has first been
 # processed and the valid mapping as been figured out by
 # pinging.
-def _create_main_inventory(success_hosts, best_map, profile):
+def _create_main_inventory(success_hosts, success_port_map, best_map, profile):
     string_to_write = "[alpha]\n"
 
     for host in success_hosts:
-        string_to_write += host + ' ansible_ssh_host=' + host + '\n'
+        string_to_write += host + ' ansible_host=' + host + \
+            ' ansible_port=' + success_port_map[host] + '\n'
 
     with open('data/' + profile + '_hosts', 'w') as profile_hosts:
         for auth in best_map.keys():
@@ -510,7 +517,8 @@ class ScanCommand(CliCommand):
                 if line_list[0] == profile:
                     profile_exists = True
                     profile_ranges = line_list[1].strip().strip(',').split(',')
-                    profile_auths = line_list[2].strip().strip(',').split(',')
+                    profile_port = line_list[2].strip().strip(',').split(',')
+                    profile_auths = line_list[3].strip().strip(',').split(',')
                     for auth in profile_auths:
                         auth = auth.strip(',').strip()
                         if not os.path.isfile('data/credentials'):
@@ -535,10 +543,11 @@ class ScanCommand(CliCommand):
 
         if self.options.reset:
 
-            success_auths, success_hosts, best_map, success_map =\
-                _create_ping_inventory(profile_ranges,
-                                       profile_auth_list,
-                                       forks)
+            success_auths, success_hosts, best_map, success_map, \
+                success_port_map = _create_ping_inventory(profile_ranges,
+                                                          profile_port[0],
+                                                          profile_auth_list,
+                                                          forks)
 
             if not len(success_auths):  # pylint: disable=len-as-condition
                 print(_('All auths are invalid for this profile'))
@@ -546,7 +555,8 @@ class ScanCommand(CliCommand):
 
             _create_hosts_auths_file(success_map, profile)
 
-            _create_main_inventory(success_hosts, best_map, profile)
+            _create_main_inventory(success_hosts, success_port_map, best_map,
+                                   profile)
 
         elif not os.path.isfile('data/' + profile + '_hosts'):
             print("Profile '" + profile + "' has not been processed. " +
@@ -603,7 +613,7 @@ class ProfileShowCommand(CliCommand):
                 line_list = line.strip().split(',____,')
                 if line_list[0] == self.options.name:
                     profile_exists = True
-                    profile_str = ', '.join(line_list[0:2] + [line_list[3]])
+                    profile_str = ', '.join(line_list[0:3] + [line_list[3]])
                     print(profile_str)
 
         if not profile_exists:
@@ -656,6 +666,8 @@ class ProfileEditCommand(CliCommand):
                                metavar="RANGE", default=[],
                                help=_("IP range to scan. See "
                                       "'man rho' for supported formats."))
+        self.parser.add_option("--sshport", dest="sshport", metavar="SSHPORT",
+                               help=_("SSHPORT for connection; default=22"))
         # can only replace auth
         self.parser.add_option("--auth", dest="auth", metavar="AUTH",
                                action="callback", callback=multi_arg,
@@ -671,8 +683,9 @@ class ProfileEditCommand(CliCommand):
             self.parser.print_help()
             sys.exit(1)
 
-        if not self.options.hosts and not self.options.auth:
-            print(_("Specify either hosts or auths to update."))
+        if not self.options.hosts and not self.options.auth \
+           and not self.options.sshport:
+            print(_("Specify either hosts, sshport, or auths to update."))
             self.parser.print_help()
             sys.exit(1)
 
@@ -731,6 +744,9 @@ class ProfileEditCommand(CliCommand):
                         string_id_one = string_id_one.strip(',')
                         line_list[1] = string_id_one.rstrip(',').rstrip(' ')
 
+                    if self.options.sshport:
+                        line_list[2] = str(self.options.sshport)
+
                     if self.options.auth:
                         string_id_two = ''
                         string_id_three = ''
@@ -745,9 +761,9 @@ class ProfileEditCommand(CliCommand):
                                     string_id_three += auth + ', '
 
                         if auth_change:
-                            line_list[2] = \
-                                string_id_two.rstrip(',').rstrip(' ')
                             line_list[3] = \
+                                string_id_two.rstrip(',').rstrip(' ')
+                            line_list[4] = \
                                 string_id_three.rstrip(',').rstrip(' ')
 
                 if range_change or auth_change:
@@ -876,6 +892,8 @@ class ProfileAddCommand(CliCommand):
                                metavar="HOSTS", default=[],
                                help=_("IP range to scan."
                                       " See 'man rho' for supported formats."))
+        self.parser.add_option("--sshport", dest="sshport", metavar="SSHPORT",
+                               help=_("SSHPORT for connection; default=22"))
         self.parser.add_option("--auth", dest="auth", metavar="AUTH",
                                action="callback", callback=multi_arg,
                                default=[], help=_("auth class to "
@@ -901,6 +919,10 @@ class ProfileAddCommand(CliCommand):
         profile_exists = False
 
         hosts_list = self.options.hosts
+        ssh_port = 22
+        if hasattr(self.options, 'sshport') \
+           and self.options.sshport is not None:
+            ssh_port = self.options.sshport
 
         if os.path.isfile('data/profiles'):
 
@@ -948,7 +970,8 @@ class ProfileAddCommand(CliCommand):
 
         with open('data/profiles', 'a') as profiles_file:
             profile_list = [self.options.name] + ['____'] + range_list \
-                + ['____'] + creds + ['____'] + cred_names
+                + ['____'] + [str(ssh_port)] + ['____'] + creds + ['____'] + \
+                cred_names
             csv_w = csv.writer(profiles_file)
             csv_w.writerow(profile_list)
 
