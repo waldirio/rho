@@ -4,6 +4,7 @@
 *$py.class
 *.swp
 *.patch
+.idea
 *#
 *~
 *.egg
@@ -15,3 +16,8 @@ dist
 build
 .build
 test/coverage
+data
+roles
+
+.vagrant
+*.retry

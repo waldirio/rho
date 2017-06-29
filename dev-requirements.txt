@@ -1,0 +1,11 @@
+# Test runner/testing utils
+pytest
+pytest-cov
+
+# Mocking library
+Mock
+
+flake8
+pylint
+
+Coverage

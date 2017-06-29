@@ -11,6 +11,14 @@
 #
 
 import gettext
+import os
+import sys
+
+base_rho_directory = os.path.abspath(
+  os.path.normpath(
+    os.path.join(
+      os.path.dirname(sys.argv[0]), '..')))
+sys.path.insert(0, os.path.join(base_rho_directory, 'src'))
 
 from rho.cli import CLI
 

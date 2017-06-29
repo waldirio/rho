@@ -1,0 +1,9 @@
+- hosts: all
+  roles:
+    - role: bootstrap
+      become: yes
+      become_user: root
+
+  vars:
+    additional_packages:
+      - zsh

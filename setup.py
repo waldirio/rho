@@ -12,12 +12,12 @@
 Rho Setup Script
 """
 
-from setuptools import setup, find_packages
-from setuptools import Command
-
 import glob
 import os
 import subprocess
+
+from setuptools import setup, find_packages
+from setuptools import Command
 
 
 class BuildLangs(Command):
@@ -37,7 +37,7 @@ class BuildLangs(Command):
         self._gen_pot_file()
 
     def _gen_pot_file(self):
-        py_dirs = ["src/rho/"]
+        py_dirs = ["library/rho"]
         py_files = ['bin/rho']
         for py_dir in py_dirs:
             py_files = py_files + glob.glob("%s/*.py" % py_dir)
@@ -88,6 +88,7 @@ def get_data_files():
     gen_mo_files()
     return get_locale_paths()
 
+
 setup(
     name="rho",
     version='0.0.27',
@@ -98,9 +99,9 @@ setup(
     license='GPLv2',
 
     package_dir={
-        'rho': 'src/rho',
+        'rho': 'library/rho',
     },
-    packages=find_packages('src'),
+    packages=find_packages('library'),
     include_package_data=True,
 
     # non-python scripts go here

@@ -1,80 +1,46 @@
 DATE		= $(shell date)
-PYTHON		= /usr/bin/python
-
-MESSAGESPOT=po/rho.pot
+PYTHON		= $(shell which python)
 
 TOPDIR = $(shell pwd)
 DIRS	= test bin locale src
-PYDIRS	= src/rho
-PYFILES = $(wildcard src/rho/*.py)
+PYDIRS	= rho
 
 BINDIR  = bin
 
-#MANPAGES = funcd func func-inventory func-transmit func-build-map func-create-module
+help:
+	@echo "Please use \`make <target>' where <target> is one of:"
+	@echo "  help           to show this message"
+	@echo "  all            to to execute all following targets (except test)"
+	@echo "  lint           to run all linters"
+	@echo "  lint-flake8    to run the flake8 linter"
+	@echo "  lint-pylint    to run the pylint linter"
+	@echo "  test           to run unit tests"
+	@echo "  test-coverage  to run unit tests and measure test coverage"
 
-all: build
+all: build lint tests-coverage
 
-versionfile:
-	echo "version:" $(VERSION) > etc/version
-	echo "release:" $(RELEASE) >> etc/version
-	echo "source build date:" $(DATE) >> etc/version
-	echo "git commit:" $(shell git log -n 1 --pretty="format:%H") >> etc/version
-	echo "git date:" $(shell git log -n 1 --pretty="format:%cd") >> etc/version
-
-#	echo $(shell git log -n 1 --pretty="format:git commit: %H from \(%cd\)") >> etc/version 
-#manpage:
-#	for manpage in $(MANPAGES); do (pod2man --center=$$manpage --release="" ./docs/$$manpage.pod | gzip -c > ./docs/$$manpage.1.gz); done
-
-build: clean versionfile
+build: clean
 	$(PYTHON) setup.py build -f
 
 clean:
-	-rm -f  MANIFEST etc/version .figleaf_interesting
+	-rm -f  MANIFEST etc/version
 	-rm -rf dist/ build/ test/coverage rpm-build/ rho.egg-info/
 	-rm -rf *~
-	-rm -rf .figleaf
 	-rm -rf docs/*.gz
-#	-for d in $(DIRS); do ($(MAKE) -C $$d clean ); done
-
-confclean:
-	-rm -rf ~/.rho.conf
-
-# this is slightly nuts,we keep "versioned" copies of the conf file, just in case
-confbackup:
-	-cp ~/.rho.conf ./.rho.conf-backup/rho.conf-backup-`date +"%s"`
-
-# pop the latest stored
-confrestore:
-	-mv ./.rho.conf-backup/`ls -t ./.rho.conf-backup/ | head -1` ~/.rho.conf
-
 
 install: build
 	$(PYTHON) setup.py install -f
 
-
 tests:
-	-nosetests -d -v -a '!slow' 
+	-py.test -v
 
-coverage:
-	# figleaf needs full paths...
-	# needs figleaf installed, see http://darcs.idyll.org/~t/projects/figleaf/doc/
-	-rm -f .figleaf_interesting
-	-for file in $(PYFILES); do echo $(TOPDIR)/$$file >> .figleaf_interesting; done
-	-figleaf -i /usr/bin/nosetests -d -v -a '!slow'
-	-figleaf2html -d test/coverage -f .figleaf_interesting .figleaf
+tests-coverage:
+	-py.test -v --cov=rho
 
-sdist: messages
-	$(PYTHON) setup.py sdist
+lint-flake8:
+	flake8 . --ignore D203
 
-pychecker:
-	-for d in $(PYDIRS); do PYTHONPATH=$(TOPDIR)/src pychecker --limit 100 --only $$d/*.py;  done
-	-PYTHONPATH=$(TOPDIR)/src pychecker bin/rho
-pyflakes:
-	-for d in $(PYDIRS); do PYTHONPATH=$(TOPDIR)/src pyflakes $$d/*.py; done
-	-PYTHONPATH=$(TOPDIR)/src pyflakes bin/rho
-pylint:
-	-for d in $(PYDIRS); do PYTHONPATH=$(TOPDIR)/src pylint $$d/*.py; done
-	-PYTHONPATH=$(TOPDIR)/src pylint bin/rho
-money: clean
-	-sloccount --addlang "makefile" $(TOPDIR) $(PYDIRS) 
+lint-pylint:
+	pylint */*.py
 
+lint: lint-flake8 lint-pylint

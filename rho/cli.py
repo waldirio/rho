@@ -11,19 +11,24 @@
 # http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
 #
 
+# pylint: disable=R0903
+
 """ Rho Command Line Interface """
 
+from __future__ import print_function
 import sys
 import os
+import gettext
 import rho.clicommands
 
-import gettext
-t = gettext.translation('rho', 'locale', fallback=True)
-_ = t.ugettext
+T = gettext.translation('rho', 'locale', fallback=True)
+_ = T.ugettext
 
 
-class CLI:
-
+class CLI(object):
+    """Class responsible for displaying ussage or matching inputs
+    to the valid set of commands supported by rho.
+    """
     def __init__(self):
         self.cli_commands = {}
         for clazz in rho.clicommands.__dict__.values():
@@ -36,12 +41,18 @@ class CLI:
                     self.cli_commands[cmd.name] = cmd
 
     def _add_command(self, cmd):
+        """Add a command to the valid commands list
+        :param cmd: The command to add to the valid command list
+        """
         self.cli_commands[cmd.name] = cmd
 
     def _usage(self):
-        print _("\nUsage: %s [options] MODULENAME --help\n" %
-                (os.path.basename(sys.argv[0])))
-        print _("Supported modules:\n")
+        """rho command lines usage command to supply basic help information.
+        Supplys list of commands and a short description
+        """
+        print("\nUsage: %s [options] MODULENAME --help\n" %
+              (os.path.basename(sys.argv[0])))
+        print("Supported modules:\n")
 
         # want the output sorted
         items = sorted(self.cli_commands.items())
@@ -58,6 +69,8 @@ class CLI:
         'auth'.
 
         This function ignores the arguments which begin with --
+        :param args: The command line arguments
+        :returns: The matched command or None
         """
         possiblecmd = []
         for arg in args[1:]:
@@ -85,6 +98,10 @@ class CLI:
         return cmd
 
     def main(self):
+        """Method determine whether to display usage or pass input
+        to find the best command match. If no match is found the
+        usage is displayed
+        """
         if len(sys.argv) < 2 or not self._find_best_match(sys.argv):
             self._usage()
             sys.exit(1)
