@@ -144,14 +144,54 @@ class DateRhoCmd(RhoCmd):
         super(DateRhoCmd, self).__init__()
         self.name = "date"
         self.cmd_names['date'] = ['date.date']
-        self.cmd_strings['date'] = 'date'
-        self.fields = {'date.date': _('date')}
+        self.cmd_strings.update({
+            'date': 'date',
+            'anaconda_log':
+            "ls --full-time /root/anaconda-ks.cfg "
+            r"| grep -o '[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}'",
+            'machine_id':
+            "ls --full-time /etc/machine-id "
+            r"| grep -o '[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}'",
+            'filesystem_create':
+            "fs_date=$(tune2fs -l $(mount "
+            "                       | egrep '/ type' "
+            "                       | grep -o '/dev.* on' "
+            r"                      | sed -e 's/\on//g') "
+            "          | grep 'Filesystem created' "
+            r"         | sed 's/Filesystem created:\s*//g'); "
+            "if [[ $fs_date ]]; "
+            "then date +'%F' -d \"$fs_date\"; "
+            "else echo "" ; "
+            "fi",
+            'yum_history':
+            "yum history "
+            "| tail -n 4 "
+            r"| grep -o '[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}'"})
+
+        self.fields = {'date.date': _('date'),
+                       'date.anaconda_log':
+                       _("/root/anaconda-ks.cfg modified time"),
+                       'date.machine_id':
+                       _("/etc/machine-id modified time'"),
+                       'date.filesystem_create':
+                       _("uses tune2fs -l on the / filesystem dev "
+                         "found using mount"),
+                       'date.yum_history':
+                       _("dates from yum history")}
 
     def parse_data(self):
         """This method parses the result of the cli command
         'date' and stores it in the only field date.date.
         """
         self.data['date.date'] = self.cmd_results['date'][0].strip()
+        self.data['date.anaconda_log'] = (
+            self.cmd_results['anaconda_log'][0].strip())
+        self.data['date.machine_id'] = (
+            self.cmd_results['machine_id'][0].strip())
+        self.data['date.filesystem_create'] = (
+            self.cmd_results['filesystem_create'][0].strip())
+        self.data['date.yum_history'] = (
+            self.cmd_results['yum_history'][0].strip())
 
 
 class UnameRhoCmd(RhoCmd):
@@ -864,8 +904,11 @@ class DmiRhoCmd(RhoCmd):
         self.cmd_strings["bios_vendor"] = "/usr/sbin/dmidecode -s bios-vendor"
         self.cmd_strings["bios_version"] = "/usr/sbin/dmidecode " \
                                            "-s bios-version"
-        self.cmd_strings["bios_sys_manu"] = "/usr/sbin/dmidecode " \
-                                            "-s system-manufacturer"
+        self.cmd_strings["bios_sys_manu"] = (
+            "/usr/sbin/dmidecode "
+            "| grep -A4 'System Information' "
+            "| grep 'Manufacturer' "
+            "| sed -n -e 's/^.*Manufacturer:\\s//p'")
         self.cmd_strings["bios_processor_fam"] = "usr/sbin/dmidecode -s " \
                                                  "processor-family"
 
@@ -960,7 +1003,11 @@ class VirtRhoCmd(CpuRhoCmd):
         self.cmd_names["virt_all_list"] = ["virt.num_guests"]
         self.cmd_names["virt_running_list"] = ["virt.num_running_guests"]
 
-        self.cmd_strings["sys_manu"] = "dmidecode -s system-manufacturer"
+        self.cmd_strings["sys_manu"] = (
+            "/usr/sbin/dmidecode "
+            "| grep -A4 'System Information' "
+            "| grep 'Manufacturer' "
+            "| sed -n -e 's/^.*Manufacturer:\\s//p'")
         self.cmd_strings["xen_guest"] = "ps aux | grep xend | grep -v grep"
         self.cmd_strings["privcmd"] = cmd_template % "/proc/xen/privcmd"
         self.cmd_strings["kvm"] = cmd_template % "/dev/kvm"
@@ -1055,6 +1102,10 @@ class VirtRhoCmd(CpuRhoCmd):
 
                     if manuf.find("Microsoft") > -1:
                         self.data["virt.type"] = "virtualpc"
+                        self.data["virt.virt"] = "virt-guest"
+
+                    if manuf.find("QEMU") > -1:
+                        self.data["virt.type"] = "kvm"
                         self.data["virt.virt"] = "virt-guest"
 
     def _check_for_xend(self):
