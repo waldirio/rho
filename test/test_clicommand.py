@@ -16,7 +16,8 @@
 import unittest
 import sys
 from rho.clicommands import AuthAddCommand, AuthListCommand, \
-    AuthClearCommand, ProfileAddCommand, ProfileClearCommand, \
+    AuthClearCommand, AuthEditCommand, ProfileAddCommand, \
+    ProfileClearCommand, ProfileEditCommand, \
     ProfileListCommand, ScanCommand
 
 
@@ -135,16 +136,28 @@ class CliCommandsTests(unittest.TestCase):
                            "auth_1", "auth2"])
 
     def test_a_auth_add(self):
-        """Testing the auth clear all command execution"""
+        """Testing the auth add command execution"""
         self._run_test(AuthAddCommand(), ["auth", "add", "--name", "auth1",
                                           "--username", "user", "--sshkeyfile",
                                           "./privatekey"])
 
     def test_a_profile_add(self):
-        """Testing the auth clear all command execution"""
+        """Testing the profile add command execution"""
         self._run_test(ProfileAddCommand(), ["profile", "add", "--name", "p1",
                                              "--hosts", "1.2.3.4",
                                              "--auth", "auth1"])
+
+    def test_auth_edit(self):
+        """Testing the auth edit command execution"""
+        self._run_test(AuthEditCommand(), ["auth", "edit", "--name", "auth1",
+                                           "--username", "user",
+                                           "--sshkeyfile", "./privatekey"])
+
+    def test_profile_edit(self):
+        """Testing the profile edit command execution"""
+        self._run_test(ProfileEditCommand(), ["profile", "edit", "--name",
+                                              "p1", "--hosts", "1.2.3.4",
+                                              "--auth", "auth1"])
 
     def test_z_auth_clear_all(self):
         """Testing the auth clear all command execution"""

@@ -106,7 +106,12 @@ def _read_in_file(filename):
 
 # Write new credentials in the related file.
 def _save_cred(cred):
-    with open('data/credentials', 'a') as cred_file:
+    append_or_write = 'a'
+    if not os.path.exists('data'):
+        os.makedirs('data')
+    if not os.path.isfile('data/credentials'):
+        append_or_write = 'w'
+    with open('data/credentials', append_or_write) as cred_file:
         dict_writer = csv.DictWriter(cred_file, cred.keys())
         dict_writer.writerow(cred)
 
@@ -158,6 +163,11 @@ def _edit_playbook(facts, report_path):
         print(_("facts can be a file, list or 'default' only"))
         sys.exit(1)
 
+    report_path = os.path.abspath(os.path.normpath(report_path))
+
+    if not os.path.exists('roles/collect/tasks'):
+        os.makedirs('roles/collect/tasks')
+
     with open('roles/collect/tasks/main.yml', 'w') as collect_task_file:
         collect_task_file.write(string_to_write)
 
@@ -174,6 +184,8 @@ def _edit_playbook(facts, report_path):
                                                               '={{host_' \
                                                               'facts}}\n'
 
+    if not os.path.exists('roles/write/tasks'):
+        os.makedirs('roles/write/tasks')
     with open('roles/write/tasks/main.yml', 'w') as write_task_file:
         write_task_file.write(string_to_write)
 
@@ -212,7 +224,7 @@ def _create_ping_inventory(profile_ranges, profile_auth_list, forks):
         profile_range = profile_range.strip(',').strip()
         if not re.match(reg, profile_range):
             string_to_write += profile_range + \
-                ' ansible_ssh_host=' + profile_range + "\n"
+                ' ansible_host=' + profile_range + "\n"
         else:
             string_to_write += profile_range + "\n"
 
@@ -225,19 +237,19 @@ def _create_ping_inventory(profile_ranges, profile_auth_list, forks):
         string_to_write = \
             string_header + \
             "[all:vars]\n" + \
-            "ansible_ssh_user=" + \
+            "ansible_user=" + \
             auth_item[2]
 
         auth_pass_or_key = ''
 
-        if (not auth_item[3] == 'empty') and auth_item[3]:
+        if (not auth_item[3] == '') and auth_item[3]:
             auth_pass_or_key = '\nansible_ssh_pass=' + auth_item[3]
-            if (not auth_item[4] == 'empty') and auth_item[4]:
+            if (not auth_item[4] == '') and auth_item[4]:
                 auth_pass_or_key += "\nansible_ssh_private_key_file=" + \
                     auth_item[4]
-        elif auth_item[3] == 'empty':
+        elif auth_item[3] == '':
             auth_pass_or_key = '\n'
-            if (not auth_item[4] == 'empty') and auth_item[4]:
+            if (not auth_item[4] == '') and auth_item[4]:
                 auth_pass_or_key += "ansible_ssh_private_key_file=" + \
                     auth_item[4]
 
@@ -337,15 +349,15 @@ def _create_main_inventory(success_hosts, best_map, profile):
             auth_pass_or_key = ''
 
             for host in best_map[auth]:
-                string_to_write += host + ' ansible_ssh_host=' \
-                    + host + " ansible_ssh_user=" + auth_user
-                if (not auth_pass == 'empty') and auth_pass:
+                string_to_write += host + ' ansible_host=' \
+                    + host + " ansible_user=" + auth_user
+                if (not auth_pass == '') and auth_pass:
                     auth_pass_or_key = ' ansible_ssh_pass=' + auth_pass
-                    if (not auth_key == 'empty') and auth_key:
+                    if (not auth_key == '') and auth_key:
                         auth_pass_or_key += " ansible_ssh_private_key_" \
                                             "file=" + auth_key + '\n'
-                elif auth_pass == 'empty':
-                    if (not auth_key == 'empty') and auth_key:
+                elif auth_pass == '':
+                    if (not auth_key == '') and auth_key:
                         auth_pass_or_key = " ansible_ssh_private_key" \
                                            "_file=" + auth_key + '\n'
                     else:
@@ -487,6 +499,9 @@ class ScanCommand(CliCommand):
 
         # Checks if profile exists and stores information
         # about that profile for later use.
+        if not os.path.isfile('data/profiles'):
+            print(_('No profiles exist yet.'))
+            sys.exit(1)
 
         with open('data/profiles', 'r') as profiles_file:
             lines = profiles_file.readlines()
@@ -498,6 +513,9 @@ class ScanCommand(CliCommand):
                     profile_auths = line_list[2].strip().strip(',').split(',')
                     for auth in profile_auths:
                         auth = auth.strip(',').strip()
+                        if not os.path.isfile('data/credentials'):
+                            print(_('No authorization credentials exist yet.'))
+                            sys.exit(1)
                         with open('data/credentials', 'r') as credentials_file:
                             auth_lines = credentials_file.readlines()
                             for auth_line in auth_lines:

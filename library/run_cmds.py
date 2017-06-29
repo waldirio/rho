@@ -183,15 +183,20 @@ class DateRhoCmd(RhoCmd):
         """This method parses the result of the cli command
         'date' and stores it in the only field date.date.
         """
-        self.data['date.date'] = self.cmd_results['date'][0].strip()
-        self.data['date.anaconda_log'] = (
-            self.cmd_results['anaconda_log'][0].strip())
-        self.data['date.machine_id'] = (
-            self.cmd_results['machine_id'][0].strip())
-        self.data['date.filesystem_create'] = (
-            self.cmd_results['filesystem_create'][0].strip())
-        self.data['date.yum_history'] = (
-            self.cmd_results['yum_history'][0].strip())
+        if hasattr(self.cmd_results, 'date'):
+            self.data['date.date'] = self.cmd_results['date'][0].strip()
+        if hasattr(self.cmd_results, 'anaconda_log'):
+            self.data['date.anaconda_log'] = (
+                self.cmd_results['anaconda_log'][0].strip())
+        if hasattr(self.cmd_results, 'machine_id'):
+            self.data['date.machine_id'] = (
+                self.cmd_results['machine_id'][0].strip())
+        if hasattr(self.cmd_results, 'filesystem_create'):
+            self.data['date.filesystem_create'] = (
+                self.cmd_results['filesystem_create'][0].strip())
+        if hasattr(self.cmd_results, 'yum_history'):
+            self.data['date.yum_history'] = (
+                self.cmd_results['yum_history'][0].strip())
 
 
 class UnameRhoCmd(RhoCmd):

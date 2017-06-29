@@ -14,7 +14,6 @@
 """Module responsible for displaying results of rho report"""
 
 import csv
-import ast
 import os
 import json
 from ansible.module_utils.basic import AnsibleModule
@@ -34,10 +33,10 @@ class Results(object):
 
     def write_to_csv(self):
         """Output report data to file in csv format"""
-        f_path = self.file_path
+        f_path = os.path.normpath(self.file_path)
         with open(f_path, 'w') as write_file:
             file_size = os.path.getsize(f_path)
-            vals = ast.literal_eval(self.vals)
+            vals = self.vals
             fields = vals[0].keys()
             fields.sort()
             writer = csv.writer(write_file, delimiter=',')
@@ -56,9 +55,15 @@ def main():
     """Function to trigger collection of results and write
     them to csv file
     """
-    module = AnsibleModule(argument_spec=dict(name=dict(required=True),
-                                              file_path=dict(required=True),
-                                              vals=dict(required=True)))
+
+    fields = {
+        "name": {"required": True, "type": "str"},
+        "file_path": {"required": True, "type": "str"},
+        "vals": {"required": True, "type": "list"}
+    }
+
+    module = AnsibleModule(argument_spec=fields)
+
     results = Results(module=module)
     results.write_to_csv()
     vals = json.dumps(results.vals)

@@ -209,6 +209,14 @@ To run the unit tests with the interpreter available as ``python``, use::
 Continuous testing runs on travis:
 `https://travis-ci.org/quipucords/rho <https://travis-ci.org/quipucords/rho>`_
 
+
+Functional Testing
+"""""""""""""""""""
+
+To run end-to-end functional tests against local virtual machines follow the
+information in `functional test document <doc/functional_test.rst>`_.
+
+
 -------------
 Known Issues
 -------------

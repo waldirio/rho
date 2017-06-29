@@ -37,4 +37,10 @@
     name: "{{item}}"
     state: present
   with_items: "{{ additional_packages }}"
-  when: "{{ include_additional_packages }}"
+  when: include_additional_packages
+
+- name: Set authorized key for user vagrant copying it from current user
+  authorized_key:
+    user: vagrant
+    state: present
+    key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}"

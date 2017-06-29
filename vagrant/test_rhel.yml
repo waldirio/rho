@@ -1,4 +1,4 @@
-- hosts: test_1
+- hosts: all
   roles:
     - role: bootstrap
       become: yes
