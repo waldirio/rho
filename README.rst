@@ -1,7 +1,8 @@
 .. image:: https://travis-ci.org/quipucords/rho.svg?branch=master
     :target: https://travis-ci.org/quipucords/rho
-.. image:: https://coveralls.io/repos/github/quipucords/rho/badge.svg?branch=issues%2F1
-    :target: https://coveralls.io/github/quipucords/rho?branch=issues%2F1
+.. image:: https://coveralls.io/repos/github/quipucords/rho/badge.svg
+    :target: https://coveralls.io/github/quipucords/rho
+
 
 ====================================================================
    rho - Tool for discovering RHEL, Linux, and Unix Servers
