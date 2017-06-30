@@ -773,12 +773,12 @@ class ProfileEditCommand(CliCommand):
 
                 profiles_file.write(line_string + '\n')
 
-        if not auth_exists:
-            print(_("Auths do not exist."))
-            sys.exit(1)
-
         if not profile_exists:
             print(_("Profile '%s' does not exist.") % self.options.name)
+            sys.exit(1)
+
+        if not auth_exists:
+            print(_("Auths do not exist."))
             sys.exit(1)
 
         print(_("Profile '%s' edited" % self.options.name))
