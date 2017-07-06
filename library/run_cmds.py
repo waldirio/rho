@@ -24,6 +24,9 @@ import ast
 import re
 from ansible.module_utils.basic import AnsibleModule
 
+print "PYTHONPATH:", sys.path
+from ansible.module_utils import rho_cmd
+
 if sys.version_info > (3,):
     long = int  # pylint: disable=invalid-name,redefined-builtin
 
@@ -36,106 +39,9 @@ else:
 T = gettext.translation('rho', 'locale', fallback=True)
 _ = T.ugettext
 
-PRINT_LOG = ""
 
 
-class RhoCmd(object):
-    """RhoCmd and its sub-classes are wrapper classes around
-    the cli cmds we run on the host machines. The
-    rho_cmd class will have five dictionaries.
-    """
-
-    # The cmd_names dictionary maps all the commands that are associated
-    # with the class to the corresponding fields(facts) requested.
-    # The cmd_strings dictionary maps each command name to the
-    # actual command string that is run in the cli. The results
-    # so obtained are stored in the cmd_results dictionary whose
-    # keys are the command names. The fields dictionary stores
-    # the localized versions of the field names and the data
-    # dictionary is responsible for storing all the facts collected
-    # from all the classes ever invoked.
-
-    def __init__(self):
-        self.cmd_results = {}
-        self.data = {}
-        self.cmd_strings = {}
-        self.cmd_names = {}
-        self.name = "cmd_name"
-
-    def run_cmd(self, facts):
-        """run_cmd is what runs the command strings associated
-        to corresponding facts in cli of the host boxes. It
-        accepts an input variable 'facts' which can either be
-        'all' or a list of facts the user wants to collect
-        associated with the particular RhoCmd. Passing in
-        'all' would run all the command strings associated
-        with the RhoCmd thereby collecting all facts. Passing
-        in a list of facts would make the method run only
-        the command strings related to those facts.
-
-        :param facts: The facts to collect on inventory machines
-        """
-        global PRINT_LOG  # pylint: disable=global-statement
-
-        if not self.cmd_names:
-            PRINT_LOG += "RhoCmd has undefined 'cmd_names' \n"
-            return
-
-        if not self.cmd_strings:
-            PRINT_LOG += "RhoCmd has undefined 'cmd_strings' \n"
-            return
-
-        requested_cmd_names = []
-
-        if isinstance(facts, list):
-            for fact in facts:
-                for cmd_name in self.cmd_names:
-                    if fact in self.cmd_names[cmd_name]:
-                        requested_cmd_names.append(cmd_name)
-
-        elif isinstance(facts, str):
-            if facts == 'all':
-                requested_cmd_names = self.cmd_names.keys()
-            else:
-                PRINT_LOG += "Invalid string for 'facts'." \
-                             " Only permitted string " \
-                             "is 'all'. \n"
-                return
-        else:
-            PRINT_LOG += "Invalid input for facts. Acceptable" \
-                         " inputs are the string 'all' or a " \
-                         "list of strings (one for each fact) \n"
-            return
-
-        for cmd_name in requested_cmd_names:
-            cmd_string = self.cmd_strings[cmd_name]
-            try:
-                process = sp.Popen(cmd_string, shell=True,
-                                   stdout=sp.PIPE, stderr=sp.PIPE)
-                out, err = process.communicate()
-                self.cmd_results[cmd_name] = (out, err)
-            except OSError as ex:
-                PRINT_LOG += "OSError >, " + str(ex.errno) + "\n"
-                PRINT_LOG += "OSError > " + str(ex.strerror) + "\n"
-                PRINT_LOG += "OSError > " + str(ex.filename) + "\n"
-
-        self.parse_data()
-
-    def parse_data(self):
-        """Used to parse the information collected from cli
-        in order to fill in the appropriate values in
-        the data dictionary of a RhoCmd. Defined in
-        sub-class since data collected from cli differs
-        according to the command_string run. This method
-        has been documented according to sub-class
-        specifics.
-
-        :raises NotImplementedError: raises an exception
-        """
-        raise NotImplementedError
-
-
-class DateRhoCmd(RhoCmd):
+class DateRhoCmd(rho_cmd.RhoCmd):
     """DateRhoCmd has primarily one cmd_string i.e.'data'
     which is run to grab the system date.
     """
@@ -199,7 +105,7 @@ class DateRhoCmd(RhoCmd):
                 self.cmd_results['yum_history'][0].strip())
 
 
-class UnameRhoCmd(RhoCmd):
+class UnameRhoCmd(rho_cmd.RhoCmd):
     """UnameRhoCmd is the wrapper for all cli commands
     to do with 'uname -<parameter>'. There are six
     fields currently associated with this class.
@@ -247,7 +153,7 @@ class UnameRhoCmd(RhoCmd):
                         self.cmd_results[cmd_name][0].strip()
 
 
-class SubmanFactsRhoCmd(RhoCmd):
+class SubmanFactsRhoCmd(rho_cmd.RhoCmd):
     """This class wraps around the command strings
     that are meant to collect all information
     related to subscription-manager. It has
@@ -331,7 +237,7 @@ class SubmanFactsRhoCmd(RhoCmd):
                     if len(fact_files_list) > 0 else "N"
 
 
-class RedhatPackagesRhoCmd(RhoCmd):
+class RedhatPackagesRhoCmd(rho_cmd.RhoCmd):
     """This class wraps around the cli commands
     that are used to obtain information about
     Redhat packages installed on the box. Currently
@@ -488,7 +394,7 @@ class RedhatPackagesRhoCmd(RhoCmd):
             self.data['redhat-packages.last_built'] = last_built
 
 
-class RedhatReleaseRhoCmd(RhoCmd):
+class RedhatReleaseRhoCmd(rho_cmd.RhoCmd):
     """This class wraps around a single command string
     whose result is parsed to populate 4 possible
     fields, redhat-release.name, version and release.
@@ -538,7 +444,7 @@ class RedhatReleaseRhoCmd(RhoCmd):
             self.data['redhat-release.release'] = fields[2].strip()
 
 
-class EtcReleaseRhoCmd(RhoCmd):
+class EtcReleaseRhoCmd(rho_cmd.RhoCmd):
     """This class wraps around the command strings that
     get release information for boxes that contain
     non-Redhat packages installed in them. This wraps
@@ -649,7 +555,7 @@ class EtcReleaseRhoCmd(RhoCmd):
         pass
 
 
-class CpuRhoCmd(RhoCmd):
+class CpuRhoCmd(rho_cmd.RhoCmd):
     """This class wraps around just one
     command string when run gives a
     result this is parsed to fill
@@ -752,7 +658,7 @@ class CpuRhoCmd(RhoCmd):
         return data
 
 
-class _GetFileRhoCmd(RhoCmd):
+class _GetFileRhoCmd(rho_cmd.RhoCmd):
     """This is a private superclass that does not
     directly wrap around particular command
     string(s) but is used as a stencil for
@@ -882,7 +788,7 @@ class SystemIdRhoCmd(_GetFileRhoCmd):
             self.data["%s.%s" % (self.name, key)] = systemid[key]
 
 
-class DmiRhoCmd(RhoCmd):
+class DmiRhoCmd(rho_cmd.RhoCmd):
     """This class wraps around all bios related
     command strings and currently maps the,
     one on one to 4 fields.
@@ -932,7 +838,7 @@ class DmiRhoCmd(RhoCmd):
                         self.cmd_results[k][0])
 
 
-class VirtWhatRhoCmd(RhoCmd):
+class VirtWhatRhoCmd(rho_cmd.RhoCmd):
     """This class wraps around the command string
     that is run to obtain information about
     virt-what i.e. virt-what.type.
