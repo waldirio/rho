@@ -24,6 +24,8 @@ import ast
 import re
 from ansible.module_utils.basic import AnsibleModule
 
+from ansible.module_utils import rho_cmd  # pylint:disable=no-name-in-module
+
 if sys.version_info > (3,):
     long = int  # pylint: disable=invalid-name,redefined-builtin
 
@@ -36,106 +38,8 @@ else:
 T = gettext.translation('rho', 'locale', fallback=True)
 _ = T.ugettext
 
-PRINT_LOG = ""
 
-
-class RhoCmd(object):
-    """RhoCmd and its sub-classes are wrapper classes around
-    the cli cmds we run on the host machines. The
-    rho_cmd class will have five dictionaries.
-    """
-
-    # The cmd_names dictionary maps all the commands that are associated
-    # with the class to the corresponding fields(facts) requested.
-    # The cmd_strings dictionary maps each command name to the
-    # actual command string that is run in the cli. The results
-    # so obtained are stored in the cmd_results dictionary whose
-    # keys are the command names. The fields dictionary stores
-    # the localized versions of the field names and the data
-    # dictionary is responsible for storing all the facts collected
-    # from all the classes ever invoked.
-
-    def __init__(self):
-        self.cmd_results = {}
-        self.data = {}
-        self.cmd_strings = {}
-        self.cmd_names = {}
-        self.name = "cmd_name"
-
-    def run_cmd(self, facts):
-        """run_cmd is what runs the command strings associated
-        to corresponding facts in cli of the host boxes. It
-        accepts an input variable 'facts' which can either be
-        'all' or a list of facts the user wants to collect
-        associated with the particular RhoCmd. Passing in
-        'all' would run all the command strings associated
-        with the RhoCmd thereby collecting all facts. Passing
-        in a list of facts would make the method run only
-        the command strings related to those facts.
-
-        :param facts: The facts to collect on inventory machines
-        """
-        global PRINT_LOG  # pylint: disable=global-statement
-
-        if not self.cmd_names:
-            PRINT_LOG += "RhoCmd has undefined 'cmd_names' \n"
-            return
-
-        if not self.cmd_strings:
-            PRINT_LOG += "RhoCmd has undefined 'cmd_strings' \n"
-            return
-
-        requested_cmd_names = []
-
-        if isinstance(facts, list):
-            for fact in facts:
-                for cmd_name in self.cmd_names:
-                    if fact in self.cmd_names[cmd_name]:
-                        requested_cmd_names.append(cmd_name)
-
-        elif isinstance(facts, str):
-            if facts == 'all':
-                requested_cmd_names = self.cmd_names.keys()
-            else:
-                PRINT_LOG += "Invalid string for 'facts'." \
-                             " Only permitted string " \
-                             "is 'all'. \n"
-                return
-        else:
-            PRINT_LOG += "Invalid input for facts. Acceptable" \
-                         " inputs are the string 'all' or a " \
-                         "list of strings (one for each fact) \n"
-            return
-
-        for cmd_name in requested_cmd_names:
-            cmd_string = self.cmd_strings[cmd_name]
-            try:
-                process = sp.Popen(cmd_string, shell=True,
-                                   stdout=sp.PIPE, stderr=sp.PIPE)
-                out, err = process.communicate()
-                self.cmd_results[cmd_name] = (out, err)
-            except OSError as ex:
-                PRINT_LOG += "OSError >, " + str(ex.errno) + "\n"
-                PRINT_LOG += "OSError > " + str(ex.strerror) + "\n"
-                PRINT_LOG += "OSError > " + str(ex.filename) + "\n"
-
-        self.parse_data()
-
-    def parse_data(self):
-        """Used to parse the information collected from cli
-        in order to fill in the appropriate values in
-        the data dictionary of a RhoCmd. Defined in
-        sub-class since data collected from cli differs
-        according to the command_string run. This method
-        has been documented according to sub-class
-        specifics.
-
-        :raises NotImplementedError: raises an exception
-        """
-        raise NotImplementedError
-
-
-class DateRhoCmd(RhoCmd):
+class DateRhoCmd(rho_cmd.RhoCmd):
     """DateRhoCmd has primarily one cmd_string i.e.'data'
     which is run to grab the system date.
     """
@@ -199,7 +103,7 @@ class DateRhoCmd(RhoCmd):
                 self.cmd_results['yum_history'][0].strip())
 
 
-class UnameRhoCmd(RhoCmd):
+class UnameRhoCmd(rho_cmd.RhoCmd):
     """UnameRhoCmd is the wrapper for all cli commands
     to do with 'uname -<parameter>'. There are six
     fields currently associated with this class.
@@ -247,7 +151,7 @@ class UnameRhoCmd(RhoCmd):
                         self.cmd_results[cmd_name][0].strip()
 
 
-class SubmanFactsRhoCmd(RhoCmd):
+class SubmanFactsRhoCmd(rho_cmd.RhoCmd):
     """This class wraps around the command strings
     that are meant to collect all information
     related to subscription-manager. It has
@@ -331,7 +235,7 @@ class SubmanFactsRhoCmd(RhoCmd):
                     if len(fact_files_list) > 0 else "N"
 
 
-class RedhatPackagesRhoCmd(RhoCmd):
+class RedhatPackagesRhoCmd(rho_cmd.RhoCmd):
     """This class wraps around the cli commands
     that are used to obtain information about
     Redhat packages installed on the box. Currently
@@ -488,7 +392,7 @@ class RedhatPackagesRhoCmd(RhoCmd):
             self.data['redhat-packages.last_built'] = last_built
 
 
-class RedhatReleaseRhoCmd(RhoCmd):
+class RedhatReleaseRhoCmd(rho_cmd.RhoCmd):
     """This class wraps around a single command string
     whose result is parsed to populate 4 possible
     fields, redhat-release.name, version and release.
@@ -526,6 +430,7 @@ class RedhatReleaseRhoCmd(RhoCmd):
         # new line seperated string, one result only
         if self.cmd_results["get_release_info"][1]:
             # and/or, something not dumb
+            # pylint: disable=attribute-defined-outside-init
             self.data = {'redhat-release.name': 'error',
                          'redhat-release.version': 'error',
                          'redhat-release.release': 'error'}
@@ -538,7 +443,7 @@ class RedhatReleaseRhoCmd(RhoCmd):
             self.data['redhat-release.release'] = fields[2].strip()
 
 
-class EtcReleaseRhoCmd(RhoCmd):
+class EtcReleaseRhoCmd(rho_cmd.RhoCmd):
     """This class wraps around the command strings that
     get release information for boxes that contain
     non-Redhat packages installed in them. This wraps
@@ -601,7 +506,7 @@ class EtcReleaseRhoCmd(RhoCmd):
         echo $rel"""
         self.cmd_strings["get_release_info"] = cmd_string
 
-    def run_cmd(self, facts):
+    def run_cmd(self, facts):  # pylint: disable=unused-argument
         """The run_cmd method is overwritten for this
         class because of the additional requirement
         to parse the results according to the boolean
@@ -614,7 +519,6 @@ class EtcReleaseRhoCmd(RhoCmd):
 
         :param facts: The facts to collect on the inventory
         """
-        global PRINT_LOG  # pylint: disable=global-statement
 
         try:
             process_set = sp.Popen(self.cmd_strings["get_release_info"],
@@ -638,9 +542,9 @@ class EtcReleaseRhoCmd(RhoCmd):
                 self.data['etc_release.version'] = ver
                 self.data['etc_release.release'] = release
         except OSError as err:
-            PRINT_LOG += "OSError >, " + str(err.errno) + "\n"
-            PRINT_LOG += "OSError > " + str(err.strerror) + "\n"
-            PRINT_LOG += "OSError > " + str(err.filename) + "\n"
+            rho_cmd.PRINT_LOG += "OSError >, " + str(err.errno) + "\n"
+            rho_cmd.PRINT_LOG += "OSError > " + str(err.strerror) + "\n"
+            rho_cmd.PRINT_LOG += "OSError > " + str(err.filename) + "\n"
 
     def parse_data(self):
         """Functionality for this method included in
@@ -649,7 +553,7 @@ class EtcReleaseRhoCmd(RhoCmd):
         pass
 
 
-class CpuRhoCmd(RhoCmd):
+class CpuRhoCmd(rho_cmd.RhoCmd):
     """This class wraps around just one
     command string when run gives a
     result this is parsed to fill
@@ -679,7 +583,8 @@ class CpuRhoCmd(RhoCmd):
                        'cpu.model_name': _("name of cpu model"),
                        'cpu.model_ver': _("cpu model version")}
 
-    def parse_data(self):
+    def parse_data(self):  # pylint: disable=missing-docstring
+        # pylint: disable=attribute-defined-outside-init
         self.data = self.parse_data_cpu(self.cmd_results)
 
     # pylint: disable=no-self-use
@@ -752,7 +657,7 @@ class CpuRhoCmd(RhoCmd):
         return data
 
 
-class _GetFileRhoCmd(RhoCmd):
+class _GetFileRhoCmd(rho_cmd.RhoCmd):
     """This is a private superclass that does not
     directly wrap around particular command
     string(s) but is used as a stencil for
@@ -882,7 +787,7 @@ class SystemIdRhoCmd(_GetFileRhoCmd):
             self.data["%s.%s" % (self.name, key)] = systemid[key]
 
 
-class DmiRhoCmd(RhoCmd):
+class DmiRhoCmd(rho_cmd.RhoCmd):
     """This class wraps around all bios related
     command strings and currently maps the,
     one on one to 4 fields.
@@ -932,7 +837,7 @@ class DmiRhoCmd(RhoCmd):
                         self.cmd_results[k][0])
 
 
-class VirtWhatRhoCmd(RhoCmd):
+class VirtWhatRhoCmd(rho_cmd.RhoCmd):
     """This class wraps around the command string
     that is run to obtain information about
     virt-what i.e. virt-what.type.
@@ -1209,7 +1114,6 @@ class RunCommands(object):
     """
 
     def __init__(self, module):
-        global PRINT_LOG  # pylint: disable=global-statement
         self.name = module.params["name"]
         self.facts_requested = {}
 
@@ -1234,13 +1138,13 @@ class RunCommands(object):
         if isinstance(self.fact_names, list):
             for f_name in self.fact_names:
                 f_name_list = f_name.strip().split('_', 1)
-                rho_cmd = DEFAULT_CMD_DICT[f_name_list[0]]
+                command = DEFAULT_CMD_DICT[f_name_list[0]]
                 fact = f_name_list[1]
-                if rho_cmd in DEFAULT_CMDS:
-                    if rho_cmd in self.facts_requested.keys():
-                        self.facts_requested[rho_cmd].append(fact)
+                if command in DEFAULT_CMDS:
+                    if command in self.facts_requested.keys():
+                        self.facts_requested[command].append(fact)
                     else:
-                        self.facts_requested[rho_cmd] = [fact]
+                        self.facts_requested[command] = [fact]
 
                     # If type of input is a string then the only allowed,
                     # string is 'default' which means the user has requested
@@ -1252,10 +1156,10 @@ class RunCommands(object):
                 for def_cmd in DEFAULT_CMDS:
                     self.facts_requested[def_cmd] = "all"
             else:
-                PRINT_LOG += "FACT NOT AVAILABLE. EXITING \n"
+                rho_cmd.PRINT_LOG += "FACT NOT AVAILABLE. EXITING \n"
                 return
         else:
-            PRINT_LOG += "INVALID FACT TYPE. EXITING \n"
+            rho_cmd.PRINT_LOG += "INVALID FACT TYPE. EXITING \n"
             return
 
     def execute_commands(self):
@@ -1266,9 +1170,9 @@ class RunCommands(object):
         # Goes through all the default commands
         # and executes them on the box's shell
         info_dict = {}
-        for rho_cmd in self.facts_requested:
-            rcmd = rho_cmd()
-            rcmd.run_cmd(self.facts_requested[rho_cmd])
+        for command in self.facts_requested:
+            rcmd = command()
+            rcmd.run_cmd(self.facts_requested[command])
             info_dict.update(rcmd.data)
 
         if 'all' not in self.facts_requested.values():
@@ -1304,7 +1208,7 @@ def main():
         response = json.dumps(info_dict)
         module.exit_json(changed=False, meta=response)
     except OSError:
-        module.exit_json(changed=False, meta=PRINT_LOG)
+        module.exit_json(changed=False, meta=rho_cmd.PRINT_LOG)
 
 
 if __name__ == '__main__':
