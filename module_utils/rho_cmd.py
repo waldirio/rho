@@ -7,9 +7,12 @@
 # along with this software; if not, see
 # http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
 
+"""RhoCmd: a base class with common functionality for our Ansible modules."""
+
 import subprocess as sp
 
 PRINT_LOG = ""
+
 
 class RhoCmd(object):
     """RhoCmd and its sub-classes are wrapper classes around

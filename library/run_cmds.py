@@ -24,8 +24,7 @@ import ast
 import re
 from ansible.module_utils.basic import AnsibleModule
 
-print "PYTHONPATH:", sys.path
-from ansible.module_utils import rho_cmd
+from ansible.module_utils import rho_cmd  # pylint:disable=no-name-in-module
 
 if sys.version_info > (3,):
     long = int  # pylint: disable=invalid-name,redefined-builtin
@@ -38,7 +37,6 @@ else:
 
 T = gettext.translation('rho', 'locale', fallback=True)
 _ = T.ugettext
-
 
 
 class DateRhoCmd(rho_cmd.RhoCmd):
@@ -432,6 +430,7 @@ class RedhatReleaseRhoCmd(rho_cmd.RhoCmd):
         # new line seperated string, one result only
         if self.cmd_results["get_release_info"][1]:
             # and/or, something not dumb
+            # pylint: disable=attribute-defined-outside-init
             self.data = {'redhat-release.name': 'error',
                          'redhat-release.version': 'error',
                          'redhat-release.release': 'error'}
@@ -507,7 +506,7 @@ class EtcReleaseRhoCmd(rho_cmd.RhoCmd):
         echo $rel"""
         self.cmd_strings["get_release_info"] = cmd_string
 
-    def run_cmd(self, facts):
+    def run_cmd(self, facts):  # pylint: disable=unused-argument
         """The run_cmd method is overwritten for this
         class because of the additional requirement
         to parse the results according to the boolean
@@ -520,7 +519,6 @@ class EtcReleaseRhoCmd(rho_cmd.RhoCmd):
 
         :param facts: The facts to collect on the inventory
         """
-        global PRINT_LOG  # pylint: disable=global-statement
 
         try:
             process_set = sp.Popen(self.cmd_strings["get_release_info"],
@@ -544,9 +542,9 @@ class EtcReleaseRhoCmd(rho_cmd.RhoCmd):
                 self.data['etc_release.version'] = ver
                 self.data['etc_release.release'] = release
         except OSError as err:
-            PRINT_LOG += "OSError >, " + str(err.errno) + "\n"
-            PRINT_LOG += "OSError > " + str(err.strerror) + "\n"
-            PRINT_LOG += "OSError > " + str(err.filename) + "\n"
+            rho_cmd.PRINT_LOG += "OSError >, " + str(err.errno) + "\n"
+            rho_cmd.PRINT_LOG += "OSError > " + str(err.strerror) + "\n"
+            rho_cmd.PRINT_LOG += "OSError > " + str(err.filename) + "\n"
 
     def parse_data(self):
         """Functionality for this method included in
@@ -585,7 +583,8 @@ class CpuRhoCmd(rho_cmd.RhoCmd):
                        'cpu.model_name': _("name of cpu model"),
                        'cpu.model_ver': _("cpu model version")}
 
-    def parse_data(self):
+    def parse_data(self):  # pylint: disable=missing-docstring
+        # pylint: disable=attribute-defined-outside-init
         self.data = self.parse_data_cpu(self.cmd_results)
 
     # pylint: disable=no-self-use
@@ -1115,7 +1114,6 @@ class RunCommands(object):
     """
 
     def __init__(self, module):
-        global PRINT_LOG  # pylint: disable=global-statement
         self.name = module.params["name"]
         self.facts_requested = {}
 
@@ -1140,13 +1138,13 @@ class RunCommands(object):
         if isinstance(self.fact_names, list):
             for f_name in self.fact_names:
                 f_name_list = f_name.strip().split('_', 1)
-                rho_cmd = DEFAULT_CMD_DICT[f_name_list[0]]
+                command = DEFAULT_CMD_DICT[f_name_list[0]]
                 fact = f_name_list[1]
-                if rho_cmd in DEFAULT_CMDS:
-                    if rho_cmd in self.facts_requested.keys():
-                        self.facts_requested[rho_cmd].append(fact)
+                if command in DEFAULT_CMDS:
+                    if command in self.facts_requested.keys():
+                        self.facts_requested[command].append(fact)
                     else:
-                        self.facts_requested[rho_cmd] = [fact]
+                        self.facts_requested[command] = [fact]
 
                     # If type of input is a string then the only allowed,
                     # string is 'default' which means the user has requested
@@ -1158,10 +1156,10 @@ class RunCommands(object):
                 for def_cmd in DEFAULT_CMDS:
                     self.facts_requested[def_cmd] = "all"
             else:
-                PRINT_LOG += "FACT NOT AVAILABLE. EXITING \n"
+                rho_cmd.PRINT_LOG += "FACT NOT AVAILABLE. EXITING \n"
                 return
         else:
-            PRINT_LOG += "INVALID FACT TYPE. EXITING \n"
+            rho_cmd.PRINT_LOG += "INVALID FACT TYPE. EXITING \n"
             return
 
     def execute_commands(self):
@@ -1172,9 +1170,9 @@ class RunCommands(object):
         # Goes through all the default commands
         # and executes them on the box's shell
         info_dict = {}
-        for rho_cmd in self.facts_requested:
-            rcmd = rho_cmd()
-            rcmd.run_cmd(self.facts_requested[rho_cmd])
+        for command in self.facts_requested:
+            rcmd = command()
+            rcmd.run_cmd(self.facts_requested[command])
             info_dict.update(rcmd.data)
 
         if 'all' not in self.facts_requested.values():
@@ -1210,7 +1208,7 @@ def main():
         response = json.dumps(info_dict)
         module.exit_json(changed=False, meta=response)
     except OSError:
-        module.exit_json(changed=False, meta=PRINT_LOG)
+        module.exit_json(changed=False, meta=rho_cmd.PRINT_LOG)
 
 
 if __name__ == '__main__':
