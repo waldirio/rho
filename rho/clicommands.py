@@ -21,6 +21,7 @@ import uuid
 import re
 import glob
 import time
+import json
 import subprocess as sp
 from collections import defaultdict
 from collections import OrderedDict
@@ -138,73 +139,6 @@ def _check_range_validity(range_list):
                 print(_("No such hosts file."))
             print(_("Bad host name/range : '%s'") % reg_item)
             sys.exit(1)
-
-
-# Function to write to the playbook. Takes in the facts
-# requested by the user and the file path for the report.
-def _edit_playbook(facts, report_path):
-    string_to_write = "---\n\n- name: Collect these facts\n" \
-                      "  run_cmds: name=whatever fact_names=default\n" \
-                      "  register: facts_all\n\n" \
-                      "- name: record host returned dictionary\n" \
-                      "  set_fact:\n    res={{facts_all.meta}}\n"
-    # pylint: disable=unidiomatic-typecheck
-    if os.path.isfile(facts[0]) and not facts == ['default']:
-        my_facts = _read_in_file(facts[0])
-        string_to_write = "---\n\n- name: Collect these facts\n" \
-                          "  set_fact:\n    fact_list:\n"
-        string_to_write = _stringify_facts(string_to_write, my_facts)
-    elif type(facts) == list and len(facts) >= 1 and\
-            not facts == ['default']:
-        string_to_write = "---\n\n- name: Collect these facts\n" \
-                          "  set_fact:\n    fact_list:\n"
-        string_to_write = _stringify_facts(string_to_write, facts)
-    elif not facts == ['default']:
-        print(_("facts can be a file, list or 'default' only"))
-        sys.exit(1)
-
-    report_path = os.path.abspath(os.path.normpath(report_path))
-
-    if not os.path.exists('roles/collect/tasks'):
-        os.makedirs('roles/collect/tasks')
-
-    with open('roles/collect/tasks/main.yml', 'w') as collect_task_file:
-        collect_task_file.write(string_to_write)
-
-    string_to_write = '---\n\n- name: store facts from all' \
-                      ' hosts in a variable\n  set_fact: ' \
-                      'host_fact={{hostvars[item]["res"]}}\n ' \
-                      ' with_items: "{{groups.alpha}}"\n ' \
-                      ' register: host_facts\n\n- name:' \
-                      ' parse variable into a list of dictionaries' \
-                      '\n  set_fact: host_facts="{{ host_facts.results' \
-                      ' | map(attribute="ansible_facts.host_fact") | list }}' \
-                      '"\n\n- name: write the list to a csv\n  spit_results:' \
-                      ' name=spit file_path=' + report_path + ' vals' \
-                                                              '={{host_' \
-                                                              'facts}}\n'
-
-    if not os.path.exists('roles/write/tasks'):
-        os.makedirs('roles/write/tasks')
-    with open('roles/write/tasks/main.yml', 'w') as write_task_file:
-        write_task_file.write(string_to_write)
-
-
-# Helper function to fill in the collect role
-# of the playbook.
-def _stringify_facts(string_to_write, facts):
-    for fact in facts:
-        string_to_write += "      - " + fact + "\n"
-
-    string_to_write += "\n- name: grab info from list\n" \
-                       "  run_cmds: name=list_facts fact_names" \
-                       "={{fact_list}}\n" \
-                       "  register: facts_selected\n\n" \
-                       "- name: record host returned dictionary\n" \
-                       "  set_fact:\n" \
-                       "    res={{facts_selected.meta}}\n"
-
-    return string_to_write
 
 
 # Creates the inventory for pinging all hosts and records
@@ -490,6 +424,7 @@ class ScanCommand(CliCommand):
 
     def _do_command(self):
         # pylint: disable=too-many-locals
+        # pylint: disable=too-many-branches
         profile = self.options.profile
 
         facts = self.options.facts
@@ -497,7 +432,8 @@ class ScanCommand(CliCommand):
         forks = self.options.ansible_forks \
             if self.options.ansible_forks else '50'
 
-        report_path = self.options.report_path
+        report_path = os.path.abspath(os.path.normpath(
+            self.options.report_path))
 
         profile_exists = False
 
@@ -536,8 +472,6 @@ class ScanCommand(CliCommand):
             print(_("Invalid profile. Create profile first"))
             sys.exit(1)
 
-        _edit_playbook(facts, report_path)
-
         # reset is used when the profile has just been created
         # or freshly updated.
 
@@ -563,11 +497,28 @@ class ScanCommand(CliCommand):
                   "Please use --reset with profile first.")
             sys.exit(1)
 
-        cmd_string = 'ansible-playbook rho_playbook.yml -i data/'\
-                     + profile + '_hosts ' + '-v -f ' + forks
+        if facts == ['default']:
+            facts_to_collect = 'default'
+        elif os.path.isfile(facts[0]):
+            facts_to_collect = _read_in_file(facts[0])
+        else:
+            assert isinstance(facts, list)
+            facts_to_collect = facts
+
+        ansible_vars = {'facts_to_collect': facts_to_collect,
+                        'report_path': report_path}
+
+        cmd_string = ('ansible-playbook rho_playbook.yml '
+                      '-i data/{profile}_hosts -v -f {forks} '
+                      '--extra-vars \'{vars}\'').format(
+                          profile=profile,
+                          forks=forks,
+                          vars=json.dumps(ansible_vars))
 
         # process finally runs ansible on the
         # playbook and inventories thus created.
+
+        print('Running:', cmd_string)
 
         process = sp.Popen(cmd_string,
                            shell=True)

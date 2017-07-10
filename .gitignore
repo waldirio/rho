@@ -17,7 +17,6 @@ build
 .build
 test/coverage
 data
-roles
 
 .vagrant
 *.retry

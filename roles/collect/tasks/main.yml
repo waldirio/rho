@@ -1,0 +1,9 @@
+---
+
+- name: Collect these facts
+  run_cmds: name=whatever fact_names={{facts_to_collect}}
+  register: facts_all
+
+- name: record host returned dictionary
+  set_fact:
+    res={{facts_all.meta}}

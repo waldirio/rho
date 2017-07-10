@@ -23,7 +23,6 @@ import xml
 import ast
 import re
 from ansible.module_utils.basic import AnsibleModule
-
 from ansible.module_utils import rho_cmd  # pylint:disable=no-name-in-module
 
 if sys.version_info > (3,):
