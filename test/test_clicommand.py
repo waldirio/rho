@@ -9,16 +9,21 @@
 # http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
 #
 
-# pylint: disable=R0903
+# pylint: disable=too-few-public-methods
 
 """ Unit tests for CLI """
 
 import unittest
 import sys
-from rho.clicommands import AuthAddCommand, AuthListCommand, \
-    AuthClearCommand, AuthEditCommand, ProfileAddCommand, \
-    ProfileClearCommand, ProfileEditCommand, \
-    ProfileListCommand, ScanCommand
+from rho.authaddcommand import AuthAddCommand
+from rho.authlistcommand import AuthListCommand
+from rho.authclearcommand import AuthClearCommand
+from rho.autheditcommand import AuthEditCommand
+from rho.profileaddcommand import ProfileAddCommand
+from rho.profileclearcommand import ProfileClearCommand
+from rho.profileeditcommand import ProfileEditCommand
+from rho.profilelistcommand import ProfileListCommand
+from rho.scancommand import ScanCommand
 
 
 class HushUpStderr(object):

@@ -41,6 +41,6 @@ lint-flake8:
 	flake8 . --ignore D203
 
 lint-pylint:
-	pylint */*.py
+	pylint --disable=duplicate-code */*.py
 
 lint: lint-flake8 lint-pylint

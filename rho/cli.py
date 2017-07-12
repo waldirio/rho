@@ -11,18 +11,29 @@
 # http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
 #
 
-# pylint: disable=R0903
+# pylint: disable=R0903, unused-import
 
 """ Rho Command Line Interface """
 
 from __future__ import print_function
 import sys
 import os
-import gettext
-import rho.clicommands
+import inspect
+from rho.clicommand import CliCommand
+from rho.authaddcommand import AuthAddCommand  # noqa
+from rho.authclearcommand import AuthClearCommand  # noqa
+from rho.autheditcommand import AuthEditCommand  # noqa
+from rho.authlistcommand import AuthListCommand  # noqa
+from rho.authshowcommand import AuthShowCommand  # noqa
+from rho.profileaddcommand import ProfileAddCommand  # noqa
+from rho.profileclearcommand import ProfileClearCommand  # noqa
+from rho.profileeditcommand import ProfileEditCommand  # noqa
+from rho.profilelistcommand import ProfileListCommand  # noqa
+from rho.profileshowcommand import ProfileShowCommand  # noqa
+from rho.scancommand import ScanCommand  # noqa
+from rho.translation import get_translation
 
-T = gettext.translation('rho', 'locale', fallback=True)
-_ = T.ugettext
+_ = get_translation()
 
 
 class CLI(object):
@@ -31,14 +42,15 @@ class CLI(object):
     """
     def __init__(self):
         self.cli_commands = {}
-        for clazz in rho.clicommands.__dict__.values():
-            if isinstance(clazz, type) and  \
-                    issubclass(clazz, rho.clicommands.CliCommand):
-
-                cmd = clazz()
-                # ignore the base class
-                if cmd.name != "cli":
-                    self.cli_commands[cmd.name] = cmd
+        # pylint: disable=unused-variable
+        for name, clazz in inspect.getmembers(sys.modules[__name__]):
+            if inspect.isclass(clazz):
+                if isinstance(clazz, type) and  \
+                        issubclass(clazz, CliCommand):
+                    cmd = clazz()
+                    # ignore the base class
+                    if cmd.name != "cli":
+                        self.cli_commands[cmd.name] = cmd
 
     def _add_command(self, cmd):
         """Add a command to the valid commands list
