@@ -5,7 +5,12 @@ pytest-cov
 # Mocking library
 Mock
 
+#Linting
 flake8
 pylint
 
+#Coverage
 Coverage
+
+#Docs
+Sphinx

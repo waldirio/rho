@@ -17,6 +17,8 @@ build
 .build
 test/coverage
 data
+doc/source/modules.rst
+doc/source/rho.rst
 
 .vagrant
 *.retry
