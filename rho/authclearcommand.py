@@ -18,6 +18,7 @@ from __future__ import print_function
 import os
 import sys
 from rho.clicommand import CliCommand
+from rho.vault import get_vault
 from rho.translation import get_translation
 
 _ = get_translation()
@@ -41,6 +42,9 @@ class AuthClearCommand(CliCommand):
                                       "credential to be removed"))
         self.parser.add_option("--all", dest="all", action="store_true",
                                help=_("remove ALL auth credentials"))
+        self.parser.add_option("--vault", dest="vaultfile", metavar="VAULT",
+                               help=_("file containing vault password for"
+                                      " scripting"))
 
     def _validate_options(self):
         CliCommand._validate_options(self)
@@ -54,25 +58,20 @@ class AuthClearCommand(CliCommand):
             sys.exit(1)
 
     def _do_command(self):
+        credentials_path = 'data/credentials'
+
         if self.options.name:
-            with open('data/credentials', 'r') as creds_read:
-                with open('data/cred-temp', 'w') as temp_creds_write:
-                    for line in creds_read:
-                        temp_creds_write.write(line)
-
-            with open('data/cred-temp', 'r') as temp_creds_read:
-                with open('data/credentials', 'w') as creds_write:
-                    for line in temp_creds_read:
-                        if not line.strip().split(',')[1] \
-                                == self.options.name:
-                            creds_write.write(line)
-
-            os.remove('data/cred-temp')
+            vault = get_vault(self.options.vaultfile)
+            if os.path.isfile(credentials_path):
+                cred_list = vault.load_as_json(credentials_path)
+                for index, cred in enumerate(cred_list):
+                    if cred.get('name') == self.options.name:
+                        del cred_list[index]
+                        break
+                vault.dump_as_json_to_file(cred_list, credentials_path)
 
         elif self.options.all:
-            if os.path.isfile('data/credentials'):
-                os.remove('data/credentials')
-            if os.path.isfile('data/cred-temp'):
-                os.remove('data/cred-temp')
+            if os.path.isfile(credentials_path):
+                os.remove(credentials_path)
 
             print(_("All authorization credentials removed"))

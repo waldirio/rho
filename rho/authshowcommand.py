@@ -17,6 +17,7 @@ from __future__ import print_function
 import os
 import sys
 from rho.clicommand import CliCommand
+from rho.vault import get_vault
 from rho.translation import get_translation
 
 _ = get_translation()
@@ -38,6 +39,9 @@ class AuthShowCommand(CliCommand):
 
         self.parser.add_option("--name", dest="name", metavar="NAME",
                                help=_("auth credential name - REQUIRED"))
+        self.parser.add_option("--vault", dest="vaultfile", metavar="VAULT",
+                               help=_("file containing vault password for"
+                                      " scripting"))
 
     def _validate_options(self):
         CliCommand._validate_options(self)
@@ -47,29 +51,30 @@ class AuthShowCommand(CliCommand):
             sys.exit(1)
 
     def _do_command(self):
-        if not os.path.isfile('data/credentials'):
-
+        vault = get_vault(self.options.vaultfile)
+        credentials_path = 'data/credentials'
+        auth_found = False
+        if not os.path.isfile(credentials_path):
             print(_("No auth credentials found"))
+        else:
+            cred_list = vault.load_as_json(credentials_path)
 
-        auth_exists = False
+            for cred in cred_list:
+                if cred.get('name') == self.options.name:
+                    auth_found = True
+                    output = cred.get('id') + ','
+                    output += cred.get('name') + ','
+                    output += cred.get('username')
+                    password = cred.get('password')
+                    sshkeyfile = cred.get('ssh_key_file')
+                    if not password == '':
+                        output += ',******'
+                    if not sshkeyfile == '':
+                        output += ',' + sshkeyfile
 
-        with open('data/credentials', 'r') as credentials_file:
-            lines = credentials_file.readlines()
-            for line in lines:
-                line_list = line.strip().split(',')
-                if line_list[1] == self.options.name:
-                    auth_exists = True
-                    if line_list[4] and line_list[3]:
-                        print(', '.join(line_list[0:3]) +
-                              ', ********, ' + line_list[4])
-                    elif not line_list[4]:
-                        print(', '.join(line_list[0:3]) +
-                              ', ********')
-                    else:
-                        print(', '.join(line_list[0:3]) +
-                              ', ' + line_list[4])
+                    print(output)
+                    break
 
-        if not auth_exists:
-
-            print(_('Auth "%s" does not exist' % self.options.name))
-            sys.exit(1)
+            if not auth_found:
+                print(_('Auth "%s" does not exist' % self.options.name))
+                sys.exit(1)

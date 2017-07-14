@@ -16,7 +16,10 @@ and authentication credentials
 
 from __future__ import print_function
 import sys
+import os
+import json
 from rho.clicommand import CliCommand
+from rho.vault import get_vault
 from rho.translation import get_translation
 
 _ = get_translation()
@@ -39,6 +42,10 @@ class ProfileShowCommand(CliCommand):
         self.parser.add_option("--name", dest="name", metavar="NAME",
                                help=_("profile name - REQUIRED"))
 
+        self.parser.add_option("--vault", dest="vaultfile", metavar="VAULT",
+                               help=_("file containing vault password for"
+                                      " scripting"))
+
     def _validate_options(self):
         CliCommand._validate_options(self)
 
@@ -47,16 +54,23 @@ class ProfileShowCommand(CliCommand):
             sys.exit(1)
 
     def _do_command(self):
-        profile_exists = False
-        with open('data/profiles', 'r') as profiles_file:
-            lines = profiles_file.readlines()
-            for line in lines:
-                line_list = line.strip().split(',____,')
-                if line_list[0] == self.options.name:
-                    profile_exists = True
-                    profile_str = ', '.join(line_list[0:3] + [line_list[3]])
-                    print(profile_str)
+        vault = get_vault(self.options.vaultfile)
+        profiles_path = 'data/profiles'
 
-        if not profile_exists:
+        if not os.path.isfile(profiles_path):
+            print(_('No profiles exist yet.'))
+            sys.exit(1)
+
+        profile_found = False
+        profiles_list = vault.load_as_json(profiles_path)
+        for profile in profiles_list:
+            if self.options.name == profile.get('name'):
+                profile_found = True
+                data = json.dumps(profile, sort_keys=True, indent=4,
+                                  separators=(',', ': '))
+                print(data)
+                break
+
+        if not profile_found:
             print(_("Profile '%s' does not exist.") % self.options.name)
             sys.exit(1)

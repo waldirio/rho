@@ -22,6 +22,7 @@ import subprocess as sp
 from collections import defaultdict
 from copy import copy
 from rho.clicommand import CliCommand
+from rho.vault import get_vault
 from rho.utilities import multi_arg, _read_in_file
 from rho.translation import get_translation
 
@@ -66,7 +67,13 @@ def _create_ping_inventory(profile_ranges, profile_port, profile_auth_list,
 
     string_header = copy(string_to_write)
 
-    for auth_item in profile_auth_list:
+    for cred_item in profile_auth_list:
+        auth_item = [cred_item.get('id'),
+                     cred_item.get('name'),
+                     cred_item.get('username'),
+                     cred_item.get('password'),
+                     cred_item.get('ssh_key_file')]
+
         ping_inventory = open('data/ping-inventory', 'w')
         string_to_write = \
             string_header + \
@@ -238,6 +245,10 @@ class ScanCommand(CliCommand):
                                metavar="FORKS",
                                help=_("number of ansible forks"))
 
+        self.parser.add_option("--vault", dest="vaultfile", metavar="VAULT",
+                               help=_("file containing vault password for"
+                                      " scripting"))
+
     def _validate_options(self):
         CliCommand._validate_options(self)
 
@@ -270,61 +281,54 @@ class ScanCommand(CliCommand):
     def _do_command(self):
         # pylint: disable=too-many-locals
         # pylint: disable=too-many-branches
+        vault = get_vault(self.options.vaultfile)
+        profiles_path = 'data/profiles'
+        credentials_path = 'data/credentials'
+        profile_found = False
+        profile_auth_list = []
+        profile_ranges = []
+        profile_port = 22
         profile = self.options.profile
-
         facts = self.options.facts
-
         forks = self.options.ansible_forks \
             if self.options.ansible_forks else '50'
-
         report_path = os.path.abspath(os.path.normpath(
             self.options.report_path))
 
-        profile_exists = False
-
-        profile_auth_list = []
-        profile_ranges = []
-
         # Checks if profile exists and stores information
         # about that profile for later use.
-        if not os.path.isfile('data/profiles'):
+        if not os.path.isfile(profiles_path):
             print(_('No profiles exist yet.'))
             sys.exit(1)
 
-        with open('data/profiles', 'r') as profiles_file:
-            lines = profiles_file.readlines()
-            for line in lines:
-                line_list = line.split(',____,')
-                if line_list[0] == profile:
-                    profile_exists = True
-                    profile_ranges = line_list[1].strip().strip(',').split(',')
-                    profile_port = line_list[2].strip().strip(',').split(',')
-                    profile_auths = line_list[3].strip().strip(',').split(',')
-                    for auth in profile_auths:
-                        auth = auth.strip(',').strip()
-                        if not os.path.isfile('data/credentials'):
-                            print(_('No authorization credentials exist yet.'))
-                            sys.exit(1)
-                        with open('data/credentials', 'r') as credentials_file:
-                            auth_lines = credentials_file.readlines()
-                            for auth_line in auth_lines:
-                                auth_line_list = auth_line.split(',')
-                                if auth_line_list[0] == auth:
-                                    profile_auth_list.append(auth_line_list)
-                    break
+        if not os.path.isfile(credentials_path):
+            print(_('No auth credentials exist yet.'))
+            sys.exit(1)
 
-        if not profile_exists:
+        profiles_list = vault.load_as_json(profiles_path)
+        for curr_profile in profiles_list:
+            if self.options.profile == curr_profile.get('name'):
+                profile_found = True
+                profile_ranges = curr_profile.get('hosts')
+                profile_auths = curr_profile.get('auth')
+                profile_port = curr_profile.get('ssh_port')
+                cred_list = vault.load_as_json(credentials_path)
+                for auth in profile_auths:
+                    for cred in cred_list:
+                        if auth.get('id') == cred.get('id'):
+                            profile_auth_list.append(cred)
+                break
+
+        if not profile_found:
             print(_("Invalid profile. Create profile first"))
             sys.exit(1)
 
         # reset is used when the profile has just been created
         # or freshly updated.
-
         if self.options.reset:
-
             success_auths, success_hosts, best_map, success_map, \
                 success_port_map = _create_ping_inventory(profile_ranges,
-                                                          profile_port[0],
+                                                          profile_port,
                                                           profile_auth_list,
                                                           forks)
 

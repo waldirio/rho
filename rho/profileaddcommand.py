@@ -15,14 +15,46 @@ and authentication credentials
 """
 
 from __future__ import print_function
-import csv
 import os
 import sys
+from collections import OrderedDict
 from rho.clicommand import CliCommand
+from rho.vault import get_vault
 from rho.utilities import multi_arg, _check_range_validity, _read_in_file
 from rho.translation import get_translation
 
 _ = get_translation()
+
+
+def profile_exists(profile_list, profile_name):
+    """ Checks whether a network profile already exists
+    :param profile_list: A list of profile dictionaries
+    :param profile_name: Name of a network profile to check for existence
+    :returns: True if profile_name exists, False otherwise
+    """
+    profile_found = False
+    for profile in profile_list:
+        if profile.get('name') == profile_name:
+            profile_found = True
+            break
+    return profile_found
+
+
+def _save_profile(vault, new_profile, profiles_list):
+    """ Write new profile in the related file
+    :param vault: Vault object for writing encrypted data
+    :param new_profile: New profile to be added to the profiles file
+    :param profiles_list: A list of existing profiles dictionaries from the
+    profiles file
+    """
+    profiles_path = 'data/profiles'
+
+    if not os.path.exists('data'):
+        os.makedirs('data')
+
+    profiles_list.append(new_profile)
+
+    vault.dump_as_json_to_file(profiles_list, profiles_path)
 
 
 class ProfileAddCommand(CliCommand):
@@ -52,6 +84,9 @@ class ProfileAddCommand(CliCommand):
                                action="callback", callback=multi_arg,
                                default=[], help=_("auth class to "
                                                   "associate with profile"))
+        self.parser.add_option("--vault", dest="vaultfile", metavar="VAULT",
+                               help=_("file containing vault password for"
+                                      " scripting"))
 
     def _validate_options(self):
         CliCommand._validate_options(self)
@@ -68,26 +103,23 @@ class ProfileAddCommand(CliCommand):
             self.parser.print_help()
             sys.exit(1)
 
+    # pylint: disable=too-many-locals
     def _do_command(self):
-        # pylint: disable=too-many-locals
-        profile_exists = False
-
+        vault = get_vault(self.options.vaultfile)
         hosts_list = self.options.hosts
+        profiles_path = 'data/profiles'
+        profiles_list = []
+        credentials_path = 'data/credentials'
         ssh_port = 22
+
         if hasattr(self.options, 'sshport') \
            and self.options.sshport is not None:
             ssh_port = self.options.sshport
 
-        if os.path.isfile('data/profiles'):
-            with open('data/profiles', 'r') as profiles_file:
-                lines = profiles_file.readlines()
-                for line in lines:
-                    line_list = line.strip().split(',____,')
-                    if line_list[0] == self.options.name:
-                        profile_exists = True
-
-            if profile_exists:
-
+        if os.path.isfile(profiles_path):
+            profiles_list = vault.load_as_json(profiles_path)
+            profile_found = profile_exists(profiles_list, self.options.name)
+            if profile_found:
                 print(_("Profile '%s' already exists.") % self.options.name)
                 sys.exit(1)
 
@@ -99,33 +131,30 @@ class ProfileAddCommand(CliCommand):
 
         _check_range_validity(range_list)
 
+        if not os.path.isfile(credentials_path):
+            print(_('No credentials exist yet.'))
+            sys.exit(1)
+
         creds = []
-        cred_names = []
+        cred_list = vault.load_as_json(credentials_path)
         for auth in self.options.auth:
             for auth_item in auth.strip().split(","):
                 valid = False
-                if not os.path.isfile('data/credentials'):
-
-                    print(_('No credentials exist yet.'))
-                    sys.exit(1)
-
-                with open('data/credentials', 'r') as credentials_file:
-                    lines = credentials_file.readlines()
-                    for line in lines:
-                        line_list = line.strip().split(',')
-                        if line_list[1] == auth_item:
-                            valid = True
-                            # add the uuids of credentials
-                            creds.append(line_list[0])
-                            cred_names.append(line_list[1])
+                for cred in cred_list:
+                    if cred.get('name') == auth:
+                        valid = True
+                        # add the uuids of credentials
+                        store_cred = {'id': cred.get('id'),
+                                      'name': cred.get('name')}
+                        creds.append(store_cred)
 
                 if not valid:
                     print("Auth " + auth_item + " does not exist")
                     sys.exit(1)
 
-        with open('data/profiles', 'a') as profiles_file:
-            profile_list = [self.options.name] + ['____'] + range_list \
-                + ['____'] + [str(ssh_port)] + ['____'] + creds + ['____'] + \
-                cred_names
-            csv_w = csv.writer(profiles_file)
-            csv_w.writerow(profile_list)
+        new_profile = OrderedDict([("name", self.options.name),
+                                   ("hosts", range_list),
+                                   ("ssh_port", str(ssh_port)),
+                                   ("auth", creds)])
+
+        _save_profile(vault, new_profile, profiles_list)

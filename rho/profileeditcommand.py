@@ -17,8 +17,8 @@ and authentication credentials
 from __future__ import print_function
 import os
 import sys
-from copy import copy
 from rho.clicommand import CliCommand
+from rho.vault import get_vault
 from rho.utilities import multi_arg, _check_range_validity, _read_in_file
 from rho.translation import get_translation
 
@@ -55,6 +55,9 @@ class ProfileEditCommand(CliCommand):
                                                   " class"
                                                   " to associate"
                                                   " with profile"))
+        self.parser.add_option("--vault", dest="vaultfile", metavar="VAULT",
+                               help=_("file containing vault password for"
+                                      " scripting"))
 
     def _validate_options(self):
         CliCommand._validate_options(self)
@@ -72,93 +75,66 @@ class ProfileEditCommand(CliCommand):
     def _do_command(self):
         # pylint: disable=too-many-locals, too-many-branches
         # pylint: disable=too-many-statements, too-many-nested-blocks
-        profile_exists = False
-        auth_exists = False
-
+        vault = get_vault(self.options.vaultfile)
+        profiles_path = 'data/profiles'
+        credentials_path = 'data/credentials'
+        cred_list = []
+        profiles_list = []
         range_list = []
+        profile_found = False
+        auth_found = False
+
+        if not os.path.isfile(credentials_path):
+            print(_('No credentials exist yet.'))
+            sys.exit(1)
+
+        if not os.path.isfile(profiles_path):
+            print(_('No profiles exist yet.'))
+            sys.exit(1)
+
+        cred_list = vault.load_as_json(credentials_path)
+        profiles_list = vault.load_as_json(profiles_path)
 
         if self.options.hosts:
             hosts_list = self.options.hosts
-
             range_list = hosts_list
             # pylint: disable=len-as-condition
             if len(hosts_list) > 0 and os.path.isfile(hosts_list[0]):
                 range_list = _read_in_file(hosts_list[0])
 
-        # makes sure the hosts passed in are in a format Ansible
-        # understands.
-
+            # makes sure the hosts passed in are in a format Ansible
+            # understands.
             _check_range_validity(range_list)
-        if not os.path.isfile('data/profiles'):
-            print(_('No profiles exist yet.'))
-            sys.exit(1)
 
-        if not os.path.isfile('data/credentials'):
-            print(_('No credentials exist yet.'))
-            sys.exit(1)
+        for curr_profile in profiles_list:
+            if curr_profile.get('name') == self.options.name:
+                profile_found = True
+                if self.options.hosts:
+                    curr_profile['hosts'] = range_list
 
-        with open('data/profiles', 'r') as profiles_file:
-            lines = profiles_file.readlines()
+                if self.options.sshport:
+                    curr_profile['ssh_port'] = str(self.options.sshport)
 
-        with open('data/credentials', 'r') as credentials_file:
-            auth_lines = credentials_file.readlines()
+                if self.options.auth:
+                    new_auths = []
+                    auth_list = self.options.auth
+                    for auth in auth_list:
+                        for cred in cred_list:
+                            if auth == cred.get('name'):
+                                auth_found = True
+                                store_cred = {'id': cred.get('id'),
+                                              'name': cred.get('name')}
+                                new_auths.append(store_cred)
+                    if not auth_found:
+                        print(_("Auths do not exist."))
+                        sys.exit(1)
 
-        with open('data/profiles', 'w') as profiles_file:
-            for line in lines:
-                range_change = False
-                auth_change = False
-                line_list = line.strip().split(',____,')
-                old_line_list = copy(line_list)
+                    curr_profile['auth'] = new_auths
+                break
 
-                if line_list[0] \
-                        == self.options.name:
-                    range_change = True
-                    string_id_one = ''
-                    profile_exists = True
-
-                    if self.options.hosts:
-
-                        for range_item in range_list:
-                            string_id_one += ', ' + range_item
-
-                        string_id_one = string_id_one.strip(',')
-                        line_list[1] = string_id_one.rstrip(',').rstrip(' ')
-
-                    if self.options.sshport:
-                        line_list[2] = str(self.options.sshport)
-
-                    if self.options.auth:
-                        string_id_two = ''
-                        string_id_three = ''
-                        auth_list = self.options.auth
-                        for auth in auth_list:
-                            for auth_line in auth_lines:
-                                line_auth_list = auth_line.strip().split(',')
-                                if line_auth_list[1] == auth:
-                                    auth_change = True
-                                    auth_exists = True
-                                    string_id_two += line_auth_list[0] + ', '
-                                    string_id_three += auth + ', '
-
-                        if auth_change:
-                            line_list[3] = \
-                                string_id_two.rstrip(',').rstrip(' ')
-                            line_list[4] = \
-                                string_id_three.rstrip(',').rstrip(' ')
-
-                if range_change or auth_change:
-                    line_string = ',____,'.join(line_list)
-                else:
-                    line_string = ',____,'.join(old_line_list)
-
-                profiles_file.write(line_string + '\n')
-
-        if not profile_exists:
+        if not profile_found:
             print(_("Profile '%s' does not exist.") % self.options.name)
             sys.exit(1)
 
-        if not auth_exists:
-            print(_("Auths do not exist."))
-            sys.exit(1)
-
+        vault.dump_as_json_to_file(profiles_list, profiles_path)
         print(_("Profile '%s' edited" % self.options.name))

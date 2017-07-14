@@ -18,6 +18,7 @@ from __future__ import print_function
 import os
 import sys
 from rho.clicommand import CliCommand
+from rho.vault import get_vault
 from rho.translation import get_translation
 
 _ = get_translation()
@@ -35,23 +36,29 @@ class AuthListCommand(CliCommand):
         desc = _("list authentication credentials")
 
         CliCommand.__init__(self, "auth list", usage, shortdesc, desc)
+        self.parser.add_option("--vault", dest="vaultfile", metavar="VAULT",
+                               help=_("file containing vault password for"
+                                      " scripting"))
 
     def _do_command(self):
-        if not os.path.isfile('data/credentials'):
+        vault = get_vault(self.options.vaultfile)
+        credentials_path = 'data/credentials'
 
+        if not os.path.isfile(credentials_path):
             print(_('No credentials exist yet.'))
             sys.exit(1)
 
-        with open('data/credentials', 'r') as credentials_file:
-            lines = credentials_file.readlines()
-            for line in lines:
-                line_list = line.strip().split(',')
-                if line_list[3] and line_list[4]:
-                    print(', '.join(line_list[0:3]) +
-                          ', ********, ' + line_list[4])
-                elif not line_list[4]:
-                    print(', '.join(line_list[0:3]) +
-                          ', ********')
-                else:
-                    print(', '.join(line_list[0:3]) +
-                          ', ' + line_list[4])
+        cred_list = vault.load_as_json(credentials_path)
+
+        for cred in cred_list:
+            output = cred.get('id') + ','
+            output += cred.get('name') + ','
+            output += cred.get('username')
+            password = cred.get('password')
+            sshkeyfile = cred.get('ssh_key_file')
+            if not password == '':
+                output += ',******'
+            if not sshkeyfile == '':
+                output += ',' + sshkeyfile
+
+            print(output)

@@ -19,6 +19,7 @@ import os
 import sys
 import glob
 from rho.clicommand import CliCommand
+from rho.vault import get_vault
 from rho.translation import get_translation
 
 _ = get_translation()
@@ -45,6 +46,9 @@ class ProfileClearCommand(CliCommand):
                                help=_("remove ALL profiles"))
 
         self.parser.set_defaults(all=False)
+        self.parser.add_option("--vault", dest="vaultfile", metavar="VAULT",
+                               help=_("file containing vault password for"
+                                      " scripting"))
 
     def _validate_options(self):
         CliCommand._validate_options(self)
@@ -57,25 +61,28 @@ class ProfileClearCommand(CliCommand):
             self.parser.print_help()
             sys.exit(1)
 
+    # pylint: disable=too-many-branches
     def _do_command(self):
+        profiles_path = 'data/profiles'
+        profiles_list = []
+
         if self.options.name:
+            vault = get_vault(self.options.vaultfile)
             profile = self.options.name
-            exists = False
-            with open('data/profiles', 'r') as profiles_file:
-                lines = profiles_file.readlines()
+            profiles_list = vault.load_as_json(profiles_path)
+            profile_found = False
 
-            with open('data/profiles', 'w') as profiles_file:
+            for index, curr_profile in enumerate(profiles_list):
+                if curr_profile.get('name') == profile:
+                    del curr_profile[index]
+                    profile_found = True
+                    break
 
-                for line in lines:
-                    line_list = line.strip().split(',')
-                    if not line_list[0] == profile:
-                        profiles_file.write(line)
-                    else:
-                        exists = True
-
-            if not exists:
+            if not profile_found:
                 print(_("No such profile: '%s'") % profile)
                 sys.exit(1)
+
+            vault.dump_as_json_to_file(profiles_list, profiles_path)
 
             # removes inventory associated with the profile
             if os.path.isfile('data/' + profile + "_hosts"):
@@ -95,10 +102,10 @@ class ProfileClearCommand(CliCommand):
 
         # removes all inventories ever.
         elif self.options.all:
-            if not os.path.isfile('data/profiles'):
+            if not os.path.isfile(profiles_path):
                 print(_("All network profiles removed"))
             else:
-                os.remove('data/profiles')
+                os.remove(profiles_path)
                 for file_list in glob.glob("data/*_hosts"):
                     os.remove(file_list)
                     profile = file_list.strip('_hosts')

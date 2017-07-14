@@ -15,28 +15,46 @@ for system access
 """
 
 from __future__ import print_function
-import csv
 import os
 import sys
 import uuid
 from getpass import getpass
 from collections import OrderedDict
 from rho.clicommand import CliCommand
+from rho.vault import get_vault
 from rho.translation import get_translation
 
 _ = get_translation()
 
 
-# Write new credentials in the related file.
-def _save_cred(cred):
-    append_or_write = 'a'
+def auth_exists(cred_list, auth_name):
+    """ Checks whether authentication credential already exists
+    :param cred_list: A list of credential dictionaries
+    :param auth_name: Name of credential to check for existence
+    :returns: True if auth_name exists, False otherwise
+    """
+    auth_found = False
+    for cred in cred_list:
+        if cred.get('name') == auth_name:
+            auth_found = True
+            break
+    return auth_found
+
+
+def _save_cred(vault, new_cred, cred_list):
+    """ Write new credentials in the related file
+    :param vault: Vault object for writing encrypted data
+    :param new_cred: New credential to be added to the credentials file
+    :param cred_list: A list of existing credential dictionaries from the
+    credential file
+    """
+    credentials_path = 'data/credentials'
+
     if not os.path.exists('data'):
         os.makedirs('data')
-    if not os.path.isfile('data/credentials'):
-        append_or_write = 'w'
-    with open('data/credentials', append_or_write) as cred_file:
-        dict_writer = csv.DictWriter(cred_file, cred.keys())
-        dict_writer.writerow(cred)
+
+    cred_list.append(new_cred)
+    vault.dump_as_json_to_file(cred_list, credentials_path)
 
 
 class AuthAddCommand(CliCommand):
@@ -66,6 +84,9 @@ class AuthAddCommand(CliCommand):
                                action="store_true",
                                help=_("password for authenticating against"
                                       " target machine"))
+        self.parser.add_option("--vault", dest="vaultfile", metavar="VAULT",
+                               help=_("file containing vault password for"
+                                      " scripting"))
 
     def _validate_options(self):
         CliCommand._validate_options(self)
@@ -82,21 +103,20 @@ class AuthAddCommand(CliCommand):
             sys.exit(1)
 
     def _do_command(self):
+        vault = get_vault(self.options.vaultfile)
         cred = {}
         ssh_file = 'empty'
         pass_to_store = ''
+        credentials_path = 'data/credentials'
+        auth_name = self.options.name
+        cred_list = []
 
-        cred_keys = ["id", "name", "username", "password", "ssh_key_file"]
-
-        if os.path.isfile('data/credentials'):
-            with open('data/credentials', 'r') as credentials_file:
-                dict_reader = csv.DictReader(credentials_file, cred_keys)
-                for line in dict_reader:
-                    if line['name'] == self.options.name:
-
-                        print(_("Auth with name exists"))
-                        credentials_file.close()
-                        sys.exit(1)
+        if os.path.isfile(credentials_path):
+            cred_list = vault.load_as_json(credentials_path)
+            auth_found = auth_exists(cred_list, auth_name)
+            if auth_found:
+                print(_("Auth with name exists"))
+                sys.exit(1)
 
         if self.options.password:
             pass_prompt = getpass()
@@ -107,7 +127,7 @@ class AuthAddCommand(CliCommand):
             ssh_file = self.options.filename
 
             cred = OrderedDict([("id",
-                                 uuid.uuid4()),
+                                 str(uuid.uuid4())),
                                 ("name",
                                  self.options.name),
                                 ("username",
@@ -119,7 +139,7 @@ class AuthAddCommand(CliCommand):
 
         elif self.options.username and self.options.password:
             cred = OrderedDict([("id",
-                                 uuid.uuid4()),
+                                 str(uuid.uuid4())),
                                 ("name",
                                  self.options.name),
                                 ("username",
@@ -129,4 +149,4 @@ class AuthAddCommand(CliCommand):
                                 ("ssh_key_file",
                                  ssh_file)])
 
-        _save_cred(cred)
+        _save_cred(vault, cred, cred_list)

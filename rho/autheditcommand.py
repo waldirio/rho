@@ -16,8 +16,10 @@ for system access
 
 from __future__ import print_function
 import sys
+import os
 from getpass import getpass
 from rho.clicommand import CliCommand
+from rho.vault import get_vault
 from rho.translation import get_translation
 
 _ = get_translation()
@@ -76,6 +78,9 @@ class AuthEditCommand(CliCommand):
                                metavar="FILENAME", action='callback',
                                callback=optional_arg('empty'),
                                help=_("file containing SSH key"))
+        self.parser.add_option("--vault", dest="vaultfile", metavar="VAULT",
+                               help=_("file containing vault password for"
+                                      " scripting"))
 
         self.parser.set_defaults(password=False)
 
@@ -90,35 +95,33 @@ class AuthEditCommand(CliCommand):
                 self.options.username or
                 self.options.password):
             print(_("Should specify an option to update:"
-                    " --username, --password or --filename"))
+                    " --username, --password or --sshkeyfile"))
             sys.exit(1)
 
     def _do_command(self):
+        vault = get_vault(self.options.vaultfile)
+        credentials_path = 'data/credentials'
+        auth_found = False
 
-        exists = False
+        if not os.path.isfile(credentials_path):
+            print(_("No auth credentials found"))
+        else:
+            cred_list = vault.load_as_json(credentials_path)
 
-        with open('data/credentials', 'r') as credentials_file:
-            lines = credentials_file.readlines()
-
-        with open('data/credentials', 'w') as credentials_file:
-            for line in lines:
-                line_list = line.strip().split(',')
-                if line_list[1] \
-                        == self.options.name:
-                    exists = True
+            for cred in cred_list:
+                if cred.get('name') == self.options.name:
+                    auth_found = True
                     if self.options.username:
-                        line_list[2] = self.options.username
+                        cred['username'] = self.options.username
                     if self.options.password:
-                        pass_prompt = getpass()
-                        line_list[3] = 'empty' \
-                            if not pass_prompt else pass_prompt
+                        cred['password'] = getpass()
                     if self.options.filename:
-                        line_list[4] = self.options.filename
-                line_string = ",".join(line_list)
-                credentials_file.write(line_string + '\n')
+                        cred['ssh_key_file'] = self.options.filename
+                    break
+            if not auth_found:
+                print(_('Auth "%s" does not exist' % self.options.name))
+                sys.exit(1)
 
-        if not exists:
-            print(_("Auth '%s' does not exist.") % self.options.name)
-            sys.exit(1)
+            vault.dump_as_json_to_file(cred_list, credentials_path)
 
         print(_("Auth '%s' updated") % self.options.name)

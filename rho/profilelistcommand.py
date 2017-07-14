@@ -17,7 +17,9 @@ and authentication credentials
 from __future__ import print_function
 import os
 import sys
+import json
 from rho.clicommand import CliCommand
+from rho.vault import get_vault
 from rho.translation import get_translation
 
 _ = get_translation()
@@ -35,13 +37,19 @@ class ProfileListCommand(CliCommand):
         desc = _("list the network profiles")
 
         CliCommand.__init__(self, "profile list", usage, shortdesc, desc)
+        self.parser.add_option("--vault", dest="vaultfile", metavar="VAULT",
+                               help=_("file containing vault password for"
+                                      " scripting"))
 
     def _do_command(self):
-        if not os.path.isfile('data/profiles'):
+        vault = get_vault(self.options.vaultfile)
+        profiles_path = 'data/profiles'
+
+        if not os.path.isfile(profiles_path):
             print(_('No profiles exist yet.'))
             sys.exit(1)
 
-        with open('data/profiles', 'r') as profiles_file:
-            lines = profiles_file.readlines()
-            for line in lines:
-                print(line)
+        profiles_list = vault.load_as_json(profiles_path)
+        data = json.dumps(profiles_list, sort_keys=True, indent=4,
+                          separators=(',', ': '))
+        print(data)
