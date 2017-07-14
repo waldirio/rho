@@ -17,6 +17,7 @@ and authentication credentials
 from __future__ import print_function
 import os
 import sys
+from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault
 from rho.utilities import multi_arg, _check_range_validity, _read_in_file
@@ -113,7 +114,8 @@ class ProfileEditCommand(CliCommand):
                     curr_profile['hosts'] = range_list
 
                 if self.options.sshport:
-                    curr_profile['ssh_port'] = str(self.options.sshport)
+                    curr_profile['ssh_port'] = str(
+                        utilities.validate_port(self.options.sshport))
 
                 if self.options.auth:
                     new_auths = []

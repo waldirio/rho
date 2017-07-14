@@ -78,3 +78,26 @@ def _check_range_validity(range_list):
 
             print(_("Bad host name/range : '%s'") % reg_item)
             sys.exit(1)
+
+
+def validate_port(arg):
+    """Check that arg is a valid port.
+
+    :param arg: either a string or an integer.
+    :returns: The arg, as an integer.
+    :raises: ValueError, if arg is not a valid port.
+    """
+
+    if isinstance(arg, str):
+        arg = int(arg)
+    elif not isinstance(arg, int):
+        raise ValueError('Port %s not of recognized type '
+                         '(should be string or int)' % arg)
+
+    # We need to support both system and user ports (see
+    # https://en.wikipedia.org/wiki/Registered_port) because we don't
+    # know how the user will have configured their system.
+    if arg < 0 or arg > 65535:
+        raise ValueError('Port %s not in valid range (0-65535)' % arg)
+
+    return arg

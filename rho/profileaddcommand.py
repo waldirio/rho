@@ -18,6 +18,7 @@ from __future__ import print_function
 import os
 import sys
 from collections import OrderedDict
+from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault
 from rho.utilities import multi_arg, _check_range_validity, _read_in_file
@@ -114,7 +115,7 @@ class ProfileAddCommand(CliCommand):
 
         if hasattr(self.options, 'sshport') \
            and self.options.sshport is not None:
-            ssh_port = self.options.sshport
+            ssh_port = utilities.validate_port(self.options.sshport)
 
         if os.path.isfile(profiles_path):
             profiles_list = vault.load_as_json(profiles_path)
