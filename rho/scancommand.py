@@ -19,11 +19,10 @@ import re
 import time
 import json
 from collections import defaultdict
-from copy import copy
 import pexpect
 from rho.clicommand import CliCommand
 from rho.vault import get_vault_and_password
-from rho.utilities import multi_arg, _read_in_file
+from rho.utilities import multi_arg, _read_in_file, str_to_ascii
 from rho.translation import get_translation
 
 _ = get_translation()
@@ -50,57 +49,46 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
     success_map = defaultdict(list)
     best_map = defaultdict(list)
     mapped_hosts = set()
+    hosts_dict = {}
 
-    string_to_write = "[all]\n"
     for profile_range in profile_ranges:
         # pylint: disable=anomalous-backslash-in-string
         reg = "[0-9]*.[0-9]*.[0-9]*.\[[0-9]*:[0-9]*\]"
         profile_range = profile_range.strip(',').strip()
+        hostname = str_to_ascii(profile_range)
         if not re.match(reg, profile_range):
-            string_to_write += profile_range + \
-                " ansible_host=" + profile_range + " ansible_port=" + \
-                str(profile_port) + "\n"
+            hosts_dict[profile_range] = {'ansible_host': profile_range,
+                                         'ansible_port': profile_port}
         else:
-            string_to_write += profile_range + "\n"
+            hosts_dict[hostname] = None
 
-    string_to_write += '\n'
-
-    string_header = copy(string_to_write)
-
+    vars_dict = {}
     for cred_item in profile_auth_list:
+        cred_pass = cred_item.get('password')
+        cred_sshkey = cred_item.get('ssh_key_file')
         auth_item = [cred_item.get('id'),
                      cred_item.get('name'),
                      cred_item.get('username'),
                      cred_item.get('password'),
                      cred_item.get('ssh_key_file')]
 
-        ping_inventory = open('data/ping-inventory', 'w')
-        string_to_write = \
-            string_header + \
-            "[all:vars]\n" + \
-            "ansible_user=" + \
-            auth_item[2]
+        vars_dict['ansible_user'] = str_to_ascii(cred_item.get('username'))
 
-        auth_pass_or_key = ''
+        if (not cred_pass == '') and cred_pass:
+            vars_dict['ansible_ssh_pass'] = str_to_ascii(cred_pass)
+            if (not cred_sshkey == '') and cred_sshkey:
+                vars_dict['ansible_ssh_private_key_file'] = \
+                    str_to_ascii(cred_sshkey)
+        elif cred_pass == '':
+            if (not cred_sshkey == '') and cred_sshkey:
+                vars_dict['ansible_ssh_private_key_file'] = \
+                    str_to_ascii(cred_sshkey)
 
-        if (not auth_item[3] == '') and auth_item[3]:
-            auth_pass_or_key = '\nansible_ssh_pass=' + auth_item[3]
-            if (not auth_item[4] == '') and auth_item[4]:
-                auth_pass_or_key += "\nansible_ssh_private_key_file=" + \
-                    auth_item[4]
-        elif auth_item[3] == '':
-            auth_pass_or_key = '\n'
-            if (not auth_item[4] == '') and auth_item[4]:
-                auth_pass_or_key += "ansible_ssh_private_key_file=" + \
-                    auth_item[4]
-
-        string_to_write += auth_pass_or_key
-
-        vault.dump(string_to_write, ping_inventory)
-        ping_inventory.close()
+        yml_dict = {'all': {'hosts': hosts_dict, 'vars': vars_dict}}
+        vault.dump_as_yaml_to_file(yml_dict, 'data/ping-inventory.yml')
 
         cmd_string = 'ansible all -m' \
-                     ' ping  -i data/ping-inventory --ask-vault-pass -f ' \
+                     ' ping  -i data/ping-inventory.yml --ask-vault-pass -f ' \
                      + forks
 
         my_env = os.environ.copy()
@@ -113,7 +101,6 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
             out = ping_log.readlines()
 
         for line, _ in enumerate(out):
-
             if 'pong' in out[line]:
                 tup_auth_item = tuple(auth_item)
                 success_auths.add(tup_auth_item)
@@ -166,45 +153,44 @@ def _create_hosts_auths_file(success_map, profile):
 # used multiple times later after a profile has first been
 # processed and the valid mapping as been figured out by
 # pinging.
+# pylint: disable=too-many-locals
 def _create_main_inventory(vault, success_hosts, success_port_map, best_map,
                            profile):
-    string_to_write = "[alpha]\n"
+    yml_dict = {}
 
+    # Create section of successfully connected hosts
+    alpha_hosts = {}
     for host in success_hosts:
-        string_to_write += host + ' ansible_host=' + host + \
-            ' ansible_port=' + success_port_map[host] + '\n'
+        ascii_host = str_to_ascii(host)
+        ascii_port = str_to_ascii(str(success_port_map[host]))
+        alpha_host_vars_dict = {'ansible_host': ascii_host,
+                                'ansible_port': ascii_port}
+        alpha_hosts[ascii_host] = alpha_host_vars_dict
 
-    with open('data/' + profile + '_hosts', 'w') as profile_hosts:
-        for auth in best_map.keys():
-            auth_name = auth[1]
-            auth_user = auth[2]
-            auth_pass = auth[3]
-            auth_key = auth[4]
+    yml_dict['alpha'] = {'hosts': alpha_hosts}
 
-            string_to_write += '\n[' \
-                               + auth_name \
-                               + ']\n'
+    for auth in best_map.keys():
+        auth_user = auth[2]
+        auth_pass = auth[3]
+        auth_key = auth[4]
 
-            auth_pass_or_key = ''
-
-            for host in best_map[auth]:
-                string_to_write += host + ' ansible_host=' \
-                    + host + " ansible_user=" + auth_user
+        for host in best_map[auth]:
+            ascii_host = str_to_ascii(host)
+            if ascii_host in alpha_hosts:
+                host_vars_dict = alpha_hosts[ascii_host]
+                host_vars_dict['ansible_user'] = str_to_ascii(auth_user)
                 if (not auth_pass == '') and auth_pass:
-                    auth_pass_or_key = ' ansible_ssh_pass=' + auth_pass
+                    host_vars_dict['ansible_ssh_pass'] =\
+                        str_to_ascii(auth_pass)
                     if (not auth_key == '') and auth_key:
-                        auth_pass_or_key += " ansible_ssh_private_key_" \
-                                            "file=" + auth_key + '\n'
+                        host_vars_dict['ansible_ssh_private_key_file'] = \
+                            str_to_ascii(auth_key)
                 elif auth_pass == '':
                     if (not auth_key == '') and auth_key:
-                        auth_pass_or_key = " ansible_ssh_private_key" \
-                                           "_file=" + auth_key + '\n'
-                    else:
-                        auth_pass_or_key = '\n'
+                        host_vars_dict['ansible_ssh_private_key_file'] = \
+                            str_to_ascii(auth_key)
 
-                string_to_write += auth_pass_or_key
-
-        vault.dump(string_to_write, profile_hosts)
+    vault.dump_as_yaml_to_file(yml_dict, 'data/' + profile + '_hosts.yml')
 
 
 def run_ansible_with_vault(cmd_string, vault_pass, ssh_key_passphrase=None,
@@ -380,7 +366,8 @@ class ScanCommand(CliCommand):
                         'report_path': report_path}
 
         cmd_string = ('ansible-playbook rho_playbook.yml '
-                      '-i data/{profile}_hosts -v -f {forks} --ask-vault-pass '
+                      '-i data/{profile}_hosts.yml -v -f {forks} '
+                      '--ask-vault-pass '
                       '--extra-vars \'{vars}\'').format(
                           profile=profile,
                           forks=forks,

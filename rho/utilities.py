@@ -101,3 +101,11 @@ def validate_port(arg):
         raise ValueError('Port %s not in valid range (0-65535)' % arg)
 
     return arg
+
+
+def str_to_ascii(in_string):
+    """ Coverts unicode string to ascii string
+    :param in_string: input string to convert to ascii
+    :returns: ASCII encoded string
+    """
+    return in_string.decode('utf-8').encode('ascii')

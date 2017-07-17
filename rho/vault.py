@@ -17,7 +17,16 @@ import uuid
 from tempfile import gettempdir
 from shutil import move
 from getpass import getpass
+import yaml
 from ansible.parsing.vault import VaultLib
+
+
+def represent_none(self, _):
+    """ Render None with nothing in yaml string when dumped """
+    return self.represent_scalar('tag:yaml.org,2002:null', '')
+
+
+yaml.add_representer(type(None), represent_none)
 
 
 def read_vault_password(vault_password_file):
@@ -93,7 +102,7 @@ class Vault(object):
         :param secure_file: The file to read data from as json
         :returns: The JSON data
         """
-        return json.loads(self.load_secure_file(secure_file))
+        return json.loads(self.load_secure_file(secure_file).decode('UTF-8'))
 
     def dump(self, data, stream=None):
         """ Encrypt data and print stdout or write to stream
@@ -126,5 +135,27 @@ class Vault(object):
         temppath = os.path.join(tempdir, tempfilename)
         with open(temppath, 'wb') as data_temp:
             self.dump_as_json(obj, data_temp)
+        data_temp.close()
+        move(temppath, os.path.abspath(file_path))
+
+    def dump_as_yaml(self, obj, stream=None):
+        """ Convert object to yaml and encrypt the data.
+        :param obj: Python object to convert to yaml
+        :param stream: If not None the location to write the encrypted data to.
+        :returns: If stream is None then the encrypted bytes otherwise None.
+        """
+        data = yaml.dump(obj, default_flow_style=False)
+        return self.dump(data, stream)
+
+    def dump_as_yaml_to_file(self, obj, file_path):
+        """ Convert object to yaml and encrypt the data.
+        :param obj: Python object to convert to yaml
+        :param file_path: The file to write data to via temp file
+        """
+        tempdir = gettempdir()
+        tempfilename = 'tmp_' + str(uuid.uuid4())
+        temppath = os.path.join(tempdir, tempfilename)
+        with open(temppath, 'wb') as data_temp:
+            self.dump_as_yaml(obj, data_temp)
         data_temp.close()
         move(temppath, os.path.abspath(file_path))

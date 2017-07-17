@@ -37,14 +37,12 @@ class Results(object):
         with open(f_path, 'w') as write_file:
             file_size = os.path.getsize(f_path)
             vals = self.vals
-            fields = vals[0].keys()
-            fields.sort()
+            fields = sorted(vals[0].keys())
             writer = csv.writer(write_file, delimiter=',')
             if file_size == 0:
                 writer.writerow(fields)
             for data in vals:
-                sorted_keys = data.keys()
-                sorted_keys.sort()
+                sorted_keys = sorted(data.keys())
                 sorted_values = []
                 for k in sorted_keys:
                     sorted_values.append(data[k])
