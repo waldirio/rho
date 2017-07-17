@@ -38,7 +38,7 @@ tests:
 	-py.test -v
 
 tests-coverage:
-	-py.test -v --cov=rho
+	-py.test -v --cov=rho --cov=library
 
 lint-flake8:
 	flake8 . --ignore D203
