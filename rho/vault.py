@@ -42,18 +42,29 @@ def get_vault_password():
     return getpass("\033[01;36m" + prompt + "\033[0m")
 
 
-def get_vault(vaultfile=None):
+def get_vault_and_password(vaultfile=None):
     """ Helper method that will get the vault password via input file or from
     standard input and then initialize a vault for users
     :param vaultfile: The location of a file with the vault password
-    :returns: An initialized vault
+    :returns: An initialized vault and the password
     """
     vault_pass = None
     if vaultfile:
         vault_pass = read_vault_password(vaultfile)
     if vault_pass is None:
         vault_pass = get_vault_password()
-    return Vault(vault_pass)
+    return Vault(vault_pass), vault_pass
+
+
+def get_vault(vaultfile=None):
+    """ Helper method that will get the vault password via input file or from
+    standard input and then initialize a vault for users
+    :param vaultfile: The location of a file with the vault password
+    :returns: An initialized vault
+    """
+    # pylint: disable=unused-variable
+    vault, vault_pass = get_vault_and_password(vaultfile)
+    return vault
 
 
 class Vault(object):

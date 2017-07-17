@@ -18,11 +18,11 @@ import sys
 import re
 import time
 import json
-import subprocess as sp
 from collections import defaultdict
 from copy import copy
+import pexpect
 from rho.clicommand import CliCommand
-from rho.vault import get_vault
+from rho.vault import get_vault_and_password
 from rho.utilities import multi_arg, _read_in_file
 from rho.translation import get_translation
 
@@ -40,9 +40,9 @@ def _read_key_file(filename):
 
 # Creates the inventory for pinging all hosts and records
 # successful auths and the hosts they worked on
-# pylint: disable=too-many-statements
-def _create_ping_inventory(profile_ranges, profile_port, profile_auth_list,
-                           forks):
+# pylint: disable=too-many-statements, too-many-arguments
+def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
+                           profile_auth_list, forks):
     # pylint: disable=too-many-locals
     success_auths = set()
     success_hosts = set()
@@ -96,34 +96,28 @@ def _create_ping_inventory(profile_ranges, profile_port, profile_auth_list,
 
         string_to_write += auth_pass_or_key
 
-        ping_inventory.write(string_to_write)
-
+        vault.dump(string_to_write, ping_inventory)
         ping_inventory.close()
 
         cmd_string = 'ansible all -m' \
-                     ' ping  -i data/ping-inventory -f ' + forks
+                     ' ping  -i data/ping-inventory --ask-vault-pass -f ' \
+                     + forks
 
         my_env = os.environ.copy()
         my_env["ANSIBLE_HOST_KEY_CHECKING"] = "False"
-
-        process = sp.Popen(cmd_string,
-                           shell=True,
-                           env=my_env,
-                           stdin=sp.PIPE,
-                           stdout=sp.PIPE)
-
-        out = process.communicate()[0]
-
         with open('data/ping_log', 'w') as ping_log:
-            ping_log.write(out)
+            run_ansible_with_vault(cmd_string, vault_pass,
+                                   logfile=ping_log, env=my_env)
 
-        out = out.split('\n')
+        with open('data/ping_log', 'r') as ping_log:
+            out = ping_log.readlines()
 
         for line, _ in enumerate(out):
+
             if 'pong' in out[line]:
                 tup_auth_item = tuple(auth_item)
                 success_auths.add(tup_auth_item)
-                host_line = out[line - 2]
+                host_line = out[line - 2].replace('\x1b[0;32m', '')
                 host_ip = host_line.split('|')[0].strip()
                 success_hosts.add(host_ip)
                 if host_ip not in mapped_hosts:
@@ -172,7 +166,8 @@ def _create_hosts_auths_file(success_map, profile):
 # used multiple times later after a profile has first been
 # processed and the valid mapping as been figured out by
 # pinging.
-def _create_main_inventory(success_hosts, success_port_map, best_map, profile):
+def _create_main_inventory(vault, success_hosts, success_port_map, best_map,
+                           profile):
     string_to_write = "[alpha]\n"
 
     for host in success_hosts:
@@ -209,7 +204,33 @@ def _create_main_inventory(success_hosts, success_port_map, best_map, profile):
 
                 string_to_write += auth_pass_or_key
 
-        profile_hosts.write(string_to_write)
+        vault.dump(string_to_write, profile_hosts)
+
+
+def run_ansible_with_vault(cmd_string, vault_pass, ssh_key_passphrase=None,
+                           env=None, logfile=sys.stdout):
+    """ Runs ansible command allowing for password to be provided after
+    process triggered
+    """
+    result = None
+    try:
+        child = pexpect.spawn(cmd_string, timeout=None, env=env)
+        result = child.expect('Vault password:')
+        child.sendline(vault_pass)
+        child.logfile = logfile
+        i = child.expect([pexpect.EOF, 'Enter passphrase for key .*:'])
+        if i == 1:
+            child.logfile = None
+            child.sendline(ssh_key_passphrase)
+            child.logfile = logfile
+            child.expect(pexpect.EOF)
+        return child.before
+    except pexpect.EOF:
+        print(str(result))
+        print('pexpect unexpected EOF')
+    except pexpect.TIMEOUT:
+        print(str(result))
+        print('pexpect timed out')
 
 
 class ScanCommand(CliCommand):
@@ -281,7 +302,7 @@ class ScanCommand(CliCommand):
     def _do_command(self):
         # pylint: disable=too-many-locals
         # pylint: disable=too-many-branches
-        vault = get_vault(self.options.vaultfile)
+        vault, vault_pass = get_vault_and_password(self.options.vaultfile)
         profiles_path = 'data/profiles'
         credentials_path = 'data/credentials'
         profile_found = False
@@ -327,7 +348,8 @@ class ScanCommand(CliCommand):
         # or freshly updated.
         if self.options.reset:
             success_auths, success_hosts, best_map, success_map, \
-                success_port_map = _create_ping_inventory(profile_ranges,
+                success_port_map = _create_ping_inventory(vault, vault_pass,
+                                                          profile_ranges,
                                                           profile_port,
                                                           profile_auth_list,
                                                           forks)
@@ -338,8 +360,8 @@ class ScanCommand(CliCommand):
 
             _create_hosts_auths_file(success_map, profile)
 
-            _create_main_inventory(success_hosts, success_port_map, best_map,
-                                   profile)
+            _create_main_inventory(vault, success_hosts, success_port_map,
+                                   best_map, profile)
 
         elif not os.path.isfile('data/' + profile + '_hosts'):
             print("Profile '" + profile + "' has not been processed. " +
@@ -358,7 +380,7 @@ class ScanCommand(CliCommand):
                         'report_path': report_path}
 
         cmd_string = ('ansible-playbook rho_playbook.yml '
-                      '-i data/{profile}_hosts -v -f {forks} '
+                      '-i data/{profile}_hosts -v -f {forks} --ask-vault-pass '
                       '--extra-vars \'{vars}\'').format(
                           profile=profile,
                           forks=forks,
@@ -366,13 +388,8 @@ class ScanCommand(CliCommand):
 
         # process finally runs ansible on the
         # playbook and inventories thus created.
-
         print('Running:', cmd_string)
-
-        process = sp.Popen(cmd_string,
-                           shell=True)
-
-        process.communicate()
+        run_ansible_with_vault(cmd_string, vault_pass)
 
         print(_("Scanning has completed. The mapping has been"
                 " stored in file '" + self.options.profile +

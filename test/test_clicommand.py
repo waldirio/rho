@@ -41,6 +41,7 @@ class HushUpStderr(object):
         pass
 
 
+# pylint: disable=too-many-public-methods
 class CliCommandsTests(unittest.TestCase):
     """Class for testing the various cli commands for rho"""
     def setUp(self):
@@ -106,47 +107,85 @@ class CliCommandsTests(unittest.TestCase):
         sys.argv = ["bin/rho"] + args
         cmd.main()
 
+    def test_scan_facts_no_profile(self):
+        """Test utilizing the scan command catch no profile error
+        """
+        self.assertRaises(SystemExit, self._run_test, ScanCommand(),
+                          ["scan", "--reset", "--reportfile",
+                           TMP_TEST_REPORT, "--facts",
+                           "default", "ansible_forks",
+                           "100", "--vault", TMP_VAULT_PASS])
+
+    def test_scan_facts_no_facts(self):
+        """Test utilizing the scan command catch no facts error
+        """
+        self.assertRaises(SystemExit, self._run_test, ScanCommand(),
+                          ["scan", "--profile", "profilename",
+                           "--reset", "--reportfile",
+                           TMP_TEST_REPORT, "ansible_forks",
+                           "100", "--vault", TMP_VAULT_PASS])
+
+    def test_scan_facts_no_reportfile(self):
+        """Test utilizing the scan command catch no report file error
+        """
+        self.assertRaises(SystemExit, self._run_test, ScanCommand(),
+                          ["scan", "--profile", "profilename",
+                           "--reset", "--facts", "default", "ansible_forks",
+                           "100", "--vault", TMP_VAULT_PASS])
+
+    def test_scan_facts_non_int_forks(self):
+        """Test utilizing the scan command catch bad input for forks error
+        """
+        self.assertRaises(SystemExit, self._run_test, ScanCommand(),
+                          ["scan", "--profile", "profilename",
+                           "--reset", "--reportfile", TMP_TEST_REPORT,
+                           "--facts", "default", "ansible_forks",
+                           "a", "--vault", TMP_VAULT_PASS])
+
+    def test_scan_facts_neg_int_forks(self):
+        """Test utilizing the scan command catch bad input for forks error
+        """
+        self.assertRaises(SystemExit, self._run_test, ScanCommand(),
+                          ["scan", "--profile", "profilename",
+                           "--reset", "--reportfile",
+                           TMP_TEST_REPORT, "--facts",
+                           "default", "ansible_forks",
+                           "-4", "--vault", TMP_VAULT_PASS])
+
     def test_scan_facts_default(self):
         """Test utilizing the scan command exercising the collection
         the default facts with 100 ansible forks
         """
-        try:
-            self._run_test(ScanCommand(), ["scan", "--profile", "profilename",
-                                           "--reset", "--reportfile",
-                                           TMP_TEST_REPORT, "--facts",
-                                           "default", "ansible_forks",
-                                           "100", "--vault", TMP_VAULT_PASS])
-        except SystemExit:
-            pass
+        self.assertRaises(SystemExit, self._run_test, ScanCommand(),
+                          ["scan", "--profile", "profilename",
+                           "--reset", "--reportfile",
+                           TMP_TEST_REPORT, "--facts",
+                           "default", "ansible_forks",
+                           "100", "--vault", TMP_VAULT_PASS])
 
     def test_scan_facts_file(self):
         """Test utilizing the scan command exercising the collection
         the facts from an input facts file with 100 ansible forks
         """
-        try:
-            self._run_test(ScanCommand(), ["scan", "--profile", "profilename",
-                                           "--reset", "--reportfile",
-                                           TMP_TEST_REPORT, "--facts",
-                                           TMP_FACTS, "ansible_forks",
-                                           "100", "--vault", TMP_VAULT_PASS])
-        except SystemExit:
-            pass
+        self.assertRaises(SystemExit, self._run_test, ScanCommand(),
+                          ["scan", "--profile", "profilename",
+                           "--reset", "--reportfile",
+                           TMP_TEST_REPORT, "--facts",
+                           TMP_FACTS, "ansible_forks",
+                           "100", "--vault", TMP_VAULT_PASS])
 
     def test_scan_facts_list(self):
         """Test utilizing the scan command exercising the collection
         the facts from an input facts list with 100 ansible forks
         """
-        try:
-            self._run_test(ScanCommand(),
-                           ["scan", "--profile", "profilename",
-                            "--reset", "--reportfile",
-                            TMP_TEST_REPORT, "--facts",
-                            "Username_uname.all",
-                            "RedhatRelease_redhat-release.release",
-                            "--ansible_forks",
-                            "100", "--vault", TMP_VAULT_PASS])
-        except SystemExit:
-            pass
+        self.assertRaises(SystemExit, self._run_test, ScanCommand(),
+                          ["scan", "--profile", "profilename",
+                           "--reset", "--reportfile",
+                           TMP_TEST_REPORT, "--facts",
+                           "Username_uname.all",
+                           "Cpu_cpu.bogomips",
+                           "--ansible_forks",
+                           "100", "--vault", TMP_VAULT_PASS])
 
     def test_profile_list(self):
         """Testing the profle list command execution"""
@@ -157,27 +196,23 @@ class CliCommandsTests(unittest.TestCase):
         """Test the profile command adding a profile with a list and
         range of hosts and an ordered list of auths
         """
-        try:
-            self._run_test(ProfileAddCommand(), ["profile", "add", "--name",
-                                                 "profilename", "hosts",
-                                                 "1.2.3.4", "1.2.3.[4:100]",
-                                                 "--auths", "auth_1", "auth2",
-                                                 "--vault", TMP_VAULT_PASS])
-        except SystemExit:
-            pass
+        self.assertRaises(SystemExit, self._run_test, ProfileAddCommand(),
+                          ["profile", "add", "--name",
+                           "profilename", "hosts",
+                           "1.2.3.4", "1.2.3.[4:100]",
+                           "--auths", "auth_1", "auth2",
+                           "--vault", TMP_VAULT_PASS])
 
     def test_profile_add_hosts_file(self):
         """Test the profile command adding a profile with a file of hosts
         and an ordered list of auths
         """
-        try:
-            self._run_test(ProfileAddCommand(), ["profile", "add", "--name",
-                                                 "profilename", "hosts",
-                                                 TMP_HOSTS, "--auths",
-                                                 "auth_1", "auth2",
-                                                 "--vault", TMP_VAULT_PASS])
-        except SystemExit:
-            pass
+        self.assertRaises(SystemExit, self._run_test, ProfileAddCommand(),
+                          ["profile", "add", "--name",
+                           "profilename", "hosts",
+                           TMP_HOSTS, "--auths",
+                           "auth_1", "auth2",
+                           "--vault", TMP_VAULT_PASS])
 
     def test_auth_list(self):
         """Testing the auth list command execution"""
@@ -210,12 +245,27 @@ class CliCommandsTests(unittest.TestCase):
                                           "./privatekey", "--vault",
                                           TMP_VAULT_PASS])
 
+    def test_a_auth_add_again(self):
+        """Testing the auth add command execution"""
+        self._run_test(AuthAddCommand(), ["auth", "add", "--name", "auth2",
+                                          "--username", "user", "--sshkeyfile",
+                                          "./privatekey", "--vault",
+                                          TMP_VAULT_PASS])
+
     def test_a_profile_add(self):
         """Testing the profile add command execution"""
         self._run_test(ProfileAddCommand(), ["profile", "add", "--name", "p1",
                                              "--hosts", "1.2.3.4",
                                              "--auth", "auth1",
                                              "--vault", TMP_VAULT_PASS])
+
+    def test_a_profile_add_existing(self):
+        """Testing the profile add command execution"""
+        self.assertRaises(SystemExit, self._run_test, ProfileAddCommand(),
+                          ["profile", "add", "--name",
+                           "p1", "--hosts", "1.2.3.4",
+                           "--auth", "auth1",
+                           "--vault", TMP_VAULT_PASS])
 
     def test_auth_edit(self):
         """Testing the auth edit command execution"""
