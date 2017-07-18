@@ -41,7 +41,7 @@ class HushUpStderr(object):
         pass
 
 
-# pylint: disable=too-many-public-methods
+# pylint: disable=too-many-public-methods, no-self-use
 class CliCommandsTests(unittest.TestCase):
     """Class for testing the various cli commands for rho"""
     def setUp(self):
@@ -103,200 +103,244 @@ class CliCommandsTests(unittest.TestCase):
         if os.path.isfile(TMP_HOSTS):
             os.remove(TMP_HOSTS)
 
-    def _run_test(self, cmd, args):  # pylint: disable=no-self-use
-        sys.argv = ["bin/rho"] + args
-        cmd.main()
-
     def test_scan_facts_no_profile(self):
         """Test utilizing the scan command catch no profile error
         """
-        self.assertRaises(SystemExit, self._run_test, ScanCommand(),
-                          ["scan", "--reset", "--reportfile",
-                           TMP_TEST_REPORT, "--facts",
-                           "default", "ansible_forks",
-                           "100", "--vault", TMP_VAULT_PASS])
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', "scan", "--reset", "--reportfile",
+                        TMP_TEST_REPORT, "--facts",
+                        "default", "ansible_forks",
+                        "100", "--vault", TMP_VAULT_PASS]
+            ScanCommand().main()
 
     def test_scan_facts_no_facts(self):
         """Test utilizing the scan command catch no facts error
         """
-        self.assertRaises(SystemExit, self._run_test, ScanCommand(),
-                          ["scan", "--profile", "profilename",
-                           "--reset", "--reportfile",
-                           TMP_TEST_REPORT, "ansible_forks",
-                           "100", "--vault", TMP_VAULT_PASS])
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
+                        "--reset", "--reportfile",
+                        TMP_TEST_REPORT, "ansible_forks",
+                        "100", "--vault", TMP_VAULT_PASS]
+            ScanCommand().main()
 
     def test_scan_facts_no_reportfile(self):
         """Test utilizing the scan command catch no report file error
         """
-        self.assertRaises(SystemExit, self._run_test, ScanCommand(),
-                          ["scan", "--profile", "profilename",
-                           "--reset", "--facts", "default", "ansible_forks",
-                           "100", "--vault", TMP_VAULT_PASS])
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
+                        "--reset", "--facts", "default", "ansible_forks",
+                        "100", "--vault", TMP_VAULT_PASS]
+            ScanCommand().main()
 
     def test_scan_facts_non_int_forks(self):
         """Test utilizing the scan command catch bad input for forks error
         """
-        self.assertRaises(SystemExit, self._run_test, ScanCommand(),
-                          ["scan", "--profile", "profilename",
-                           "--reset", "--reportfile", TMP_TEST_REPORT,
-                           "--facts", "default", "ansible_forks",
-                           "a", "--vault", TMP_VAULT_PASS])
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
+                        "--reset", "--reportfile", TMP_TEST_REPORT,
+                        "--facts", "default", "ansible_forks",
+                        "a", "--vault", TMP_VAULT_PASS]
+            ScanCommand().main()
 
     def test_scan_facts_neg_int_forks(self):
         """Test utilizing the scan command catch bad input for forks error
         """
-        self.assertRaises(SystemExit, self._run_test, ScanCommand(),
-                          ["scan", "--profile", "profilename",
-                           "--reset", "--reportfile",
-                           TMP_TEST_REPORT, "--facts",
-                           "default", "ansible_forks",
-                           "-4", "--vault", TMP_VAULT_PASS])
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
+                        "--reset", "--reportfile",
+                        TMP_TEST_REPORT, "--facts",
+                        "default", "ansible_forks",
+                        "-4", "--vault", TMP_VAULT_PASS]
+            ScanCommand().main()
 
     def test_scan_facts_default(self):
         """Test utilizing the scan command exercising the collection
         the default facts with 100 ansible forks
         """
-        self.assertRaises(SystemExit, self._run_test, ScanCommand(),
-                          ["scan", "--profile", "profilename",
-                           "--reset", "--reportfile",
-                           TMP_TEST_REPORT, "--facts",
-                           "default", "ansible_forks",
-                           "100", "--vault", TMP_VAULT_PASS])
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
+                        "--reset", "--reportfile",
+                        TMP_TEST_REPORT, "--facts",
+                        "default", "ansible_forks",
+                        "100", "--vault", TMP_VAULT_PASS]
+            ScanCommand().main()
 
     def test_scan_facts_file(self):
         """Test utilizing the scan command exercising the collection
         the facts from an input facts file with 100 ansible forks
         """
-        self.assertRaises(SystemExit, self._run_test, ScanCommand(),
-                          ["scan", "--profile", "profilename",
-                           "--reset", "--reportfile",
-                           TMP_TEST_REPORT, "--facts",
-                           TMP_FACTS, "ansible_forks",
-                           "100", "--vault", TMP_VAULT_PASS])
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
+                        "--reset", "--reportfile",
+                        TMP_TEST_REPORT, "--facts",
+                        TMP_FACTS, "ansible_forks",
+                        "100", "--vault", TMP_VAULT_PASS]
+            ScanCommand().main()
 
     def test_scan_facts_list(self):
         """Test utilizing the scan command exercising the collection
         the facts from an input facts list with 100 ansible forks
         """
-        self.assertRaises(SystemExit, self._run_test, ScanCommand(),
-                          ["scan", "--profile", "profilename",
-                           "--reset", "--reportfile",
-                           TMP_TEST_REPORT, "--facts",
-                           "Username_uname.all",
-                           "Cpu_cpu.bogomips",
-                           "--ansible_forks",
-                           "100", "--vault", TMP_VAULT_PASS])
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
+                        "--reset", "--reportfile",
+                        TMP_TEST_REPORT, "--facts",
+                        "Username_uname.all",
+                        "Cpu_cpu.bogomips",
+                        "--ansible_forks",
+                        "100", "--vault", TMP_VAULT_PASS]
+            ScanCommand().main()
 
     def test_profile_list(self):
         """Testing the profle list command execution"""
-        self._run_test(ProfileListCommand(), ["profile", "list",
-                                              "--vault", TMP_VAULT_PASS])
+
+        sys.argv = ['/bin/rho', "profile", "list",
+                    "--vault", TMP_VAULT_PASS]
+        ProfileListCommand().main()
 
     def test_profile_add_hosts_list(self):
         """Test the profile command adding a profile with a list and
         range of hosts and an ordered list of auths
         """
-        self.assertRaises(SystemExit, self._run_test, ProfileAddCommand(),
-                          ["profile", "add", "--name",
-                           "profilename", "hosts",
-                           "1.2.3.4", "1.2.3.[4:100]",
-                           "--auths", "auth_1", "auth2",
-                           "--vault", TMP_VAULT_PASS])
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', "profile", "add", "--name",
+                        "profilename", "hosts",
+                        "1.2.3.4", "1.2.3.[4:100]",
+                        "--auths", "auth_1", "auth2",
+                        "--vault", TMP_VAULT_PASS]
+            ProfileAddCommand().main()
 
     def test_profile_add_hosts_file(self):
         """Test the profile command adding a profile with a file of hosts
         and an ordered list of auths
         """
-        self.assertRaises(SystemExit, self._run_test, ProfileAddCommand(),
-                          ["profile", "add", "--name",
-                           "profilename", "hosts",
-                           TMP_HOSTS, "--auths",
-                           "auth_1", "auth2",
-                           "--vault", TMP_VAULT_PASS])
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', "profile", "add", "--name",
+                        "profilename", "hosts",
+                        TMP_HOSTS, "--auths",
+                        "auth_1", "auth2",
+                        "--vault", TMP_VAULT_PASS]
+            ProfileAddCommand().main()
 
     def test_auth_list(self):
         """Testing the auth list command execution"""
-        self._run_test(AuthListCommand(), ["auth", "list", "--vault",
-                                           TMP_VAULT_PASS])
+
+        sys.argv = ['/bin/rho', "auth", "list", "--vault",
+                    TMP_VAULT_PASS]
+        AuthListCommand().main()
 
     def test_profile_add_nonexist_auth(self):
         """Test the proile add command with an non-existent auth
         in order to catch error case
         """
-        self.assertRaises(SystemExit, self._run_test, ProfileAddCommand(),
-                          ["profile", "add", "--name", "profile", "hosts",
-                           "1.2.3.4", "--auth", "doesnotexist",
-                           "--vault", TMP_VAULT_PASS])
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', "profile", "add", "--name", "profile",
+                        "hosts", "1.2.3.4", "--auth", "doesnotexist",
+                        "--vault", TMP_VAULT_PASS]
+            ProfileAddCommand().main()
 
     def test_bad_range_options(self):
         """Test profile add command with an invalid host range"""
+
         # Should fail scanning range without a username:
-        self.assertRaises(SystemExit, self._run_test, ProfileAddCommand(),
-                          ["profile", "add", "--name",
-                           "profilename", "hosts",
-                           "a:d:b:s", "--auths",
-                           "auth_1", "auth2",
-                           "--vault", TMP_VAULT_PASS])
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', "profile", "add", "--name",
+                        "profilename", "hosts",
+                        "a:d:b:s", "--auths",
+                        "auth_1", "auth2",
+                        "--vault", TMP_VAULT_PASS]
+            ProfileAddCommand().main()
 
     def test_a_auth_add(self):
         """Testing the auth add command execution"""
-        self._run_test(AuthAddCommand(), ["auth", "add", "--name", "auth1",
-                                          "--username", "user", "--sshkeyfile",
-                                          "./privatekey", "--vault",
-                                          TMP_VAULT_PASS])
+
+        sys.argv = ['/bin/rho', "auth", "add", "--name", "auth1",
+                    "--username", "user", "--sshkeyfile",
+                    "./privatekey", "--vault",
+                    TMP_VAULT_PASS]
+        AuthAddCommand().main()
 
     def test_a_auth_add_again(self):
         """Testing the auth add command execution"""
-        self._run_test(AuthAddCommand(), ["auth", "add", "--name", "auth2",
-                                          "--username", "user", "--sshkeyfile",
-                                          "./privatekey", "--vault",
-                                          TMP_VAULT_PASS])
+
+        sys.argv = ['/bin/rho', "auth", "add", "--name", "auth2",
+                    "--username", "user", "--sshkeyfile",
+                    "./privatekey", "--vault",
+                    TMP_VAULT_PASS]
+        AuthAddCommand().main()
 
     def test_a_profile_add(self):
         """Testing the profile add command execution"""
-        self._run_test(ProfileAddCommand(), ["profile", "add", "--name", "p1",
-                                             "--hosts", "1.2.3.4",
-                                             "--auth", "auth1",
-                                             "--vault", TMP_VAULT_PASS])
+
+        sys.argv = ['/bin/rho', "profile", "add", "--name", "p1",
+                    "--hosts", "1.2.3.4",
+                    "--auth", "auth1",
+                    "--vault", TMP_VAULT_PASS]
+        ProfileAddCommand().main()
 
     def test_a_profile_add_existing(self):
         """Testing the profile add command execution"""
-        self.assertRaises(SystemExit, self._run_test, ProfileAddCommand(),
-                          ["profile", "add", "--name",
-                           "p1", "--hosts", "1.2.3.4",
-                           "--auth", "auth1",
-                           "--vault", TMP_VAULT_PASS])
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', "profile", "add", "--name",
+                        "p1", "--hosts", "1.2.3.4",
+                        "--auth", "auth1",
+                        "--vault", TMP_VAULT_PASS]
+            ProfileAddCommand().main()
 
     def test_auth_edit(self):
         """Testing the auth edit command execution"""
-        self._run_test(AuthEditCommand(), ["auth", "edit", "--name", "auth1",
-                                           "--username", "user",
-                                           "--sshkeyfile", "./privatekey",
-                                           "--vault", TMP_VAULT_PASS])
+
+        sys.argv = ['/bin/rho', "auth", "edit", "--name", "auth1",
+                    "--username", "user",
+                    "--sshkeyfile", "./privatekey",
+                    "--vault", TMP_VAULT_PASS]
+        AuthEditCommand().main()
 
     def test_auth_show(self):
         """Testing the auth show command execution"""
-        self._run_test(AuthShowCommand(), ["auth", "show", "--name", "auth1",
-                                           "--vault", TMP_VAULT_PASS])
+
+        sys.argv = ['/bin/rho', "auth", "show", "--name", "auth1",
+                    "--vault", TMP_VAULT_PASS]
+        AuthShowCommand().main()
 
     def test_profile_edit(self):
         """Testing the profile edit command execution"""
-        self._run_test(ProfileEditCommand(), ["profile", "edit", "--name",
-                                              "p1", "--hosts", "1.2.3.4",
-                                              "--auth", "auth1",
-                                              "--vault", TMP_VAULT_PASS])
+
+        sys.argv = ['/bin/rho', "profile", "edit", "--name",
+                    "p1", "--hosts", "1.2.3.4",
+                    "--auth", "auth1",
+                    "--vault", TMP_VAULT_PASS]
+        ProfileEditCommand().main()
 
     def test_profile_show(self):
         """Testing the profile show command execution"""
-        self._run_test(ProfileShowCommand(), ["profile", "show", "--name",
-                                              "p1", "--vault", TMP_VAULT_PASS])
+
+        sys.argv = ['/bin/rho', "profile", "show", "--name",
+                    "p1", "--vault", TMP_VAULT_PASS]
+        ProfileShowCommand().main()
 
     def test_z_auth_clear_all(self):
         """Testing the auth clear all command execution"""
-        self._run_test(AuthClearCommand(), ["auth", "clear", "--all",
-                                            "--vault", TMP_VAULT_PASS])
+
+        sys.argv = ['/bin/rho', "auth", "clear", "--all",
+                    "--vault", TMP_VAULT_PASS]
+        AuthClearCommand().main()
 
     def test_z_profile_clear_all(self):
         """Testing the profile clear all command execution"""
-        self._run_test(ProfileClearCommand(), ["profile", "clear", "--all",
-                                               "--vault", TMP_VAULT_PASS])
+
+        sys.argv = ['/bin/rho', "profile", "clear", "--all",
+                    "--vault", TMP_VAULT_PASS]
+        ProfileClearCommand().main()
