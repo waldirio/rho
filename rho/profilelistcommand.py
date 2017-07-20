@@ -18,6 +18,7 @@ from __future__ import print_function
 import os
 import sys
 import json
+from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault
 from rho.translation import get_translation
@@ -43,13 +44,12 @@ class ProfileListCommand(CliCommand):
 
     def _do_command(self):
         vault = get_vault(self.options.vaultfile)
-        profiles_path = 'data/profiles'
 
-        if not os.path.isfile(profiles_path):
+        if not os.path.isfile(utilities.PROFILES_PATH):
             print(_('No profiles exist yet.'))
             sys.exit(1)
 
-        profiles_list = vault.load_as_json(profiles_path)
+        profiles_list = vault.load_as_json(utilities.PROFILES_PATH)
         data = json.dumps(profiles_list, sort_keys=True, indent=4,
                           separators=(',', ': '))
         print(data)

@@ -48,14 +48,12 @@ def _save_profile(vault, new_profile, profiles_list):
     :param profiles_list: A list of existing profiles dictionaries from the
     profiles file
     """
-    profiles_path = 'data/profiles'
 
-    if not os.path.exists('data'):
-        os.makedirs('data')
+    utilities.ensure_config_dir_exists()
 
     profiles_list.append(new_profile)
 
-    vault.dump_as_json_to_file(profiles_list, profiles_path)
+    vault.dump_as_json_to_file(profiles_list, utilities.PROFILES_PATH)
 
 
 class ProfileAddCommand(CliCommand):
@@ -108,17 +106,15 @@ class ProfileAddCommand(CliCommand):
     def _do_command(self):
         vault = get_vault(self.options.vaultfile)
         hosts_list = self.options.hosts
-        profiles_path = 'data/profiles'
         profiles_list = []
-        credentials_path = 'data/credentials'
         ssh_port = 22
 
         if hasattr(self.options, 'sshport') \
            and self.options.sshport is not None:
             ssh_port = utilities.validate_port(self.options.sshport)
 
-        if os.path.isfile(profiles_path):
-            profiles_list = vault.load_as_json(profiles_path)
+        if os.path.isfile(utilities.PROFILES_PATH):
+            profiles_list = vault.load_as_json(utilities.PROFILES_PATH)
             profile_found = profile_exists(profiles_list, self.options.name)
             if profile_found:
                 print(_("Profile '%s' already exists.") % self.options.name)
@@ -132,12 +128,12 @@ class ProfileAddCommand(CliCommand):
 
         _check_range_validity(range_list)
 
-        if not os.path.isfile(credentials_path):
+        if not os.path.isfile(utilities.CREDENTIALS_PATH):
             print(_('No credentials exist yet.'))
             sys.exit(1)
 
         creds = []
-        cred_list = vault.load_as_json(credentials_path)
+        cred_list = vault.load_as_json(utilities.CREDENTIALS_PATH)
         for auth in self.options.auth:
             for auth_item in auth.strip().split(","):
                 valid = False

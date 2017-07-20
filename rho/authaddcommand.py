@@ -20,6 +20,7 @@ import sys
 import uuid
 from getpass import getpass
 from collections import OrderedDict
+from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault
 from rho.translation import get_translation
@@ -48,13 +49,10 @@ def _save_cred(vault, new_cred, cred_list):
     :param cred_list: A list of existing credential dictionaries from the
     credential file
     """
-    credentials_path = 'data/credentials'
 
-    if not os.path.exists('data'):
-        os.makedirs('data')
-
+    utilities.ensure_config_dir_exists()
     cred_list.append(new_cred)
-    vault.dump_as_json_to_file(cred_list, credentials_path)
+    vault.dump_as_json_to_file(cred_list, utilities.CREDENTIALS_PATH)
 
 
 class AuthAddCommand(CliCommand):
@@ -107,12 +105,11 @@ class AuthAddCommand(CliCommand):
         cred = {}
         ssh_file = 'empty'
         pass_to_store = ''
-        credentials_path = 'data/credentials'
         auth_name = self.options.name
         cred_list = []
 
-        if os.path.isfile(credentials_path):
-            cred_list = vault.load_as_json(credentials_path)
+        if os.path.isfile(utilities.CREDENTIALS_PATH):
+            cred_list = vault.load_as_json(utilities.CREDENTIALS_PATH)
             auth_found = auth_exists(cred_list, auth_name)
             if auth_found:
                 print(_("Auth with name exists"))

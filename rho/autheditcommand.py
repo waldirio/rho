@@ -18,6 +18,7 @@ from __future__ import print_function
 import sys
 import os
 from getpass import getpass
+from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault
 from rho.translation import get_translation
@@ -100,13 +101,12 @@ class AuthEditCommand(CliCommand):
 
     def _do_command(self):
         vault = get_vault(self.options.vaultfile)
-        credentials_path = 'data/credentials'
         auth_found = False
 
-        if not os.path.isfile(credentials_path):
+        if not os.path.isfile(utilities.CREDENTIALS_PATH):
             print(_("No auth credentials found"))
         else:
-            cred_list = vault.load_as_json(credentials_path)
+            cred_list = vault.load_as_json(utilities.CREDENTIALS_PATH)
 
             for cred in cred_list:
                 if cred.get('name') == self.options.name:
@@ -122,6 +122,6 @@ class AuthEditCommand(CliCommand):
                 print(_('Auth "%s" does not exist' % self.options.name))
                 sys.exit(1)
 
-            vault.dump_as_json_to_file(cred_list, credentials_path)
+            vault.dump_as_json_to_file(cred_list, utilities.CREDENTIALS_PATH)
 
         print(_("Auth '%s' updated") % self.options.name)

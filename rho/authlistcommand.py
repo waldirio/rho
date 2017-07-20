@@ -17,6 +17,7 @@ for system access
 from __future__ import print_function
 import os
 import sys
+from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault
 from rho.translation import get_translation
@@ -42,13 +43,12 @@ class AuthListCommand(CliCommand):
 
     def _do_command(self):
         vault = get_vault(self.options.vaultfile)
-        credentials_path = 'data/credentials'
 
-        if not os.path.isfile(credentials_path):
+        if not os.path.isfile(utilities.CREDENTIALS_PATH):
             print(_('No credentials exist yet.'))
             sys.exit(1)
 
-        cred_list = vault.load_as_json(credentials_path)
+        cred_list = vault.load_as_json(utilities.CREDENTIALS_PATH)
 
         for cred in cred_list:
             output = cred.get('id') + ','
