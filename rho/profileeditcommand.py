@@ -77,24 +77,22 @@ class ProfileEditCommand(CliCommand):
         # pylint: disable=too-many-locals, too-many-branches
         # pylint: disable=too-many-statements, too-many-nested-blocks
         vault = get_vault(self.options.vaultfile)
-        profiles_path = 'data/profiles'
-        credentials_path = 'data/credentials'
         cred_list = []
         profiles_list = []
         range_list = []
         profile_found = False
         auth_found = False
 
-        if not os.path.isfile(credentials_path):
+        if not os.path.isfile(utilities.CREDENTIALS_PATH):
             print(_('No credentials exist yet.'))
             sys.exit(1)
 
-        if not os.path.isfile(profiles_path):
+        if not os.path.isfile(utilities.PROFILES_PATH):
             print(_('No profiles exist yet.'))
             sys.exit(1)
 
-        cred_list = vault.load_as_json(credentials_path)
-        profiles_list = vault.load_as_json(profiles_path)
+        cred_list = vault.load_as_json(utilities.CREDENTIALS_PATH)
+        profiles_list = vault.load_as_json(utilities.PROFILES_PATH)
 
         if self.options.hosts:
             hosts_list = self.options.hosts
@@ -138,5 +136,5 @@ class ProfileEditCommand(CliCommand):
             print(_("Profile '%s' does not exist.") % self.options.name)
             sys.exit(1)
 
-        vault.dump_as_json_to_file(profiles_list, profiles_path)
+        vault.dump_as_json_to_file(profiles_list, utilities.PROFILES_PATH)
         print(_("Profile '%s' edited" % self.options.name))

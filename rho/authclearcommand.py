@@ -17,6 +17,7 @@ existing authentication credentials.
 from __future__ import print_function
 import os
 import sys
+from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault
 from rho.translation import get_translation
@@ -58,20 +59,19 @@ class AuthClearCommand(CliCommand):
             sys.exit(1)
 
     def _do_command(self):
-        credentials_path = 'data/credentials'
-
         if self.options.name:
             vault = get_vault(self.options.vaultfile)
-            if os.path.isfile(credentials_path):
-                cred_list = vault.load_as_json(credentials_path)
+            if os.path.isfile(utilities.CREDENTIALS_PATH):
+                cred_list = vault.load_as_json(utilities.CREDENTIALS_PATH)
                 for index, cred in enumerate(cred_list):
                     if cred.get('name') == self.options.name:
                         del cred_list[index]
                         break
-                vault.dump_as_json_to_file(cred_list, credentials_path)
+                vault.dump_as_json_to_file(
+                    cred_list, utilities.CREDENTIALS_PATH)
 
         elif self.options.all:
-            if os.path.isfile(credentials_path):
-                os.remove(credentials_path)
+            if os.path.isfile(utilities.CREDENTIALS_PATH):
+                os.remove(utilities.CREDENTIALS_PATH)
 
             print(_("All authorization credentials removed"))

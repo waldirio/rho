@@ -16,6 +16,7 @@
 from __future__ import print_function
 import os
 import sys
+from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault
 from rho.translation import get_translation
@@ -52,12 +53,11 @@ class AuthShowCommand(CliCommand):
 
     def _do_command(self):
         vault = get_vault(self.options.vaultfile)
-        credentials_path = 'data/credentials'
         auth_found = False
-        if not os.path.isfile(credentials_path):
+        if not os.path.isfile(utilities.CREDENTIALS_PATH):
             print(_("No auth credentials found"))
         else:
-            cred_list = vault.load_as_json(credentials_path)
+            cred_list = vault.load_as_json(utilities.CREDENTIALS_PATH)
 
             for cred in cred_list:
                 if cred.get('name') == self.options.name:

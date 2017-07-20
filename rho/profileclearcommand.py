@@ -18,6 +18,7 @@ from __future__ import print_function
 import os
 import sys
 import glob
+from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault
 from rho.translation import get_translation
@@ -63,13 +64,12 @@ class ProfileClearCommand(CliCommand):
 
     # pylint: disable=too-many-branches
     def _do_command(self):
-        profiles_path = 'data/profiles'
         profiles_list = []
 
         if self.options.name:
             vault = get_vault(self.options.vaultfile)
             profile = self.options.name
-            profiles_list = vault.load_as_json(profiles_path)
+            profiles_list = vault.load_as_json(utilities.PROFILES_PATH)
             profile_found = False
 
             for index, curr_profile in enumerate(profiles_list):
@@ -82,7 +82,7 @@ class ProfileClearCommand(CliCommand):
                 print(_("No such profile: '%s'") % profile)
                 sys.exit(1)
 
-            vault.dump_as_json_to_file(profiles_list, profiles_path)
+            vault.dump_as_json_to_file(profiles_list, utilities.PROFILES_PATH)
 
             # removes inventory associated with the profile
             if os.path.isfile('data/' + profile + "_hosts"):
@@ -102,10 +102,10 @@ class ProfileClearCommand(CliCommand):
 
         # removes all inventories ever.
         elif self.options.all:
-            if not os.path.isfile(profiles_path):
+            if not os.path.isfile(utilities.PROFILES_PATH):
                 print(_("All network profiles removed"))
             else:
-                os.remove(profiles_path)
+                os.remove(utilities.PROFILES_PATH)
                 for file_list in glob.glob("data/*_hosts"):
                     os.remove(file_list)
                     profile = file_list.strip('_hosts')

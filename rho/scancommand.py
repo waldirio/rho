@@ -20,6 +20,7 @@ import time
 import json
 from collections import defaultdict
 import pexpect
+from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault_and_password
 from rho.utilities import multi_arg, _read_in_file, str_to_ascii
@@ -289,8 +290,6 @@ class ScanCommand(CliCommand):
         # pylint: disable=too-many-locals
         # pylint: disable=too-many-branches
         vault, vault_pass = get_vault_and_password(self.options.vaultfile)
-        profiles_path = 'data/profiles'
-        credentials_path = 'data/credentials'
         profile_found = False
         profile_auth_list = []
         profile_ranges = []
@@ -304,22 +303,22 @@ class ScanCommand(CliCommand):
 
         # Checks if profile exists and stores information
         # about that profile for later use.
-        if not os.path.isfile(profiles_path):
+        if not os.path.isfile(utilities.PROFILES_PATH):
             print(_('No profiles exist yet.'))
             sys.exit(1)
 
-        if not os.path.isfile(credentials_path):
+        if not os.path.isfile(utilities.CREDENTIALS_PATH):
             print(_('No auth credentials exist yet.'))
             sys.exit(1)
 
-        profiles_list = vault.load_as_json(profiles_path)
+        profiles_list = vault.load_as_json(utilities.PROFILES_PATH)
         for curr_profile in profiles_list:
             if self.options.profile == curr_profile.get('name'):
                 profile_found = True
                 profile_ranges = curr_profile.get('hosts')
                 profile_auths = curr_profile.get('auth')
                 profile_port = curr_profile.get('ssh_port')
-                cred_list = vault.load_as_json(credentials_path)
+                cred_list = vault.load_as_json(utilities.CREDENTIALS_PATH)
                 for auth in profile_auths:
                     for cred in cred_list:
                         if auth.get('id') == cred.get('id'):
