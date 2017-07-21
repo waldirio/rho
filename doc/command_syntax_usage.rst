@@ -73,27 +73,53 @@ Output
 The important part about a scan is the results report. By default,
 this contains a large amount of information about the operating system, hardware, and platform.
 
+- ``cpu.bogomips`` - measurement of CPU speed made by the Linux kernel
 - ``cpu.count`` - number of processors
 - ``cpu.cpu_family`` - cpu family
 - ``cpu.model_name`` - cpu model name
+- ``cpu.model_ver`` - cpu model version
+- ``cpu.socket_count`` - number of sockets
 - ``cpu.vendor_id`` - cpu vendor name
+- ``date.anaconda_log`` - /root/anaconda-ks.cfg modified time
+- ``date.date`` - date
+- ``date.filesystem_create`` - uses tune2fs -l on the / filesystem dev found using mount
+- ``date.machine_id`` - /etc/machine-id modified time'
+- ``date.yum_history`` - dates from yum history
 - ``dmi.bios-vendor`` - bios vendor name
-- ``error`` - any errors that are found
-- ``etc-release.etc-release`` - contents of /etc/release (or equivalent)
+- ``dmi.bios-version`` - bios version info
+- ``dmi.processor-family`` - processor family
+- ``dmi.system-manufacturer`` - system manufacturer
+- ``etc-issue.etc-issue`` - contents of /etc/issue (or equivalent)
+- ``etc-release.name`` - name of the release
+- ``etc-release.release`` - release information
+- ``etc-release.version`` - release version
 - ``instnum.instnum`` installation number
+- ``redhat-packages.is_redhat`` - determines if package is a Red Hat package
+- ``redhat-packages.last_installed`` - last installed package
+- ``redhat-packages.last_built`` - last built package
+- ``redhat-packages.num_rh_packages`` - number of Red Hat packages
+- ``redhat-packages.num_installed_packages`` - number of installed packages
 - ``redhat-release.name`` - name of package that provides 'redhat-release'
 - ``redhat-release.release`` - release of package that provides 'redhat-release'
 - ``redhat-release.version`` - version of package that provides 'redhat-release'
+- ``subman.cpu.core(s)_per_socket`` - cpu cores per socket from subscription manager
+- ``subman.cpu.cpu(s)`` - cpus from subscription manager
+- ``subman.cpu.cpu_socket(s)`` - cpu sockets from subscription manager
+- ``subman.virt.is_guest`` - Whether is a virtual guest from subscription manager
+- ``subman.virt.host_type`` - Virtual host type from subscription manager
 - ``systemid.system_id`` - Red Hat Network System ID
 - ``systemid.username`` - Red Hat Network username
-- ``virt.virt`` - host, guest, or baremetal
-- ``virt.type`` - type of virtual system
 - ``uname.all`` - ``uname -a`` (all)
 - ``uname.hardware_platform`` - ``uname -i`` (hardware_platform)
 - ``uname.hostname`` - ``uname -n`` (hostname)
 - ``uname.kernel`` - ``uname -r`` (kernel)
 - ``uname.os`` - ``uname -s`` (os)
 - ``uname.processor`` - ``uname -p`` (processor)
+- ``virt.num_guests`` - the number of virtualized guests
+- ``virt.num_running_guests`` - the number of running virtualized guests
+- ``virt.type`` - type of virtual system
+- ``virt.virt`` - host, guest, or baremetal
+- ``virt-what.type`` - What type of virtualization a system is running
 
 The output can then be configured to contain any combination of these fields by using the
 ``--facts`` argument. The following is the format rho understands for all the facts. Some or all
@@ -101,14 +127,19 @@ of these facts can be requested by either as a CLI list i.e. ``--facts <fact_1> 
 or by passing in a file with a new fact on every line in the format as follows. A value
 of 'default' will get all the information listed above.
 
-- **Username_uname.x** - for facts of the form ``uname.x``
-- **VirtWhat_virt.x** - for facts of the form ``virt.x``
-- **SysId_systemid.x** - for facts of the form ``systemid.x``
-- **RedhatRelease_redhat-release.x** - for facts of the form ``redhat-release.x``
-- **Instnum_instnum.x** - for facts of the form ``instnum.x``
-- **EtcRelease_etc-release.x** - for facts of the form ``etc-release.x``
-- **Dmi_dmi.x** - for facts of the form ``dmi.x``
 - **Cpu_cpu.x** - for facts of the form ``cpu.x``
+- **Date_date.x** - for facts of the form ``date.x``
+- **Dmi_dmi.x** - for facts of the form ``dmi.x``
+- **EtcIssue_etc-issue.x** - for facts of the form ``etc-issue.x``
+- **EtcRelease_etc-release.x** - for facts of the form ``etc-release.x``
+- **Instnum_instnum.x** - for facts of the form ``instnum.x``
+- **RedhatPackages_redhat-packages.x** - for facts of the form ``redhat-packages.x``
+- **RedhatRelease_redhat-release.x** - for facts of the form ``redhat-release.x``
+- **SubmanFacts_virt.x** - for facts of the form ``subman.x``
+- **SysId_systemid.x** - for facts of the form ``systemid.x``
+- **Username_uname.x** - for facts of the form ``uname.x``
+- **Virt_virt.x** - for facts of the form ``virt.x``
+- **VirtWhat_virt-what.x** - for facts of the form ``virt-what.x``
 
 As hinted at previously, the auths that have been used in a particular scan are
 the first valid auths in the list passed in order to the profile. All the valid
