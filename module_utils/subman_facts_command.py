@@ -88,6 +88,10 @@ class SubmanFactsRhoCmd(rho_cmd.RhoCmd):
                                 in self.fields.keys()]
                 self.data.update(subman_facts)
 
+        for field in self.fields:
+            if field not in self.data:
+                self.data[field] = 'error'
+
         # Checks for the existence of at least
         # one .facts file in /etc/rhsm/facts
         if 'subman_has_facts' in self.cmd_results.keys():
@@ -99,3 +103,5 @@ class SubmanFactsRhoCmd(rho_cmd.RhoCmd):
                 # pylint: disable=len-as-condition
                 self.data['subman.has_facts_file'] = "Y" \
                     if len(fact_files_list) > 0 else "N"
+        else:
+            self.data['subman.has_facts_file'] = 'error'
