@@ -27,6 +27,10 @@ class DateRhoCmd(rho_cmd.RhoCmd):
         super(DateRhoCmd, self).__init__()
         self.name = "date"
         self.cmd_names['date'] = ['date.date']
+        self.cmd_names['anaconda_log'] = ['date.anaconda_log']
+        self.cmd_names['machine_id'] = ['date.machine_id']
+        self.cmd_names['filesystem_create'] = ['date.filesystem_create']
+        self.cmd_names['yum_history'] = ['date.yum_history']
         self.cmd_strings.update({
             'date': 'date',
             'anaconda_log':
@@ -66,17 +70,27 @@ class DateRhoCmd(rho_cmd.RhoCmd):
         """This method parses the result of the cli command
         'date' and stores it in the only field date.date.
         """
-        if hasattr(self.cmd_results, 'date'):
+        if 'date'in self.cmd_results:
             self.data['date.date'] = self.cmd_results['date'][0].strip()
-        if hasattr(self.cmd_results, 'anaconda_log'):
+        else:
+            self.data['date.date'] = 'error'
+        if 'anaconda_log' in self.cmd_results:
             self.data['date.anaconda_log'] = (
                 self.cmd_results['anaconda_log'][0].strip())
-        if hasattr(self.cmd_results, 'machine_id'):
+        else:
+            self.data['date.anaconda_log'] = 'error'
+        if 'machine_id' in self.cmd_results:
             self.data['date.machine_id'] = (
                 self.cmd_results['machine_id'][0].strip())
-        if hasattr(self.cmd_results, 'filesystem_create'):
+        else:
+            self.data['date.machine_id'] = 'error'
+        if 'filesystem_create' in self.cmd_results:
             self.data['date.filesystem_create'] = (
                 self.cmd_results['filesystem_create'][0].strip())
-        if hasattr(self.cmd_results, 'yum_history'):
+        else:
+            self.data['date.filesystem_create'] = 'error'
+        if 'yum_history' in self.cmd_results:
             self.data['date.yum_history'] = (
                 self.cmd_results['yum_history'][0].strip())
+        else:
+            self.data['date.yum_history'] = 'error'
