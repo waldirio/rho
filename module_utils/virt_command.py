@@ -53,7 +53,7 @@ class VirtRhoCmd(cpu_command.CpuRhoCmd):
         self.cmd_names["virt_running_list"] = ["virt.num_running_guests"]
 
         self.cmd_strings["sys_manu"] = (
-            "/usr/sbin/dmidecode "
+            "sudo -n /usr/sbin/dmidecode "
             "| grep -A4 'System Information' "
             "| grep 'Manufacturer' "
             "| sed -n -e 's/^.*Manufacturer:\\s//p'")

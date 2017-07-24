@@ -148,3 +148,25 @@ scan identified by the timestamp.
 
 For further details of the command usage view the following
 `example <command_example.rst>`_.
+
+^^^^^^^
+Scan User Permissions
+^^^^^^^
+Some of the output facts will report an error if the user used to perform the
+scan does not have the appropriate permissions to execute the command used to
+gather the targeted facts. The following set of facts require *admin/root*
+permissions to collect the facts:
+
+- ``dmi.x``
+- ``subman.x``
+- ``virt-what.x``
+
+The scan user can successful collect these values if the user is **root** or
+has the ability to perform a ``sudo`` without a password. The following
+provides the necessary content for the ``/etc/sudoers`` file where *scanuser*
+represents the username used for the scan.
+
+::
+
+  Cmnd_Alias SCAN = /sbin/subscription-manager, /usr/sbin/dmidecode, /usr/sbin/virt-what
+  scanuser ALL=NOPASSWD: SCAN

@@ -42,16 +42,17 @@ class DmiRhoCmd(rho_cmd.RhoCmd):
         self.cmd_names["bios_sys_manu"] = ['dmi.system-manufacturer']
         self.cmd_names["bios_processor_fam"] = ['dmi.processor-family']
 
-        self.cmd_strings["bios_vendor"] = "/usr/sbin/dmidecode -s bios-vendor"
-        self.cmd_strings["bios_version"] = "/usr/sbin/dmidecode " \
+        self.cmd_strings["bios_vendor"] = "sudo -n /usr/sbin/dmidecode -s " \
+                                          "bios-vendor"
+        self.cmd_strings["bios_version"] = "sudo -n /usr/sbin/dmidecode " \
                                            "-s bios-version"
         self.cmd_strings["bios_sys_manu"] = (
-            "/usr/sbin/dmidecode "
+            "sudo -n /usr/sbin/dmidecode "
             "| grep -A4 'System Information' "
             "| grep 'Manufacturer' "
             "| sed -n -e 's/^.*Manufacturer:\\s//p'")
-        self.cmd_strings["bios_processor_fam"] = "usr/sbin/dmidecode -s " \
-                                                 "processor-family"
+        self.cmd_strings["bios_processor_fam"] = "sudo -n /usr/sbin/dmidecode"\
+                                                 "-s processor-family"
 
     def parse_data(self):
         """This method loops through all
