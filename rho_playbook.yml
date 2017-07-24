@@ -4,20 +4,13 @@
 
 ---
 
-- name: Collect all default facts
+- name: collect all requested facts
   hosts: all
   roles:
     - collect
 
 
-- name: Write default facts first to a variable and then to csv locally
+- name: write facts first to a variable and then to csv locally
   hosts: localhost
   roles:
     - write
-
-
-
-
-
-
-

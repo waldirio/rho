@@ -1,7 +1,11 @@
 ---
 
-- name: Collect these facts
-  run_cmds: name=whatever fact_names={{facts_to_collect}}
+- name: collect requested facts
+  run_cmds:
+    name: scanner
+    fact_names: "{{facts_to_collect}}"
+    host: "{{ansible_host}}"
+    port: "{{ansible_ssh_port}}"
   register: facts_all
 
 - name: record host returned dictionary

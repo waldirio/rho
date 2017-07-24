@@ -73,6 +73,9 @@ Output
 The important part about a scan is the results report. By default,
 this contains a large amount of information about the operating system, hardware, and platform.
 
+
+- ``connection.host`` - The host address of the connection
+- ``connection.port`` - The port used for the connection
 - ``cpu.bogomips`` - measurement of CPU speed made by the Linux kernel
 - ``cpu.count`` - number of processors
 - ``cpu.cpu_family`` - cpu family
@@ -93,7 +96,7 @@ this contains a large amount of information about the operating system, hardware
 - ``etc-release.name`` - name of the release
 - ``etc-release.release`` - release information
 - ``etc-release.version`` - release version
-- ``instnum.instnum`` installation number
+- ``instnum.instnum`` - installation number
 - ``redhat-packages.is_redhat`` - determines if package is a Red Hat package
 - ``redhat-packages.last_installed`` - last installed package
 - ``redhat-packages.last_built`` - last built package

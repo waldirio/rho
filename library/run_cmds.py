@@ -77,6 +77,8 @@ class RunCommands(object):
     def __init__(self, module):
         self.name = module.params["name"]
         self.facts_requested = {}
+        self.host = module.params["host"]
+        self.port = module.params["port"]
 
         # exception used to see if the input from playbook
         # is a list of facts or just a string so that
@@ -153,6 +155,8 @@ class RunCommands(object):
                     if k not in facts_requested_list:
                         info_dict.pop(k, None)
 
+        info_dict['connection.host'] = self.host
+        info_dict['connection.port'] = self.port
         return info_dict
 
 
@@ -161,7 +165,9 @@ def main():
     from the playbook about the facts that need to be collected.
     """
     module = AnsibleModule(argument_spec=dict(name=dict(required=True),
-                                              fact_names=dict(required=False)))
+                                              fact_names=dict(required=False),
+                                              host=dict(required=True),
+                                              port=dict(required=True)))
 
     try:
         my_runner = RunCommands(module=module)
