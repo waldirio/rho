@@ -35,7 +35,7 @@ class SubmanFactsRhoCmd(rho_cmd.RhoCmd):
         self.name = "subscription-manager"
 
         self.cmd_strings["subman_facts_list"] \
-            = 'subscription-manager facts --list'
+            = 'sudo -n subscription-manager facts --list'
         self.cmd_strings["subman_has_facts"] \
             = 'ls /etc/rhsm/facts | grep .facts'
 

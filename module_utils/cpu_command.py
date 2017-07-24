@@ -69,7 +69,7 @@ class CpuRhoCmd(rho_cmd.RhoCmd):
         """
         data = {}
         cpu_count = 0
-        process = sp.Popen("/usr/sbin/dmidecode -t 4",
+        process = sp.Popen("sudo -n /usr/sbin/dmidecode -t 4",
                            shell=True,
                            stdout=sp.PIPE,
                            stderr=sp.PIPE)

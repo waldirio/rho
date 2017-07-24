@@ -36,7 +36,7 @@ class VirtWhatRhoCmd(rho_cmd.RhoCmd):
 
         self.cmd_names["virt_what"] = ['virt-what.type']
 
-        cmd_string = "virt-what;echo $?"
+        cmd_string = "sudo -n virt-what;echo $?"
         self.cmd_strings["virt_what"] = cmd_string
 
     def parse_data(self):
