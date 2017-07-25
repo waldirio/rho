@@ -102,7 +102,7 @@ class AuthAddCommand(CliCommand):
 
     def _do_command(self):
         vault = get_vault(self.options.vaultfile)
-        cred = {}
+        cred = OrderedDict()
         ssh_file = 'empty'
         pass_to_store = ''
         auth_name = self.options.name

@@ -11,7 +11,8 @@
 
 import sys
 
-from ansible.module_utils import rho_cmd  # pylint: disable=no-name-in-module
+# pylint: disable=no-name-in-module, import-error
+from ansible.module_utils import rho_cmd
 
 if sys.version_info > (3,):
     long = int  # pylint: disable=invalid-name,redefined-builtin
@@ -139,9 +140,9 @@ class RedhatPackagesRhoCmd(rho_cmd.RhoCmd):
                               .splitlines()]
         rh_packages = filter(self.PkgInfo.is_red_hat_pkg,
                              installed_packages)
-        if len(rh_packages) > 0:  # pylint: disable=len-as-condition
-            last_installed = 0
-            last_built = 0
+        if rh_packages:
+            last_installed = None
+            last_built = None
             max_install_time = float("-inf")
             max_build_time = float("-inf")
             for pkg in rh_packages:
@@ -152,17 +153,16 @@ class RedhatPackagesRhoCmd(rho_cmd.RhoCmd):
                     max_build_time = pkg.build_time
                     last_built = pkg
 
-            # pylint: disable=len-as-condition
-            is_red_hat = "Y" if len(rh_packages) > 0 else "N"
+            is_red_hat = "Y" if rh_packages > 0 else "N"
 
             self.data['redhat-packages.is_redhat'] = is_red_hat
             self.data['redhat-packages.num_rh_packages'] = len(rh_packages)
             self.data['redhat-packages.num_installed_packages'] \
                 = len(installed_packages)
             self.data['redhat-packages.last_installed'] \
-                = last_installed.details_install()
+                = last_installed.details_install() if last_installed else 'none'
             self.data['redhat-packages.last_built'] \
-                = last_built.details_built()
+                = last_built.details_built() if last_built else 'none'
         else:
             last_installed = ""
             last_built = ""

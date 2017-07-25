@@ -9,12 +9,9 @@
 
 """Get virt-what information from the remote machine."""
 
-import gettext
-
-from ansible.module_utils import rho_cmd  # pylint: disable=no-name-in-module
-
-T = gettext.translation('rho', 'locale', fallback=True)
-_ = T.ugettext
+# pylint: disable=no-name-in-module, import-error
+from ansible.module_utils import rho_cmd
+from ansible.module_utils.translation import _
 
 
 # pylint: disable=too-few-public-methods
@@ -50,9 +47,8 @@ class VirtWhatRhoCmd(rho_cmd.RhoCmd):
                 self.cmd_names.keys()[0]][0].strip().split('\n')]
             error = int(results[-1:][0])
             virt_what_output = results[:len(results) - 1]
-            # pylint: disable=len-as-condition
             if error == 0:
-                if len(virt_what_output) > 0:
+                if virt_what_output:
                     # quote the results and join on
                     # ',' as virt-what can return multiple values
                     self.data['virt-what.type'] = '"%s"' % "," \

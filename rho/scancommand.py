@@ -114,10 +114,7 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
                 success_map[host_ip].append(tup_auth_item)
                 success_port_map[host_ip] = profile_port
 
-    success_auths = list(success_auths)
-    success_hosts = list(success_hosts)
-
-    return success_auths, success_hosts, best_map, success_map, \
+    return list(success_auths), list(success_hosts), best_map, success_map, \
         success_port_map
 
 
@@ -339,7 +336,7 @@ class ScanCommand(CliCommand):
                                                           profile_auth_list,
                                                           forks)
 
-            if not len(success_auths):  # pylint: disable=len-as-condition
+            if not success_auths:
                 print(_('All auths are invalid for this profile'))
                 sys.exit(1)
 

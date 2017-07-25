@@ -9,11 +9,9 @@
 
 """Get information on subscription-manager."""
 
-import gettext
-from ansible.module_utils import rho_cmd  # pylint: disable=no-name-in-module
-
-T = gettext.translation('rho', 'locale', fallback=True)
-_ = T.ugettext
+# pylint: disable=no-name-in-module, import-error
+from ansible.module_utils import rho_cmd
+from ansible.module_utils.translation import _
 
 
 # pylint: disable=too-few-public-methods
@@ -105,8 +103,7 @@ class SubmanFactsRhoCmd(rho_cmd.RhoCmd):
             elif self.cmd_results['subman_has_facts'][0]:
                 fact_files_list = \
                     self.cmd_results['subman_has_facts'][0].strip().split('\n')
-                # pylint: disable=len-as-condition
                 self.data['subman.has_facts_file'] = "Y" \
-                    if len(fact_files_list) > 0 else "N"
+                    if fact_files_list else "N"
         else:
             self.data['subman.has_facts_file'] = 'error'

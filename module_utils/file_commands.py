@@ -4,18 +4,15 @@ import sys
 # for expat exceptions...
 import xml
 
-import gettext
-
-from ansible.module_utils import rho_cmd  # pylint: disable=no-name-in-module
+# pylint: disable=no-name-in-module, import-error
+from ansible.module_utils import rho_cmd
+from ansible.module_utils.translation import _
 
 # for parsing systemid
 if sys.version_info > (3,):
     import xmlrpc.client as xmlrpclib  # pylint: disable=import-error
 else:
     import xmlrpclib  # pylint: disable=import-error
-
-T = gettext.translation('rho', 'locale', fallback=True)
-_ = T.ugettext
 
 
 # pylint: disable=too-few-public-methods

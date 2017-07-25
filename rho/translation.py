@@ -19,6 +19,7 @@ T = gettext.translation('rho', 'locale', fallback=True)
 def get_translation():
     """Obtains the locale based translation setup for rho"""
     if hasattr(T, 'ugettext'):
+        # pylint: disable=no-member
         _ = T.ugettext
     else:
         _ = T.gettext

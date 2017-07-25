@@ -9,12 +9,9 @@
 
 """Get the system date, in a few different ways."""
 
-import gettext
-
-from ansible.module_utils import rho_cmd  # pylint: disable=no-name-in-module
-
-T = gettext.translation('rho', 'locale', fallback=True)
-_ = T.ugettext
+# pylint: disable=no-name-in-module, import-error
+from ansible.module_utils import rho_cmd
+from ansible.module_utils.translation import _
 
 
 # pylint: disable=too-few-public-methods

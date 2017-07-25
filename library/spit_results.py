@@ -16,6 +16,7 @@
 import csv
 import os
 import json
+# pylint: disable=import-error
 from ansible.module_utils.basic import AnsibleModule
 
 

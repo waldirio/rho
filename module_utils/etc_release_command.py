@@ -11,7 +11,8 @@
 
 import subprocess as sp
 
-from ansible.module_utils import rho_cmd  # pylint: disable=no-name-in-module
+# pylint: disable=no-name-in-module, import-error
+from ansible.module_utils import rho_cmd
 
 
 class EtcReleaseRhoCmd(rho_cmd.RhoCmd):

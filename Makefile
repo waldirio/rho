@@ -36,14 +36,18 @@ install: build
 
 tests:
 	-py.test -v
+	-py.test-3 -v
 
 tests-coverage:
 	-py.test -v --cov=rho --cov=library
+	-py.test-3 -v --cov=rho --cov=library
 
 lint-flake8:
 	flake8 . --ignore D203
+	python3 -m flake8 . --ignore D203
 
 lint-pylint:
 	pylint --disable=duplicate-code */*.py
+	pylint-3 --disable=duplicate-code,locally-disabled */*.py -rn
 
 lint: lint-flake8 lint-pylint

@@ -17,7 +17,7 @@ import json
 import uuid
 
 import ast
-# pylint:disable=no-name-in-module
+# pylint:disable=no-name-in-module, import-error
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils import rho_cmd
 from ansible.module_utils import date_command
@@ -116,6 +116,7 @@ class RunCommands(object):
                     # be run to fill in all corresponding fields.
 
         elif isinstance(self.fact_names, str):
+            # pylint: disable=no-member
             if self.fact_names.lower().strip() == "default":
                 for def_cmd in DEFAULT_CMDS:
                     self.facts_requested[def_cmd] = "all"
