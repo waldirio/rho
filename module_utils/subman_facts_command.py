@@ -44,7 +44,8 @@ class SubmanFactsRhoCmd(rho_cmd.RhoCmd):
                'subman.cpu.cpu(s)',
                'subman.cpu.cpu_socket(s)',
                'subman.virt.host_type',
-               'subman.virt.is_guest']
+               'subman.virt.is_guest',
+               'subman.virt.uuid']
         self.cmd_names['subman_has_facts'] = ['subman.hash_facts_file']
 
         self.fields = {'subman.cpu.core(s)_per_socket': _('cpu.core(s)_'
@@ -69,6 +70,10 @@ class SubmanFactsRhoCmd(rho_cmd.RhoCmd):
                                                  '(from '
                                                  'subscription-manager '
                                                  'facts --list)'),
+                       'subman.virt.uuid': _('virt.uuid '
+                                             '(from '
+                                             'subscription-manager '
+                                             'facts --list)'),
                        'subman.has_facts_file': _('Whether '
                                                   'subscription-manager'
                                                   ' has a facts file')}

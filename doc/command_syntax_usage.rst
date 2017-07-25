@@ -76,6 +76,7 @@ this contains a large amount of information about the operating system, hardware
 
 - ``connection.host`` - The host address of the connection
 - ``connection.port`` - The port used for the connection
+- ``connection.uuid`` - A generated identifier for the connection
 - ``cpu.bogomips`` - measurement of CPU speed made by the Linux kernel
 - ``cpu.count`` - number of processors
 - ``cpu.cpu_family`` - cpu family
@@ -110,6 +111,7 @@ this contains a large amount of information about the operating system, hardware
 - ``subman.cpu.cpu_socket(s)`` - cpu sockets from subscription manager
 - ``subman.virt.is_guest`` - Whether is a virtual guest from subscription manager
 - ``subman.virt.host_type`` - Virtual host type from subscription manager
+- ``subman.virt.uuid`` - Virtual host uuid from subscription manager
 - ``systemid.system_id`` - Red Hat Network System ID
 - ``systemid.username`` - Red Hat Network username
 - ``uname.all`` - ``uname -a`` (all)

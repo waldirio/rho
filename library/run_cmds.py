@@ -14,6 +14,7 @@
 """Commands to run on machines"""
 
 import json
+import uuid
 
 import ast
 # pylint:disable=no-name-in-module
@@ -157,6 +158,8 @@ class RunCommands(object):
 
         info_dict['connection.host'] = self.host
         info_dict['connection.port'] = self.port
+        info_dict['connection.uuid'] = str(uuid.uuid4())
+
         return info_dict
 
 
