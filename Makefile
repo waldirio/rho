@@ -47,3 +47,26 @@ lint-pylint:
 	pylint --disable=duplicate-code */*.py
 
 lint: lint-flake8 lint-pylint
+
+# Travis doesn't use the -3 prefix with Python 3 executables, so we
+# need to keep these separate from the build targets that Travis will
+# use.
+tests-3:
+	-py.test-3 -v
+
+tests-coverage-3:
+	-py.test-3 -v --cov=rho --cov=library
+
+lint-flake8-3:
+	python3 -m flake8 . --ignore D203
+
+lint-pylint-3:
+	python3 -m pylint --disable=duplicate-code,locally-disabled */*.py -rn
+
+lint-3: lint-flake8-3 lint-pylint-3
+
+# But for local testing, we want to be able to test Python 2 and 3
+# together conveniently, so we also have these targets.
+tests-all: tests tests-3
+
+lint-all: lint lint-3

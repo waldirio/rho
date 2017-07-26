@@ -97,8 +97,7 @@ class ProfileEditCommand(CliCommand):
         if self.options.hosts:
             hosts_list = self.options.hosts
             range_list = hosts_list
-            # pylint: disable=len-as-condition
-            if len(hosts_list) > 0 and os.path.isfile(hosts_list[0]):
+            if os.path.isfile(hosts_list[0]):
                 range_list = _read_in_file(hosts_list[0])
 
             # makes sure the hosts passed in are in a format Ansible

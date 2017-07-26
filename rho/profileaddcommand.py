@@ -122,8 +122,7 @@ class ProfileAddCommand(CliCommand):
 
         range_list = hosts_list
 
-        # pylint: disable=len-as-condition
-        if len(hosts_list) > 0 and os.path.isfile(hosts_list[0]):
+        if hosts_list and os.path.isfile(hosts_list[0]):
             range_list = _read_in_file(hosts_list[0])
 
         _check_range_validity(range_list)

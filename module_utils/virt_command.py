@@ -9,13 +9,9 @@
 
 """Try to determine if the remote machine is a virtualization guest or host."""
 
-import gettext
-
-# pylint: disable=no-name-in-module
+# pylint: disable=no-name-in-module, import-error
 from ansible.module_utils import cpu_command
-
-T = gettext.translation('rho', 'locale', fallback=True)
-_ = T.ugettext
+from ansible.module_utils.translation import _
 
 
 # pylint: disable=too-few-public-methods

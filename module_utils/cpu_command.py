@@ -9,14 +9,13 @@
 
 """Get /proc/cpuinfo information from the remote machine."""
 
-import gettext
 import re
 import subprocess as sp
 
-from ansible.module_utils import rho_cmd  # pylint:disable=no-name-in-module
+# pylint:disable=no-name-in-module, import-error
+from ansible.module_utils import rho_cmd
 
-T = gettext.translation('rho', 'locale', fallback=True)
-_ = T.ugettext
+from ansible.module_utils.translation import _
 
 
 class CpuRhoCmd(rho_cmd.RhoCmd):
