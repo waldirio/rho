@@ -48,6 +48,6 @@ lint-flake8:
 
 lint-pylint:
 	pylint --disable=duplicate-code */*.py
-	pylint-3 --disable=duplicate-code,locally-disabled */*.py -rn
+	python3 -m pylint --disable=duplicate-code,locally-disabled */*.py -rn
 
 lint: lint-flake8 lint-pylint
