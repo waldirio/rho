@@ -157,12 +157,12 @@ class RedhatPackagesRhoCmd(rho_cmd.RhoCmd):
 
             self.data['redhat-packages.is_redhat'] = is_red_hat
             self.data['redhat-packages.num_rh_packages'] = len(rh_packages)
-            self.data['redhat-packages.num_installed_packages'] \
-                = len(installed_packages)
-            self.data['redhat-packages.last_installed'] \
-                = last_installed.details_install() if last_installed else 'none'
-            self.data['redhat-packages.last_built'] \
-                = last_built.details_built() if last_built else 'none'
+            self.data['redhat-packages.num_installed_packages'] = (
+                len(installed_packages))
+            self.data['redhat-packages.last_installed'] = (
+                last_installed.details_install() if last_installed else 'none')
+            self.data['redhat-packages.last_built'] = (
+                last_built.details_built() if last_built else 'none')
         else:
             last_installed = ""
             last_built = ""

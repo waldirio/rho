@@ -14,12 +14,12 @@
 """ Unit tests for CLI """
 
 import contextlib
-import io
 import unittest
 import sys
 import os
 import tempfile
 import mock
+import six
 from rho import vault
 from rho import utilities
 from rho.authaddcommand import AuthAddCommand
@@ -245,7 +245,7 @@ class CliCommandsTests(unittest.TestCase):
 
         sys.argv = ['/bin/rho', "auth", "list", "--vault",
                     TMP_VAULT_PASS]
-        auth_list_out = io.StringIO()
+        auth_list_out = six.StringIO()
         with redirect_credentials([
             {'id': '1', 'name': 'name', 'username': 'username',
              'password': 'password', 'ssh_key_file': 'file'}]):
@@ -281,7 +281,7 @@ class CliCommandsTests(unittest.TestCase):
                     "--vault", TMP_VAULT_PASS]
         creds = [{'id': '1', 'name': 'auth_1', 'username': 'user_1',
                   'password': 'password', 'ssh_key_file': 'file_1'}]
-        auth_show_out = io.StringIO()
+        auth_show_out = six.StringIO()
         with redirect_credentials(creds):
             with redirect_stdout(auth_show_out):
                 AuthShowCommand().main()
@@ -423,7 +423,7 @@ class CliCommandsTests(unittest.TestCase):
 
         sys.argv = ['/bin/rho', "profile", "list",
                     "--vault", TMP_VAULT_PASS]
-        profiles_list_out = io.StringIO()
+        profiles_list_out = six.StringIO()
         with redirect_credentials([]):
             with redirect_profiles([{
                 'name': 'p1',
@@ -459,7 +459,7 @@ class CliCommandsTests(unittest.TestCase):
 
         sys.argv = ['/bin/rho', "profile", "show", "--name",
                     "p1", "--vault", TMP_VAULT_PASS]
-        profile_show_out = io.StringIO()
+        profile_show_out = six.StringIO()
         with redirect_profiles([{
             'name': 'p1',
             'hosts': ['1.2.3.4'],
