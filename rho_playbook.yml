@@ -9,6 +9,7 @@
   roles:
     - collect
     - uname
+    - date
 
 
 - name: write facts first to a variable and then to csv locally
