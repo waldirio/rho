@@ -11,6 +11,7 @@
     - uname
     - date
     - file_contents
+    - dmi
 
 
 - name: write facts first to a variable and then to csv locally
