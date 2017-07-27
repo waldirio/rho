@@ -51,8 +51,7 @@ DEFAULT_CMDS = [uname_command.UnameRhoCmd,
 # passed in through the playbook (attached
 # to the field requested using an '_').
 
-DEFAULT_CMD_DICT = {"Username": uname_command.UnameRhoCmd,
-                    "RedhatRelease":
+DEFAULT_CMD_DICT = {"RedhatRelease":
                     redhat_release_command.RedhatReleaseRhoCmd,
                     "Instnum": file_commands.InstnumRhoCmd,
                     "SysId": file_commands.SystemIdRhoCmd,
@@ -102,13 +101,14 @@ class RunCommands(object):
         if isinstance(self.fact_names, list):
             for f_name in self.fact_names:
                 f_name_list = f_name.strip().split('_', 1)
-                command = DEFAULT_CMD_DICT[f_name_list[0]]
-                fact = f_name_list[1]
-                if command in DEFAULT_CMDS:
-                    if command in self.facts_requested.keys():
-                        self.facts_requested[command].append(fact)
-                    else:
-                        self.facts_requested[command] = [fact]
+                if f_name_list[0] in DEFAULT_CMD_DICT:
+                    command = DEFAULT_CMD_DICT[f_name_list[0]]
+                    fact = f_name_list[1]
+                    if command in DEFAULT_CMDS:
+                        if command in self.facts_requested.keys():
+                            self.facts_requested[command].append(fact)
+                        else:
+                            self.facts_requested[command] = [fact]
 
                     # If type of input is a string then the only allowed,
                     # string is 'default' which means the user has requested
@@ -139,23 +139,6 @@ class RunCommands(object):
             rcmd = command()
             rcmd.run_cmd(self.facts_requested[command])
             info_dict.update(rcmd.data)
-
-        if 'all' not in self.facts_requested.values():
-
-            # list that stores out the flattened out
-            # values list of the facts_requested dictionary
-            # to keep track of all fields requested so
-            # that only those can be reported.
-
-            facts_requested_list = [item
-                                    for sublist
-                                    in self.facts_requested.values()
-                                    for item in sublist]
-
-            if 'all' not in facts_requested_list:
-                for k in info_dict:
-                    if k not in facts_requested_list:
-                        info_dict.pop(k, None)
 
         info_dict['connection.host'] = self.host
         info_dict['connection.port'] = self.port

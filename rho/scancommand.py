@@ -351,7 +351,7 @@ class ScanCommand(CliCommand):
             sys.exit(1)
 
         if facts == ['default']:
-            facts_to_collect = 'default'
+            facts_to_collect = list(utilities.DEFAULT_FACTS_TUPLE)
         elif os.path.isfile(facts[0]):
             facts_to_collect = _read_in_file(facts[0])
         else:

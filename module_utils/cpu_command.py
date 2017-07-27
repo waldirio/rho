@@ -73,9 +73,10 @@ class CpuRhoCmd(rho_cmd.RhoCmd):
                            stdout=sp.PIPE,
                            stderr=sp.PIPE)
         dmidecode = process.communicate()
-        for line in results["get_cpu_info"][0].splitlines():
-            if line.find("processor") == 0:
-                cpu_count += 1
+        if "get_cpu_info" in results:
+            for line in results["get_cpu_info"][0].splitlines():
+                if line.find("processor") == 0:
+                    cpu_count += 1
         data["cpu.count"] = cpu_count
         data['cpu.socket_count'] = dmidecode[1].\
             replace('\n', '').replace('\r', '') \
@@ -83,15 +84,16 @@ class CpuRhoCmd(rho_cmd.RhoCmd):
             len(re.findall('Socket Designation', dmidecode[0]))
 
         cpu_dict = {}
-        for line in results["get_cpu_info"][0].splitlines():
-            # first blank line should be end of first cpu
-            # for this case, we are only grabbing the fields from the first
-            # cpu and the total count. Should be close enough.
-            if line == "":
-                break
-            parts = line.split(':')
-            # should'nt be ':', but just in case, join all parts and strip
-            cpu_dict[parts[0].strip()] = ("".join(parts[1:])).strip()
+        if "get_cpu_info" in results:
+            for line in results["get_cpu_info"][0].splitlines():
+                # first blank line should be end of first cpu
+                # for this case, we are only grabbing the fields from the first
+                # cpu and the total count. Should be close enough.
+                if line == "":
+                    break
+                parts = line.split(':')
+                # should'nt be ':', but just in case, join all parts and strip
+                cpu_dict[parts[0].strip()] = ("".join(parts[1:])).strip()
 
         # we don't need everything, just parse out the interesting bits
 
