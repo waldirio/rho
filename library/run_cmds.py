@@ -63,7 +63,6 @@ DEFAULT_CMD_DICT = {"RedhatRelease":
                     "RedhatPackages":
                     redhat_packages_command.RedhatPackagesRhoCmd,
                     "VirtWhat": virt_what_command.VirtWhatRhoCmd,
-                    "Date": date_command.DateRhoCmd,
                     "SubmanFacts": subman_facts_command.SubmanFactsRhoCmd}
 
 
