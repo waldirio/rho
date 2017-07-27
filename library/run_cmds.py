@@ -53,11 +53,9 @@ DEFAULT_CMDS = [uname_command.UnameRhoCmd,
 
 DEFAULT_CMD_DICT = {"RedhatRelease":
                     redhat_release_command.RedhatReleaseRhoCmd,
-                    "Instnum": file_commands.InstnumRhoCmd,
                     "SysId": file_commands.SystemIdRhoCmd,
                     "Cpu": cpu_command.CpuRhoCmd,
                     "EtcRelease": etc_release_command.EtcReleaseRhoCmd,
-                    "EtcIssue": file_commands.EtcIssueRhoCmd,
                     "Dmi": dmi_command.DmiRhoCmd,
                     "Virt": virt_command.VirtRhoCmd,
                     "RedhatPackages":
