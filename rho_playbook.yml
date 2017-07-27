@@ -10,6 +10,7 @@
     - collect
     - uname
     - date
+    - file_contents
 
 
 - name: write facts first to a variable and then to csv locally

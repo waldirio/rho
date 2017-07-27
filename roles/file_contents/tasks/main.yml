@@ -1,0 +1,25 @@
+---
+
+- name: gather etc-issue.etc-issue fact
+  raw: if [ -f /etc/issue ] ; then cat /etc/issue ; fi
+  register: etc_issue_etc_issue
+  ignore_errors: yes
+  when: '"EtcIssue_etc-issue.etc-issue" in facts_to_collect'
+
+- name: add etc-issue.etc-issue to dictionary
+  set_fact:
+    file_contents: "{{ file_contents|default({}) | combine({ item: etc_issue_etc_issue['stdout']}) }}"
+  with_items:
+  - 'etc-issue.etc-issue'
+
+- name: gather instnum.instnum fact
+  raw: if [ -f /etc/sysconfig/rhn/install-num ] ; then cat /etc/sysconfig/rhn/install-num ; fi
+  register: instnum_instnum
+  ignore_errors: yes
+  when: '"Instnum_instnum.instnum" in facts_to_collect'
+
+- name: add instnum.instnum to dictionary
+  set_fact:
+    file_contents: "{{ file_contents|default({}) | combine({ item: instnum_instnum['stdout']}) }}"
+  with_items:
+  - 'instnum.instnum'

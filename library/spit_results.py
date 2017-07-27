@@ -46,7 +46,13 @@ class Results(object):
                 sorted_keys = sorted(data.keys())
                 sorted_values = []
                 for k in sorted_keys:
-                    sorted_values.append(data[k])
+                    # remove newlines and carriage returns
+                    # from strings for proper csv printing
+                    if isinstance(data[k], str):
+                        sorted_values.append(data[k].replace('\n', ' ')
+                                             .replace('\r', ''))
+                    else:
+                        sorted_values.append(data[k])
                 writer.writerow(sorted_values)
 
 
