@@ -52,7 +52,6 @@ DEFAULT_CMDS = [uname_command.UnameRhoCmd,
 # to the field requested using an '_').
 
 DEFAULT_CMD_DICT = {"SysId": file_commands.SystemIdRhoCmd,
-                    "Cpu": cpu_command.CpuRhoCmd,
                     "EtcRelease": etc_release_command.EtcReleaseRhoCmd,
                     "Virt": virt_command.VirtRhoCmd,
                     "RedhatPackages":
