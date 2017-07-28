@@ -15,6 +15,7 @@
     - subman
     - redhat_release
     - cpu
+    - virt
 
 
 - name: write facts first to a variable and then to csv locally
