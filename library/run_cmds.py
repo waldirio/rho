@@ -51,9 +51,7 @@ DEFAULT_CMDS = [uname_command.UnameRhoCmd,
 # passed in through the playbook (attached
 # to the field requested using an '_').
 
-DEFAULT_CMD_DICT = {"RedhatRelease":
-                    redhat_release_command.RedhatReleaseRhoCmd,
-                    "SysId": file_commands.SystemIdRhoCmd,
+DEFAULT_CMD_DICT = {"SysId": file_commands.SystemIdRhoCmd,
                     "Cpu": cpu_command.CpuRhoCmd,
                     "EtcRelease": etc_release_command.EtcReleaseRhoCmd,
                     "Virt": virt_command.VirtRhoCmd,
