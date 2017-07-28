@@ -59,8 +59,7 @@ DEFAULT_CMD_DICT = {"RedhatRelease":
                     "Virt": virt_command.VirtRhoCmd,
                     "RedhatPackages":
                     redhat_packages_command.RedhatPackagesRhoCmd,
-                    "VirtWhat": virt_what_command.VirtWhatRhoCmd,
-                    "SubmanFacts": subman_facts_command.SubmanFactsRhoCmd}
+                    "VirtWhat": virt_what_command.VirtWhatRhoCmd}
 
 
 class RunCommands(object):

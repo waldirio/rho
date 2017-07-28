@@ -1,7 +1,7 @@
 ---
 
 - name: store facts from all hosts in a variable
-  set_fact: host_fact={{hostvars[item]["res"] | combine(hostvars[item]["uname"]) | combine(hostvars[item]["date"])  | combine(hostvars[item]["file_contents"])  | combine(hostvars[item]["dmi"]) }}
+  set_fact: host_fact={{hostvars[item]["res"] | combine(hostvars[item]["uname"]) | combine(hostvars[item]["date"])  | combine(hostvars[item]["file_contents"])  | combine(hostvars[item]["dmi"])  | combine(hostvars[item]["subman"]) }}
   with_items: "{{groups.alpha}}"
   register: host_facts
 
