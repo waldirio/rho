@@ -16,6 +16,7 @@
     - redhat_release
     - cpu
     - virt
+    - virt_what
 
 
 - name: write facts first to a variable and then to csv locally
