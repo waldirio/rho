@@ -13,6 +13,7 @@
     - file_contents
     - dmi
     - subman
+    - redhat_release
 
 
 - name: write facts first to a variable and then to csv locally

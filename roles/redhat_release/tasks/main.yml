@@ -1,0 +1,37 @@
+---
+
+- name: gather redhat-release.name fact
+  raw: rpm -q --queryformat "%{NAME}\n" --whatprovides redhat-release
+  register: redhat_release_name
+  ignore_errors: yes
+  when: '"RedhatRelease_redhat-release.name" in facts_to_collect'
+
+- name: add redhat-release.name to dictionary
+  set_fact:
+    redhat_release: "{{ redhat_release|default({}) | combine({ item: redhat_release_name['stdout_lines'][0] }) }}"
+  with_items:
+  - 'redhat-release.name'
+
+- name: gather redhat-release.version fact
+  raw: rpm -q --queryformat "%{VERSION}\n" --whatprovides redhat-release
+  register: redhat_release_version
+  ignore_errors: yes
+  when: '"RedhatRelease_redhat-release.version" in facts_to_collect'
+
+- name: add redhat-release.version to dictionary
+  set_fact:
+    redhat_release: "{{ redhat_release|default({}) | combine({ item: redhat_release_version['stdout_lines'][0] }) }}"
+  with_items:
+  - 'redhat-release.version'
+
+- name: gather redhat-release.release fact
+  raw: rpm -q --queryformat "%{RELEASE}\n" --whatprovides redhat-release
+  register: redhat_release_release
+  ignore_errors: yes
+  when: '"RedhatRelease_redhat-release.release" in facts_to_collect'
+
+- name: add redhat-release.release to dictionary
+  set_fact:
+    redhat_release: "{{ redhat_release|default({}) | combine({ item: redhat_release_release['stdout_lines'][0] }) }}"
+  with_items:
+  - 'redhat-release.release'
