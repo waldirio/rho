@@ -17,8 +17,16 @@ import csv
 import os
 import json
 import sys
+import xml
+
 # pylint: disable=import-error
 from ansible.module_utils.basic import AnsibleModule
+
+# for parsing systemid
+if sys.version_info > (3,):
+    import xmlrpc.client as xmlrpclib  # pylint: disable=import-error
+else:
+    import xmlrpclib  # pylint: disable=import-error
 
 EAP_CLASSIFICATIONS = {
     'JBoss_4_0_0': 'JBossAS-4',
@@ -212,15 +220,38 @@ class Results(object):
         self.file_path = module.params['file_path']
         self.vals = module.params['vals']
         self.all_vars = module.params['all_vars']
-        self.desired_facts = module.params['desired_facts']
+        self.fact_names = module.params['fact_names']
+
+    def handle_systemid(self, data):
+        """Process the output of systemid.contents
+        and supply the appropriate output information
+        """
+        if 'systemid.contents' in data:
+            blob = data['systemid.contents']
+            id_in_facts = 'SysId_systemid.system_id' in self.fact_names
+            username_in_facts = 'SysId_systemid.username' in self.fact_names
+            try:
+                systemid = xmlrpclib.loads(blob)[0][0]
+                if id_in_facts and 'system_id'in systemid:
+                    data['systemid.system_id'] = systemid['system_id']
+                if username_in_facts and 'usnername' in systemid:
+                    data['systemid.username'] = systemid['usnername']
+            except xml.parsers.expat.ExpatError:
+                if id_in_facts:
+                    data['systemid.system_id'] = 'error'
+                if username_in_facts:
+                    data['systemid.username'] = 'error'
+
+            del data['systemid.contents']
+        return data
 
     def write_to_csv(self):
         """Output report data to file in csv format"""
 
         # Make sure the controller expanded the default option.
-        assert self.desired_facts != ['default']
+        assert self.fact_names != ['default']
 
-        keys = set(self.desired_facts)
+        keys = set(self.fact_names)
 
         # Special processing for JBoss facts.
         for _, host_vars in iteritems(self.all_vars):
@@ -231,6 +262,10 @@ class Results(object):
 
             host_vals.update(process_jboss_versions(host_vars))
             host_vals.update(process_addon_versions(host_vars))
+
+        # Process System ID.
+        for data in self.vals:
+            data = self.handle_systemid(data)
 
         normalized_path = os.path.normpath(self.file_path)
         with open(normalized_path, 'w') as write_file:
@@ -258,7 +293,7 @@ def main():
         "file_path": {"required": True, "type": "str"},
         "vals": {"required": True, "type": "list"},
         "all_vars": {"required": True, "type": "dict"},
-        "desired_facts": {"required": True, "type": "list"}
+        "fact_names": {"required": True, "type": "list"}
     }
 
     module = AnsibleModule(argument_spec=fields)

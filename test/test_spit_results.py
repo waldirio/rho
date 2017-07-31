@@ -38,7 +38,7 @@ class TestSpitResults(unittest.TestCase):
                           'fact2': 'value2',
                           'res': {'fact3': 'value3'},
                           'connection.uuid': '1'}},
-            "desired_facts": ['fact1', 'connection.uuid']
+            "fact_names": ['fact1', 'connection.uuid']
         }
         mod_obj.params = args
         spit_results.main()
@@ -47,7 +47,7 @@ class TestSpitResults(unittest.TestCase):
             "file_path": {"required": True, "type": "str"},
             "vals": {"required": True, "type": "list"},
             "all_vars": {"required": True, "type": "dict"},
-            "desired_facts": {"required": True, "type": "list"}
+            "fact_names": {"required": True, "type": "list"}
         }
 
         assert(mock.call(argument_spec=expected_arguments_spec) ==
