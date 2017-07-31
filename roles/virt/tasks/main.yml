@@ -134,7 +134,7 @@
   when: '"Virt_virt.num_guests" in facts_to_collect and virsh_found["stdout_lines"][0] == "Y"'
 
 - name: extract output virt.num_guests fact
-  set_fact: virt_num_guests=virt_num_guests['stdout_lines'][0]
+  set_fact: virt_num_guests="{{ virt_num_guests['stdout_lines'][0] }}"
   when: '"Virt_virt.num_guests" in facts_to_collect and virsh_found["stdout_lines"][0] == "Y"'
 
 - name: gather virt.num_guests fact
@@ -148,7 +148,7 @@
   when: '"Virt_virt.num_running_guests" in facts_to_collect and virsh_found["stdout_lines"][0] == "Y"'
 
 - name: extract output virt.num_running_guests fact
-  set_fact: virt_num_running_guests=virt_num_running_guests['stdout_lines'][0]
+  set_fact: virt_num_running_guests="{{ virt_num_running_guests['stdout_lines'][0] }}"
   when: '"Virt_virt.num_running_guests" in facts_to_collect and virsh_found["stdout_lines"][0] == "Y"'
 
 - name: gather virt.num_running_guests fact
