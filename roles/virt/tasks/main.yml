@@ -1,7 +1,7 @@
 ---
 
 - name: check if virsh command exists
-  raw: if command -v virsh; then echo "Y"; else echo "N"; fi
+  raw: cmd=$(command -v virsh>/dev/null); if $cmd; then echo "Y"; else echo "N"; fi
   register: virsh_found
   ignore_errors: yes
   when: '"Virt_virt.virt" in facts_to_collect or "Virt_virt.type" in facts_to_collect'
