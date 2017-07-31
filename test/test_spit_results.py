@@ -31,14 +31,17 @@ class TestSpitResults(unittest.TestCase):
         args = {
             "name": "foo",
             "file_path": TMP_TEST_REPORT,
-            "vals": [{'fact1': 'value1'}]
+            "vals": [{'fact1': 'value1'}],
+            "fact_names": ["Cpu_cpu.model_ver", "SysId_systemid.system_id",
+                           "SysId_systemid.username"]
         }
         mod_obj.params = args
         spit_results.main()
         expected_arguments_spec = {
             "name": {"required": True, "type": "str"},
             "file_path": {"required": True, "type": "str"},
-            "vals": {"required": True, "type": "list"}
+            "vals": {"required": True, "type": "list"},
+            "fact_names": {"required": True, "type": "list"}
         }
 
         assert(mock.call(argument_spec=expected_arguments_spec) ==

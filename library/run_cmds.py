@@ -51,8 +51,7 @@ DEFAULT_CMDS = [uname_command.UnameRhoCmd,
 # passed in through the playbook (attached
 # to the field requested using an '_').
 
-DEFAULT_CMD_DICT = {"SysId": file_commands.SystemIdRhoCmd,
-                    "RedhatPackages":
+DEFAULT_CMD_DICT = {"RedhatPackages":
                     redhat_packages_command.RedhatPackagesRhoCmd}
 
 
