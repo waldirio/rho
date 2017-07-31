@@ -17,6 +17,7 @@
     - cpu
     - virt
     - virt_what
+    - etc_release
 
 
 - name: write facts first to a variable and then to csv locally
