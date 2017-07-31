@@ -49,15 +49,17 @@ class Results(object):
             blob = data['systemid.contents']
             try:
                 systemid = xmlrpclib.loads(blob)[0][0]
+                if ('SysId_systemid.system_id' in self.fact_names
+                        and 'system_id'in systemid):
+                    data['systemid.system_id'] = systemid['system_id']
+                if ('SysId_systemid.username' in self.fact_names
+                        and 'usnername' in systemid):
+                    data['systemid.username'] = systemid['usnername']
             except xml.parsers.expat.ExpatError:
-                pass
-
-            if 'SysId_systemid.system_id' in self.fact_names and ('system_id'
-                                                                  in systemid):
-                data['systemid.system_id'] = systemid['system_id']
-            if 'SysId_systemid.username' in self.fact_names and ('usnername'
-                                                                 in systemid):
-                data['systemid.username'] = systemid['usnername']
+                if 'SysId_systemid.system_id' in self.fact_names:
+                    data['systemid.system_id'] = 'error'
+                if 'SysId_systemid.username' in self.fact_names:
+                    data['systemid.username'] = 'error'
 
             del data['systemid.contents']
         return data
