@@ -1,0 +1,180 @@
+---
+
+- name: check if virsh command exists
+  raw: if command -v virsh; then echo "Y"; else echo "N"; fi
+  register: virsh_found
+  ignore_errors: yes
+  when: '"Virt_virt.virt" in facts_to_collect or "Virt_virt.type" in facts_to_collect'
+
+- name: check if privcmd exists
+  raw: if [ -e /proc/xen/privcmd ]; then echo "Y"; else echo "N"; fi
+  register: privcmd_found
+  ignore_errors: yes
+  when: '"Virt_virt.virt" in facts_to_collect or "Virt_virt.type" in facts_to_collect'
+
+- name: check if kvm exists
+  raw: if [ -e /dev/kvm ]; then echo "Y"; else echo "N"; fi
+  register: kvm_found
+  ignore_errors: yes
+  when: '"Virt_virt.virt" in facts_to_collect or "Virt_virt.type" in facts_to_collect'
+
+- name: check for xen guests
+  raw: ps aux | grep xend | grep -v grep | wc -l
+  register: xen_guest
+  ignore_errors: yes
+  when: '"Virt_virt.virt" in facts_to_collect or "Virt_virt.type" in facts_to_collect'
+
+- name: check system manufacture for VMware
+  raw: manufacturer=$(sudo -n /usr/sbin/dmidecode | grep -A4 'System Information' | grep 'Manufacturer' | sed -n -e 's/^.*Manufacturer:\s//p'); if [[ $manufacturer == *"VMware"* ]]; then echo "Y"; else echo "N"; fi
+  register: sys_manu_vmware
+  ignore_errors: yes
+  when: '"Virt_virt.virt" in facts_to_collect or "Virt_virt.type" in facts_to_collect'
+
+- name: check system manufacture for innotek GmbH
+  raw: manufacturer=$(sudo -n /usr/sbin/dmidecode | grep -A4 'System Information' | grep 'Manufacturer' | sed -n -e 's/^.*Manufacturer:\s//p'); if [[ $manufacturer == *"innotek GmbH"* ]]; then echo "Y"; else echo "N"; fi
+  register: sys_manu_virtualbox
+  ignore_errors: yes
+  when: '"Virt_virt.virt" in facts_to_collect or "Virt_virt.type" in facts_to_collect'
+
+- name: check system manufacture for Microsoft
+  raw: manufacturer=$(sudo -n /usr/sbin/dmidecode | grep -A4 'System Information' | grep 'Manufacturer' | sed -n -e 's/^.*Manufacturer:\s//p'); if [[ $manufacturer == *"Microsoft"* ]]; then echo "Y"; else echo "N"; fi
+  register: sys_manu_virtualpc
+  ignore_errors: yes
+  when: '"Virt_virt.virt" in facts_to_collect or "Virt_virt.type" in facts_to_collect'
+
+- name: check system manufacture for QEMU
+  raw: manufacturer=$(sudo -n /usr/sbin/dmidecode | grep -A4 'System Information' | grep 'Manufacturer' | sed -n -e 's/^.*Manufacturer:\s//p'); if [[ $manufacturer == *"QEMU"* ]]; then echo "Y"; else echo "N"; fi
+  register: sys_manu_kvm
+  ignore_errors: yes
+  when: '"Virt_virt.virt" in facts_to_collect or "Virt_virt.type" in facts_to_collect'
+
+- name: check cpu model name for QEMU
+  raw: model_name=$(cat /proc/cpuinfo | grep '^model name\s*:' | sed -n -e 's/^.*model name\s*:\s//p'); if [[ $model_name == *QEMU ]]; then echo "Y"; else echo "N"; fi
+  register: cpu_model_name_kvm
+  ignore_errors: yes
+  when: '"Virt_virt.virt" in facts_to_collect or "Virt_virt.type" in facts_to_collect'
+
+- name: initialize virt.virt
+  set_fact: virt_virt=""
+  when: '"Virt_virt.virt" in facts_to_collect'
+
+- name: initialize virt.type
+  set_fact: virt_type=""
+  when: '"Virt_virt.type" in facts_to_collect'
+
+- name: set virt.virt fact due to cpu_model_name_kvm
+  set_fact: virt_virt="virt-guest"
+  when: '"Virt_virt.virt" in facts_to_collect and cpu_model_name_kvm["stdout_lines"][0] == "Y"'
+
+- name: set virt.type fact due to cpu_model_name_kvm
+  set_fact: virt_type="kvm"
+  when: '"Virt_virt.type" in facts_to_collect and cpu_model_name_kvm["stdout_lines"][0] == "Y"'
+
+- name: set virt.virt fact due to sys_manu_vmware
+  set_fact: virt_virt="virt-guest"
+  when: '"Virt_virt.virt" in facts_to_collect and sys_manu_vmware["stdout_lines"][0] == "Y"'
+
+- name: set virt.type fact due to sys_manu_vmware
+  set_fact: virt_type="vmware"
+  when: '"Virt_virt.type" in facts_to_collect and sys_manu_vmware["stdout_lines"][0] == "Y"'
+
+- name: set virt.virt fact due to sys_manu_virtualbox
+  set_fact: virt_virt="virt-guest"
+  when: '"Virt_virt.virt" in facts_to_collect and sys_manu_virtualbox["stdout_lines"][0] == "Y"'
+
+- name: set virt.type fact due to sys_manu_virtualbox
+  set_fact: virt_type="virtualbox"
+  when: '"Virt_virt.type" in facts_to_collect and sys_manu_virtualbox["stdout_lines"][0] == "Y"'
+
+- name: set virt.virt fact due to sys_manu_virtualpc
+  set_fact: virt_virt="virt-guest"
+  when: '"Virt_virt.virt" in facts_to_collect and sys_manu_virtualpc["stdout_lines"][0] == "Y"'
+
+- name: set virt.type fact due to sys_manu_virtualpc
+  set_fact: virt_type="virtualpc"
+  when: '"Virt_virt.type" in facts_to_collect and sys_manu_virtualpc["stdout_lines"][0] == "Y"'
+
+- name: set virt.virt fact due to sys_manu_kvm
+  set_fact: virt_virt="virt-guest"
+  when: '"Virt_virt.virt" in facts_to_collect and sys_manu_kvm["stdout_lines"][0] == "Y"'
+
+- name: set virt.type fact due to sys_manu_kvm
+  set_fact: virt_type="kvm"
+  when: '"Virt_virt.type" in facts_to_collect and sys_manu_kvm["stdout_lines"][0] == "Y"'
+
+
+- name: set virt.virt fact due to xen_guest
+  set_fact: virt_virt="virt-guest"
+  when: '"Virt_virt.virt" in facts_to_collect and xen_guest | int > 0'
+
+- name: set virt.type fact due to xen_guest
+  set_fact: virt_type="xen"
+  when: '"Virt_virt.type" in facts_to_collect and xen_guest | int > 0'
+
+- name: set virt.virt fact due to kvm
+  set_fact: virt_virt="virt-host"
+  when: '"Virt_virt.virt" in facts_to_collect and kvm_found["stdout_lines"][0] == "Y"'
+
+- name: set virt.type fact due to kvm
+  set_fact: virt_type="kvm"
+  when: '"Virt_virt.type" in facts_to_collect and kvm_found["stdout_lines"][0] == "Y"'
+
+- name: set virt.virt fact due to privcmd
+  set_fact: virt_virt="virt-guest"
+  when: '"Virt_virt.virt" in facts_to_collect and privcmd_found["stdout_lines"][0] == "Y"'
+
+- name: set virt.type fact due to privcmd
+  set_fact: virt_type="xen"
+  when: '"Virt_virt.type" in facts_to_collect and privcmd_found["stdout_lines"][0] == "Y"'
+
+- name: gather virt.num_guests fact
+  raw: virsh -c qemu:///system --readonly list --all | wc -l
+  register: virt_num_guests
+  ignore_errors: yes
+  when: '"Virt_virt.num_guests" in facts_to_collect and virsh_found["stdout_lines"][0] == "Y"'
+
+- name: extract output virt.num_guests fact
+  set_fact: virt_num_guests=virt_num_guests['stdout_lines'][0]
+  when: '"Virt_virt.num_guests" in facts_to_collect and virsh_found["stdout_lines"][0] == "Y"'
+
+- name: gather virt.num_guests fact
+  set_fact: virt_num_guests="error"
+  when: '"Virt_virt.num_guests" in facts_to_collect and virsh_found["stdout_lines"][0] == "N"'
+
+- name: gather virt.num_running_guests fact
+  raw: virsh -c qemu:///system --readonly list --uuid | wc -l
+  register: virt_num_running_guests
+  ignore_errors: yes
+  when: '"Virt_virt.num_running_guests" in facts_to_collect and virsh_found["stdout_lines"][0] == "Y"'
+
+- name: extract output virt.num_running_guests fact
+  set_fact: virt_num_running_guests=virt_num_running_guests['stdout_lines'][0]
+  when: '"Virt_virt.num_running_guests" in facts_to_collect and virsh_found["stdout_lines"][0] == "Y"'
+
+- name: gather virt.num_running_guests fact
+  set_fact: virt_num_running_guests="error"
+  when: '"Virt_virt.num_running_guests" in facts_to_collect and virsh_found["stdout_lines"][0] == "N"'
+
+- name: add virt.type to dictionary
+  set_fact:
+    virt: "{{ virt|default({}) | combine({ item: virt_type }) }}"
+  with_items:
+  - 'virt.type'
+
+- name: add virt.virt to dictionary
+  set_fact:
+    virt: "{{ virt|default({}) | combine({ item: virt_virt }) }}"
+  with_items:
+  - 'virt.virt'
+
+- name: add virt.num_running_guests to dictionary
+  set_fact:
+    virt: "{{ virt|default({}) | combine({ item: virt_num_running_guests }) }}"
+  with_items:
+  - 'virt.num_running_guests'
+
+- name: add virt.num_guests to dictionary
+  set_fact:
+    virt: "{{ virt|default({}) | combine({ item: virt_num_guests }) }}"
+  with_items:
+  - 'virt.num_guests'
