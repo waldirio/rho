@@ -23,3 +23,29 @@
     file_contents: "{{ file_contents|default({}) | combine({ item: instnum_instnum['stdout']}) }}"
   with_items:
   - 'instnum.instnum'
+
+- name: gather systemid.contents fact
+  raw: if [ -f /etc/sysconfig/rhn/systemid ] ; then cat /etc/sysconfig/rhn/systemid ; fi
+  register: systemid_contents
+  ignore_errors: yes
+  when: '"SysId_systemid.system_id" in facts_to_collect or "SysId_systemid.username" in facts_to_collect'
+
+- name: add systemid_contents to dictionary
+  set_fact:
+    file_contents: "{{ file_contents|default({}) | combine({ item: systemid_contents['stdout']}) }}"
+  with_items:
+  - 'systemid.contents'
+
+- name: initialize systemid.system_id to dictionary
+  set_fact:
+    file_contents: "{{ file_contents|default({}) | combine({ item: '' }) }}"
+  with_items:
+  - 'systemid.system_id'
+  when: '"SysId_systemid.system_id" in facts_to_collect'
+
+- name: initialize systemid.username to dictionary
+  set_fact:
+    file_contents: "{{ file_contents|default({}) | combine({ item: '' }) }}"
+  with_items:
+  - 'systemid.username'
+  when: '"SysId_systemid.username" in facts_to_collect'
