@@ -1,0 +1,43 @@
+---
+
+- name: initialize redhat-packages.is_redhat to dictionary
+  set_fact:
+    redhat_packages: "{{ redhat_packages|default({}) | combine({ item: '' }) }}"
+  with_items:
+  - 'redhat-packages.is_redhat'
+
+- name: initialize redhat-packages.num_rh_packages to dictionary
+  set_fact:
+    redhat_packages: "{{ redhat_packages|default({}) | combine({ item: '' }) }}"
+  with_items:
+  - 'redhat-packages.num_rh_packages'
+
+- name: initialize redhat-packages.num_installed_packages to dictionary
+  set_fact:
+    redhat_packages: "{{ redhat_packages|default({}) | combine({ item: '' }) }}"
+  with_items:
+  - 'redhat-packages.num_installed_packages'
+
+- name: initialize redhat-packages.last_installed to dictionary
+  set_fact:
+    redhat_packages: "{{ redhat_packages|default({}) | combine({ item: '' }) }}"
+  with_items:
+  - 'redhat-packages.last_installed'
+
+- name: initialize redhat-packages.last_built to dictionary
+  set_fact:
+    redhat_packages: "{{ redhat_packages|default({}) | combine({ item: '' }) }}"
+  with_items:
+  - 'redhat-packages.last_built'
+
+- name: gather redhat-packages fact data
+    raw: rpm -qa --qf "%{NAME}|%{VERSION}|%{RELEASE}|%{INSTALLTIME}|%{VENDOR}|%{BUILDTIME}|%{BUILDHOST}|%{SOURCERPM}|%{LICENSE}|%{PACKAGER}|%{INSTALLTIME:date}|%{BUILDTIME:date}\n"
+  register: redhat_packages_results
+  ignore_errors: yes
+  when: '"RedhatPackages_redhat-packages.is_redhat" in facts_to_collect'
+
+- name: add redhat-packages.results to dictionary
+  set_fact:
+    redhat_packages: "{{ redhat_packages|default({}) | combine({ item: redhat_packages_results['stdout_lines'] }) }}"
+  with_items:
+  - 'redhat-packages.results'

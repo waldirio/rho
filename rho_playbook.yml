@@ -18,6 +18,7 @@
     - virt
     - virt_what
     - etc_release
+    - redhat_packages
 
 
 - name: write facts first to a variable and then to csv locally
