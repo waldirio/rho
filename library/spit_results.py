@@ -201,6 +201,9 @@ class Results(object):
             fields = sorted(vals[0].keys())
             try:
                 fields.remove('systemid.contents')
+            except ValueError:
+                pass
+            try:
                 fields.remove('redhat-packages.results')
             except ValueError:
                 pass
