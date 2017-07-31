@@ -9,4 +9,5 @@
   set_fact: host_facts="{{ host_facts.results | map(attribute="ansible_facts.host_fact") | list }}"
 
 - name: write the list to a csv
-  spit_results: name=spit file_path={{report_path}} vals={{host_facts}}
+  spit_results: name=spit file_path={{report_path}} vals={{host_facts}} all_vars={{hostvars}} desired_facts={{facts_to_collect}}
+  register: write_results

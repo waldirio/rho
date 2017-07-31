@@ -18,6 +18,9 @@
     - virt
     - virt_what
     - etc_release
+    - jboss
+    - brms
+    - fuse
 
 
 - name: write facts first to a variable and then to csv locally
