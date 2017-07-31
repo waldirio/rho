@@ -31,9 +31,14 @@ class TestSpitResults(unittest.TestCase):
         args = {
             "name": "foo",
             "file_path": TMP_TEST_REPORT,
-            "vals": [{'fact1': 'value1'}],
-            "fact_names": ["Cpu_cpu.model_ver", "SysId_systemid.system_id",
-                           "SysId_systemid.username"]
+            "vals": [{'fact1': 'value1',
+                      'connection.uuid': '1'}],
+            "all_vars": {'host1':
+                         {'fact1': 'value1',
+                          'fact2': 'value2',
+                          'res': {'fact3': 'value3'},
+                          'connection.uuid': '1'}},
+            "fact_names": ['fact1', 'connection.uuid']
         }
         mod_obj.params = args
         spit_results.main()
@@ -41,6 +46,7 @@ class TestSpitResults(unittest.TestCase):
             "name": {"required": True, "type": "str"},
             "file_path": {"required": True, "type": "str"},
             "vals": {"required": True, "type": "list"},
+            "all_vars": {"required": True, "type": "dict"},
             "fact_names": {"required": True, "type": "list"}
         }
 

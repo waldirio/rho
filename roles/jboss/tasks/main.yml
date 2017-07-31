@@ -1,0 +1,33 @@
+
+---
+# Scan linux systems for JBoss EAP or Wildfly Installations
+    - name: Gather jboss-modules.jar versions
+      raw: FOUND=""; for jar in `find / -name 'jboss-modules.jar' 2>/dev/null | grep -v '\.installation/patches'`; do VERSION=$(java -jar ${jar} -version 2> /dev/null | grep version | sed 's/.*version\s//g'); inode=$(stat -c '%i' "${jar}"); fs=$(df  -T "${jar}" | grep "/dev" | sed 's/ .*//'); ctime=$(stat ${jar} | grep 'Change' | grep -oP '[1-2][0-9]{3}-[0-1][0-9]-[0-3][0-9]'); if [ ! -z "${VERSION}" ]; then if [ ! -z "$FOUND" ]; then FOUND="$FOUND; $VERSION**$ctime"; else FOUND=${VERSION}'**'${ctime}; fi; fi; done; echo ${FOUND}
+      register: jboss_jar_ver
+      ignore_errors: yes
+
+    - name: add jboss.jar_ver to dictionary
+      set_fact:
+        jboss: "{{ jboss|default({}) | combine({ item: jboss_jar_ver['stdout_lines'][0] }) }}"
+      with_items:
+      - 'jboss.jar_ver'
+
+    - name: Gather run.jar versions
+      raw: FOUND=""; for jar in `find / -name 'run.jar' 2>/dev/null`; do VERSION=$(java -jar ${jar} --version 2> /dev/null | grep build  | sed 's/.*[CS]V[NS]Tag.//g' | sed 's/\sdate.*//g'); inode=$(stat -c '%i' "${jar}"); fs=$(df  -T "${jar}" | tail -1 | sed 's/ .*//'); ctime=$(stat ${jar} | grep 'Change' | grep -oP '[1-2][0-9]{3}-[0-1][0-9]-[0-3][0-9]'); if [ ! -z "${VERSION}" ]; then if [ ! -z "$FOUND" ]; then FOUND="$FOUND; $VERSION**${ctime}"; else FOUND=${VERSION}'**'${ctime}; fi; fi; done; echo ${FOUND};
+      register: jboss_run_jar_ver
+      ignore_errors: yes
+
+    - name: Gather jboss versions currently running
+      raw: for proc_pid in $(find /proc -maxdepth 1 -name "[0-9]*"); do ls -l ${proc_pid}/fd 2>/dev/null | grep "java"; done | grep -e "/modules/system/layers/base\|/opt/rh/eap" | sed -n "s/.*\->//p" | sed -n 's/\/modules\/system\/layers\/base.*//p;s/.*\(\/opt\/rh\/eap[1-9]\).*/\1/p' | sort -u
+      register: running_versions
+      ignore_errors: yes
+
+    - name: Gather hostname
+      raw: hostname
+      register: hostname
+      ignore_errors: yes
+
+    - name: Gather cpu cores
+      raw:  CPU_CORES=$(grep cpu.cores /proc/cpuinfo | sed 's/cpu.*:.\?//g' | sort -u); if [ -z "$CPU_CORES" ]; then CPU_CORES=$(grep processor /proc/cpuinfo | wc -l); fi; echo "$CPU_CORES" | sed 's/\s*//g'
+      register: cpu_cores
+      ignore_errors: yes
