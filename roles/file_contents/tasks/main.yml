@@ -4,7 +4,7 @@
   raw: if [ -f /etc/issue ] ; then cat /etc/issue ; fi
   register: etc_issue_etc_issue
   ignore_errors: yes
-  when: '"EtcIssue_etc-issue.etc-issue" in facts_to_collect'
+  when: '"etc-issue.etc-issue" in facts_to_collect'
 
 - name: add etc-issue.etc-issue to dictionary
   set_fact:
@@ -16,7 +16,7 @@
   raw: if [ -f /etc/sysconfig/rhn/install-num ] ; then cat /etc/sysconfig/rhn/install-num ; fi
   register: instnum_instnum
   ignore_errors: yes
-  when: '"Instnum_instnum.instnum" in facts_to_collect'
+  when: '"instnum.instnum" in facts_to_collect'
 
 - name: add instnum.instnum to dictionary
   set_fact:
@@ -28,7 +28,7 @@
   raw: if [ -f /etc/sysconfig/rhn/systemid ] ; then cat /etc/sysconfig/rhn/systemid ; fi
   register: systemid_contents
   ignore_errors: yes
-  when: '"SysId_systemid.system_id" in facts_to_collect or "SysId_systemid.username" in facts_to_collect'
+  when: '"systemid.system_id" in facts_to_collect or "SysId_systemid.username" in facts_to_collect'
 
 - name: add systemid_contents to dictionary
   set_fact:
@@ -41,11 +41,11 @@
     file_contents: "{{ file_contents|default({}) | combine({ item: '' }) }}"
   with_items:
   - 'systemid.system_id'
-  when: '"SysId_systemid.system_id" in facts_to_collect'
+  when: '"systemid.system_id" in facts_to_collect'
 
 - name: initialize systemid.username to dictionary
   set_fact:
     file_contents: "{{ file_contents|default({}) | combine({ item: '' }) }}"
   with_items:
   - 'systemid.username'
-  when: '"SysId_systemid.username" in facts_to_collect'
+  when: '"systemid.username" in facts_to_collect'

@@ -4,7 +4,7 @@
   raw: sudo -n /usr/sbin/dmidecode -s bios-vendor
   register: dmi_bios_vendor
   ignore_errors: yes
-  when: '"Dmi_dmi.bios-vendor" in facts_to_collect'
+  when: '"dmi.bios-vendor" in facts_to_collect'
 
 - name: add dmi.bios-vendor to dictionary
   set_fact:
@@ -16,7 +16,7 @@
   raw: sudo -n /usr/sbin/dmidecode -s bios-version
   register: dmi_bios_version
   ignore_errors: yes
-  when: '"Dmi_dmi.bios-version" in facts_to_collect'
+  when: '"dmi.bios-version" in facts_to_collect'
 
 - name: add dmi.bios-version to dictionary
   set_fact:
@@ -28,7 +28,7 @@
   raw: sudo -n /usr/sbin/dmidecode | grep -A4 'System Information' | grep 'Manufacturer' | sed -n -e 's/^.*Manufacturer:\s//p'
   register: dmi_system_manufacturer
   ignore_errors: yes
-  when: '"Dmi_dmi.system-manufacturer" in facts_to_collect'
+  when: '"dmi.system-manufacturer" in facts_to_collect'
 
 - name: add dmi.system-manufacturer to dictionary
   set_fact:
@@ -40,7 +40,7 @@
   raw: sudo -n /usr/sbin/dmidecode -s processor-family
   register: dmi_processor_family
   ignore_errors: yes
-  when: '"Dmi_dmi.processor-family" in facts_to_collect'
+  when: '"dmi.processor-family" in facts_to_collect'
 
 - name: add dmi.processor-family to dictionary
   set_fact:

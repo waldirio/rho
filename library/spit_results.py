@@ -208,6 +208,15 @@ def process_addon_versions(host_vars):
     return result
 
 
+def remove_newlines(data):
+    """ Processes input data values and strips out any newlines
+    """
+    for key in data:
+        if isinstance(data[key], str):
+            data[key] = data[key].replace('\r\n', '')
+    return data
+
+
 class Results(object):
     """The class Results contains the functionality to parse
     data passed in from the playbook and to output it in the
@@ -377,15 +386,7 @@ class Results(object):
         # Make sure the controller expanded the default option.
         assert self.fact_names != ['default']
 
-        fact_keys = ['connection.host', 'connection.port', 'connection.uuid']
-        if isinstance(self.fact_names, list):
-            for f_name in self.fact_names:
-                f_name_list = f_name.strip().split('_', 1)
-                if len(f_name_list) > 1:
-                    fact = f_name_list[1]
-                    fact_keys.append(fact)
-
-        keys = set(fact_keys)
+        keys = set(self.fact_names)
 
         try:
             # Special processing for JBoss facts.
@@ -404,6 +405,7 @@ class Results(object):
         for data in self.vals:
             data = self.handle_systemid(data)
             data = self.handle_redhat_packages(data)
+            data = remove_newlines(data)
 
         normalized_path = os.path.normpath(self.file_path)
         with open(normalized_path, 'w') as write_file:

@@ -19,73 +19,77 @@ from rho.translation import get_translation
 CREDENTIALS_PATH = 'data/credentials'
 PROFILES_PATH = 'data/profiles'
 
-UNAME_FACTS_TUPLE = ('Username_uname.os',
-                     'Username_uname.hostname',
-                     'Username_uname.processor',
-                     'Username_uname.kernel',
-                     'Username_uname.all',
-                     'Username_uname.hardware_platform')
+CONNECTION_FACTS_TUPLE = ('connection.host',
+                          'connection.port',
+                          'connection.uuid')
+UNAME_FACTS_TUPLE = ('uname.os',
+                     'uname.hostname',
+                     'uname.processor',
+                     'uname.kernel',
+                     'uname.all',
+                     'uname.hardware_platform')
 
-REDHAT_RELEASE_FACTS_TUPLE = ('RedhatRelease_redhat-release.name',
-                              'RedhatRelease_redhat-release.version',
-                              'RedhatRelease_redhat-release.release')
+REDHAT_RELEASE_FACTS_TUPLE = ('redhat-release.name',
+                              'redhat-release.version',
+                              'redhat-release.release')
 
-INSTNUM_FACTS_TUPLE = ('Instnum_instnum.instnum',)
+INSTNUM_FACTS_TUPLE = ('instnum.instnum',)
 
-SYSID_FACTS_TUPLE = ('SysId_systemid.system_id',
-                     'SysId_systemid.username')
+SYSID_FACTS_TUPLE = ('systemid.system_id',
+                     'systemid.username')
 
-CPU_FACTS_TUPLE = ('Cpu_cpu.count',
-                   'Cpu_cpu.socket_count',
-                   'Cpu_cpu.vendor_id',
-                   'Cpu_cpu.bogomips',
-                   'Cpu_cpu.cpu_family',
-                   'Cpu_cpu.model_name',
-                   'Cpu_cpu.model_ver')
+CPU_FACTS_TUPLE = ('cpu.count',
+                   'cpu.socket_count',
+                   'cpu.vendor_id',
+                   'cpu.bogomips',
+                   'cpu.cpu_family',
+                   'cpu.model_name',
+                   'cpu.model_ver')
 
-ETC_RELEASE_FACTS_TUPLE = ('EtcRelease_etc_release.name',
-                           'EtcRelease_etc_release.version',
-                           'EtcRelease_etc_release.release')
+ETC_RELEASE_FACTS_TUPLE = ('etc_release.name',
+                           'etc_release.version',
+                           'etc_release.release')
 
-ETC_ISSUE_FACTS_TUPLE = ('EtcIssue_etc-issue.etc-issue',)
+ETC_ISSUE_FACTS_TUPLE = ('etc-issue.etc-issue',)
 
-DMI_FACTS_TUPLE = ('Dmi_dmi.bios-vendor',
-                   'Dmi_dmi.bios-version',
-                   'Dmi_dmi.system-manufacturer',
-                   'Dmi_dmi.processor-family')
+DMI_FACTS_TUPLE = ('dmi.bios-vendor',
+                   'dmi.bios-version',
+                   'dmi.system-manufacturer',
+                   'dmi.processor-family')
 
-VIRT_FACTS_TUPLE = ('Virt_virt.virt',
-                    'Virt_virt.type',
-                    'Virt_virt.num_guests',
-                    'Virt_virt.num_running_guests')
+VIRT_FACTS_TUPLE = ('virt.virt',
+                    'virt.type',
+                    'virt.num_guests',
+                    'virt.num_running_guests')
 
-RH_PKG_FACTS_TUPLE = ('RedhatPackages_redhat-packages.is_redhat',
-                      'RedhatPackages_redhat-packages.num_rh_packages',
-                      'RedhatPackages_redhat-packages.num_installed_packages',
-                      'RedhatPackages_redhat-packages.last_installed',
-                      'RedhatPackages_redhat-packages.last_built')
+RH_PKG_FACTS_TUPLE = ('redhat-packages.is_redhat',
+                      'redhat-packages.num_rh_packages',
+                      'redhat-packages.num_installed_packages',
+                      'redhat-packages.last_installed',
+                      'redhat-packages.last_built')
 
-VIRT_WHAT_FACTS_TUPLE = ('VirtWhat_virt-what.type',)
+VIRT_WHAT_FACTS_TUPLE = ('virt-what.type',)
 
-DATE_FACTS_TUPLE = ('Date_date.date',
-                    'Date_date.anaconda_log',
-                    'Date_date.machine_id',
-                    'Date_date.filesystem_create',
-                    'Date_date.yum_history')
+DATE_FACTS_TUPLE = ('date.date',
+                    'date.anaconda_log',
+                    'date.machine_id',
+                    'date.filesystem_create',
+                    'date.yum_history')
 
-SUBMAN_FACTS_TUPLE = ('SubmanFacts_subman.cpu.core(s)_per_socket',
-                      'SubmanFacts_subman.cpu.cpu(s)',
-                      'SubmanFacts_subman.cpu.cpu_socket(s)',
-                      'SubmanFacts_subman.virt.host_type',
-                      'SubmanFacts_subman.virt.is_guest',
-                      'SubmanFacts_subman.virt.uuid',
-                      'SubmanFacts_subman.has_facts_file')
+SUBMAN_FACTS_TUPLE = ('subman.cpu.core(s)_per_socket',
+                      'subman.cpu.cpu(s)',
+                      'subman.cpu.cpu_socket(s)',
+                      'subman.virt.host_type',
+                      'subman.virt.is_guest',
+                      'subman.virt.uuid',
+                      'subman.has_facts_file')
 
 DEFAULT_FACTS_TUPLE = SUBMAN_FACTS_TUPLE + DATE_FACTS_TUPLE \
     + VIRT_WHAT_FACTS_TUPLE + RH_PKG_FACTS_TUPLE + VIRT_FACTS_TUPLE \
     + DMI_FACTS_TUPLE + ETC_ISSUE_FACTS_TUPLE + ETC_RELEASE_FACTS_TUPLE \
     + CPU_FACTS_TUPLE + SYSID_FACTS_TUPLE + INSTNUM_FACTS_TUPLE \
-    + REDHAT_RELEASE_FACTS_TUPLE + UNAME_FACTS_TUPLE
+    + REDHAT_RELEASE_FACTS_TUPLE + UNAME_FACTS_TUPLE \
+    + CONNECTION_FACTS_TUPLE
 
 
 def ensure_config_dir_exists():

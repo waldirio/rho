@@ -4,7 +4,7 @@
   raw: uname -s
   register: uname_os
   ignore_errors: yes
-  when: '"Username_uname.os" in facts_to_collect'
+  when: '"uname.os" in facts_to_collect'
 
 - name: add uname.os to dictionary
   set_fact:
@@ -16,7 +16,7 @@
   raw: uname -n
   register: uname_hostname
   ignore_errors: yes
-  when: '"Username_uname.hostname" in facts_to_collect'
+  when: '"uname.hostname" in facts_to_collect'
 
 - name: add uname.hostname to dictionary
   set_fact:
@@ -28,7 +28,7 @@
   raw: uname -p
   register: uname_processor
   ignore_errors: yes
-  when: '"Username_uname.processor" in facts_to_collect'
+  when: '"uname.processor" in facts_to_collect'
 
 - name: add uname.processor to dictionary
   set_fact:
@@ -40,7 +40,7 @@
   raw: uname -r
   register: uname_kernel
   ignore_errors: yes
-  when: '"Username_uname.kernel" in facts_to_collect'
+  when: '"uname.kernel" in facts_to_collect'
 
 - name: add uname.kernel to dictionary
   set_fact:
@@ -52,7 +52,7 @@
   raw: uname -a
   register: uname_all
   ignore_errors: yes
-  when: '"Username_uname.all" in facts_to_collect'
+  when: '"uname.all" in facts_to_collect'
 
 - name: add uname.all to dictionary
   set_fact:
@@ -64,7 +64,7 @@
   raw: uname -i
   register: uname_hardware_platform
   ignore_errors: yes
-  when: '"Username_uname.hardware_platform" in facts_to_collect'
+  when: '"uname.hardware_platform" in facts_to_collect'
 
 - name: add uname.hardware_platform to dictionary
   set_fact:
