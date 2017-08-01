@@ -28,16 +28,26 @@ class TestSpitResults(unittest.TestCase):
     @mock.patch("library.spit_results.AnsibleModule", autospec=True)
     def test__main__success(self, ansible_mod_cls):
         mod_obj = ansible_mod_cls.return_value
+        pkg_line = """
+        pciutils|3.5.1|2.el7|1500397509|Red Hat, Inc.|1491250625|
+        x86-038.build.eng.bos.redhat.com|pciutils-3.5.1-2.el7.src.rpm|
+        GPLv2+|Red Hat, Inc. <http://bugzilla.redhat.com/bugzilla>|
+        Tue 18 Jul 2017 01:05:09 PM EDT|Mon 03 Apr 2017 04:17:05 PM EDT
+        """
         args = {
             "name": "foo",
             "file_path": TMP_TEST_REPORT,
-            "vals": [{'connection.uuid': '1'}],
+            "vals": [{'connection.uuid': '1',
+                      'systemid.contents': '',
+                      'redhat-packages.results': [pkg_line]}],
             "all_vars": {'host1':
                          {'fact1': 'value1',
                           'fact2': 'value2',
                           'res': {'fact3': 'value3'},
                           'connection.uuid': '1'}},
-            "fact_names": ['fact1', 'connection.uuid']
+            "fact_names": ['fact1', 'connection.uuid'
+                           "SysId_systemid.username",
+                           "RedhatPackages_redhat-packages.last_built"]
         }
         mod_obj.params = args
         spit_results.main()
