@@ -251,17 +251,28 @@ class Results(object):
         # Make sure the controller expanded the default option.
         assert self.fact_names != ['default']
 
-        keys = set(self.fact_names)
+        fact_keys = ['connection.host', 'connection.port', 'connection.uuid']
+        if isinstance(self.fact_names, list):
+            for f_name in self.fact_names:
+                f_name_list = f_name.strip().split('_', 1)
+                if len(f_name_list) > 1:
+                    fact = f_name_list[1]
+                    fact_keys.append(fact)
 
-        # Special processing for JBoss facts.
-        for _, host_vars in iteritems(self.all_vars):
-            uuid = host_vars['connection.uuid']
-            host_vals = safe_next((vals
-                                   for vals in self.vals
-                                   if vals['connection.uuid'] == uuid))
+        keys = set(fact_keys)
 
-            host_vals.update(process_jboss_versions(host_vars))
-            host_vals.update(process_addon_versions(host_vars))
+        try:
+            # Special processing for JBoss facts.
+            for _, host_vars in iteritems(self.all_vars):
+                uuid = host_vars['connection.uuid']
+                host_vals = safe_next((vals
+                                       for vals in self.vals
+                                       if vals['connection.uuid'] == uuid))
+
+                host_vals.update(process_jboss_versions(host_vars))
+                host_vals.update(process_addon_versions(host_vars))
+        except KeyError:
+            pass
 
         # Process System ID.
         for data in self.vals:
