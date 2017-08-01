@@ -19,6 +19,9 @@
     - uname
     - virt
     - virt_what
+    - jboss
+    - brms
+    - fuse
 
 
 - name: write facts first to a variable and then to csv locally

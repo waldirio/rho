@@ -13,4 +13,5 @@
     name: reporter
     file_path: "{{report_path}}"
     vals: "{{host_facts}}"
+    all_vars: "{{hostvars}}"
     fact_names: "{{facts_to_collect}}"

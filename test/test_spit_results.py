@@ -37,10 +37,15 @@ class TestSpitResults(unittest.TestCase):
         args = {
             "name": "foo",
             "file_path": TMP_TEST_REPORT,
-            "vals": [{'fact1': 'value1',
+            "vals": [{'connection.uuid': '1',
                       'systemid.contents': '',
                       'redhat-packages.results': [pkg_line]}],
-            "fact_names": ["Cpu_cpu.model_ver", "SysId_systemid.system_id",
+            "all_vars": {'host1':
+                         {'fact1': 'value1',
+                          'fact2': 'value2',
+                          'res': {'fact3': 'value3'},
+                          'connection.uuid': '1'}},
+            "fact_names": ['fact1', 'connection.uuid'
                            "SysId_systemid.username",
                            "RedhatPackages_redhat-packages.last_built"]
         }
@@ -50,6 +55,7 @@ class TestSpitResults(unittest.TestCase):
             "name": {"required": True, "type": "str"},
             "file_path": {"required": True, "type": "str"},
             "vals": {"required": True, "type": "list"},
+            "all_vars": {"required": True, "type": "dict"},
             "fact_names": {"required": True, "type": "list"}
         }
 
