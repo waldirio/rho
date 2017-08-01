@@ -31,8 +31,7 @@ class TestSpitResults(unittest.TestCase):
         args = {
             "name": "foo",
             "file_path": TMP_TEST_REPORT,
-            "vals": [{'fact1': 'value1',
-                      'connection.uuid': '1'}],
+            "vals": [{'connection.uuid': '1'}],
             "all_vars": {'host1':
                          {'fact1': 'value1',
                           'fact2': 'value2',
