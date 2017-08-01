@@ -7,18 +7,18 @@
 - name: collect all requested facts
   hosts: all
   roles:
-    - collect
-    - uname
-    - date
-    - file_contents
-    - dmi
-    - subman
-    - redhat_release
+    - connection
     - cpu
+    - date
+    - dmi
+    - etc_release
+    - file_contents
+    - redhat_release
+    - redhat_packages
+    - subman
+    - uname
     - virt
     - virt_what
-    - etc_release
-    - redhat_packages
     - jboss
     - brms
     - fuse

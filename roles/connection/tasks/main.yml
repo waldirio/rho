@@ -1,0 +1,19 @@
+---
+
+- name: add connection.host to dictionary
+  set_fact:
+    connection: "{{ connection|default({}) | combine({ item: ansible_host }) }}"
+  with_items:
+  - 'connection.host'
+
+- name: add connection.port to dictionary
+  set_fact:
+    connection: "{{ connection|default({}) | combine({ item: ansible_ssh_port }) }}"
+  with_items:
+  - 'connection.port'
+
+- name: add connection.uuid to dictionary
+  set_fact:
+    connection: "{{ connection|default({}) | combine({ item: ansible_host | to_uuid }) }}"
+  with_items:
+  - 'connection.uuid'
