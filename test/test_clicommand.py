@@ -607,9 +607,22 @@ class CliCommandsTests(unittest.TestCase):
             sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
                         "--reset", "--reportfile",
                         TMP_TEST_REPORT, "--facts",
-                        "Username_uname.all",
-                        "Cpu_cpu.bogomips",
+                        "uname.all",
+                        "cpu.bogomips",
                         "--ansible_forks",
                         "100", "--vault", TMP_VAULT_PASS]
             with redirect_credentials([]):
                 ScanCommand().main()
+
+    def test_scan_facts_invalid_list(self):
+        """Test utilizing the scan command exercising the collection
+        the facts from an invalid facts list with 100 ansible forks
+        """
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
+                        "--reset", "--reportfile",
+                        TMP_TEST_REPORT, "--facts",
+                        "bad.fact1", "bad.fact2", "ansible_forks",
+                        "100", "--vault", TMP_VAULT_PASS]
+            ScanCommand().main()

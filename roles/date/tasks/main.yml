@@ -1,5 +1,9 @@
 ---
 
+- name: initialize date dictionary
+  set_fact:
+    date: "{{ date|default({}) }}"
+
 - name: gather date.date fact
   raw: date
   register: date_date
@@ -8,9 +12,10 @@
 
 - name: add date.date to dictionary
   set_fact:
-    date: "{{ date|default({}) | combine({ item: date_date['stdout_lines'][0] }) }}"
+    date: "{{ date|default({}) | combine({ item: date_date['stdout_lines'][0] | default('error') }) }}"
   with_items:
   - 'date.date'
+  when: '"date.date" in facts_to_collect'
 
 - name: gather date.anaconda_log fact
   raw: ls --full-time /root/anaconda-ks.cfg | grep -o '[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}'
@@ -20,9 +25,10 @@
 
 - name: add date.anaconda_log to dictionary
   set_fact:
-    date: "{{ date|default({}) | combine({ item: date_anaconda_log['stdout_lines'][0] }) }}"
+    date: "{{ date|default({}) | combine({ item: date_anaconda_log['stdout_lines'][0] | default('error') }) }}"
   with_items:
   - 'date.anaconda_log'
+  when: '"date.anaconda_log" in facts_to_collect'
 
 - name: gather date.machine_id fact
   raw: ls --full-time /etc/machine-id | grep -o '[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}'
@@ -32,9 +38,10 @@
 
 - name: add date.machine_id to dictionary
   set_fact:
-    date: "{{ date|default({}) | combine({ item: date_machine_id['stdout_lines'][0] }) }}"
+    date: "{{ date|default({}) | combine({ item: date_machine_id['stdout_lines'][0] | default('error') }) }}"
   with_items:
   - 'date.machine_id'
+  when: '"date.machine_id" in facts_to_collect'
 
 - name: gather date.filesystem_create fact
   raw: fs_date=$(tune2fs -l $(mount | egrep '/ type' | grep -o '/dev.* on' | sed -e 's/\on//g') | grep 'Filesystem created' | sed 's/Filesystem created:\s*//g'); if [[ $fs_date ]]; then date +'%F' -d \"$fs_date\"; else echo "" ; fi
@@ -44,9 +51,10 @@
 
 - name: add date.filesystem_create to dictionary
   set_fact:
-    date: "{{ date|default({}) | combine({ item: date_filesystem_create['stdout_lines'][0] }) }}"
+    date: "{{ date|default({}) | combine({ item: date_filesystem_create['stdout_lines'][0] | default('error') }) }}"
   with_items:
   - 'date.filesystem_create'
+  when: '"date.filesystem_create" in facts_to_collect'
 
 - name: gather date.yum_history fact
   raw: yum history | tail -n 4 | grep -o '[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}'
@@ -56,6 +64,7 @@
 
 - name: add date.yum_history to dictionary
   set_fact:
-    date: "{{ date|default({}) | combine({ item: date_yum_history['stdout_lines'][0] }) }}"
+    date: "{{ date|default({}) | combine({ item: date_yum_history['stdout_lines'][0] | default('error') }) }}"
   with_items:
   - 'date.yum_history'
+  when: '"date.yum_history" in facts_to_collect'

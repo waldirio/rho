@@ -1,5 +1,9 @@
 ---
 
+- name: initialize virt dictionary
+  set_fact:
+    virt: "{{ virt|default({}) }}"
+
 - name: check if virsh command exists
   raw: cmd=$(command -v virsh>/dev/null); if $cmd; then echo "Y"; else echo "N"; fi
   register: virsh_found
@@ -160,21 +164,25 @@
     virt: "{{ virt|default({}) | combine({ item: virt_type }) }}"
   with_items:
   - 'virt.type'
+  when: '"virt.type" in facts_to_collect'
 
 - name: add virt.virt to dictionary
   set_fact:
     virt: "{{ virt|default({}) | combine({ item: virt_virt }) }}"
   with_items:
   - 'virt.virt'
+  when: '"virt.virt" in facts_to_collect'
 
 - name: add virt.num_running_guests to dictionary
   set_fact:
     virt: "{{ virt|default({}) | combine({ item: virt_num_running_guests }) }}"
   with_items:
   - 'virt.num_running_guests'
+  when: '"virt.num_running_guests" in facts_to_collect'
 
 - name: add virt.num_guests to dictionary
   set_fact:
     virt: "{{ virt|default({}) | combine({ item: virt_num_guests }) }}"
   with_items:
   - 'virt.num_guests'
+  when: '"virt.num_guests" in facts_to_collect'

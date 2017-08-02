@@ -335,7 +335,7 @@ class Results(object):
             rh_packages = list(filter(self.PkgInfo.is_red_hat_pkg,
                                       installed_packages))
 
-            rhpkg_prefix = 'RedhatPackages_redhat-packages.'
+            rhpkg_prefix = 'redhat-packages.'
             is_rhpkg_str = rhpkg_prefix + 'is_redhat'
             num_rh_str = rhpkg_prefix + 'num_rh_packages'
             installed_pkg_str = rhpkg_prefix + 'num_installed_packages'
