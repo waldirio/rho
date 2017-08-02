@@ -1,17 +1,20 @@
 
 ---
 # This will scan linux systems for JBoss BRMS or Drools Installations
-    - name: Gather brms.kie-api-ver
+    - name: Gather jboss.brms.kie-api-ver
       raw: find / -name kie-api* 2> /dev/null | sed 's/.*kie-api-//g' | sed 's/.jar.*//g' | sort -u
-      register: kie-api-ver
+      register: jboss.brms.kie-api-ver
       ignore_errors: yes
+      when: '"jboss.brms.kie-api-ver" in facts_to_collect'
 
-    - name: Gather brms.drools-core-ver
+    - name: Gather jboss.brms.drools-core-ver
       raw: find / -name drools-core* 2> /dev/null | sed 's/.*drools-core-//g' | sed 's/.jar.*//g' | sort -u
-      register: drools-core-ver
+      register: jboss.brms.drools-core-ver
       ignore_errors: yes
+      when: '"jboss.brms.drools-core-ver" in facts_to_collect'
 
-    - name: Gather brms.kie-war-ver
+    - name: Gather jboss.brms.kie-war-ver
       raw: OIFS="$IFS"; IFS=$'\n'; for war in $(find / -name kie*.war 2> /dev/null); do if [[ -d  "$war" ]]; then cat "$war"/META-INF/MANIFEST.MF 2> /dev/null | grep Implementation-Version | sed "s/Implementation-Version://g" | sed "s/ //g" | sed 's/\r$//' | sort -u; else fgrep -irsal kie-api "$war" | egrep -o "[0-9]\.[0-9]\.[0-9].*-" | sed "s/-$//g" | sed 's/\r$//' | sort -u; fi; done; IFS="$OIFS"
-      register: kie-war-ver
+      register: jboss.brms.kie-war-ver
       ignore_errors: yes
+      when: '"jboss.brms.kie-war-ver" in facts_to_collect'

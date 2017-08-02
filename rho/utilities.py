@@ -84,11 +84,24 @@ SUBMAN_FACTS_TUPLE = ('subman.cpu.core(s)_per_socket',
                       'subman.virt.uuid',
                       'subman.has_facts_file')
 
+JBOSS_FACTS_TUPLE = ('jboss.installed-versions',
+                     'jboss.deploy-dates',
+                     'jboss.running-versions')
+
+BRMS_FACTS_TUPLE = ('jboss.brms.kie-api-ver',
+                    'jboss.brms.drools-core-ver',
+                    'jboss.brms.kie-war-ver')
+
+FUSE_FACTS_TUPLE = ('jboss.fuse.activemq-ver',
+                    'jboss.fuse.camel-ver',
+                    'jboss.fuse.cxf-ver')
+
 DEFAULT_FACTS_TUPLE = SUBMAN_FACTS_TUPLE + DATE_FACTS_TUPLE \
     + VIRT_WHAT_FACTS_TUPLE + RH_PKG_FACTS_TUPLE + VIRT_FACTS_TUPLE \
     + DMI_FACTS_TUPLE + ETC_ISSUE_FACTS_TUPLE + ETC_RELEASE_FACTS_TUPLE \
     + CPU_FACTS_TUPLE + SYSID_FACTS_TUPLE + INSTNUM_FACTS_TUPLE \
     + REDHAT_RELEASE_FACTS_TUPLE + UNAME_FACTS_TUPLE \
+    + JBOSS_FACTS_TUPLE + BRMS_FACTS_TUPLE + FUSE_FACTS_TUPLE \
     + CONNECTION_FACTS_TUPLE
 
 

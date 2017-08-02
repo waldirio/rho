@@ -98,6 +98,15 @@ this contains a large amount of information about the operating system, hardware
 - ``etc-release.release`` - release information
 - ``etc-release.version`` - release version
 - ``instnum.instnum`` - installation number
+- ``jboss.brms.drools_core_ver`` - Drools version
+- ``jboss.brms.kie_api_ver`` - KIE API version
+- ``jboss.brms.kie_war_ver`` - KIE runtime version
+- ``jboss.deploy_dates`` - List of deployment dates of JBoss installations
+- ``jboss.fuse.activemq-ver`` - ActiveMQ version
+- ``jboss.fuse.camel-ver`` - Camel version
+- ``jboss.fuse.cxf-ver`` - CXF version
+- ``jboss.installed_versions`` - List of installed versions of JBoss
+- ``jboss.running_versions`` - List of running versions of JBoss
 - ``redhat-packages.is_redhat`` - determines if package is a Red Hat package
 - ``redhat-packages.last_installed`` - last installed package
 - ``redhat-packages.last_built`` - last built package
@@ -138,6 +147,7 @@ of 'default' will get all the information listed above.
 - **etc-issue.x** - for facts of the form ``etc-issue.x``
 - **etc-release.x** - for facts of the form ``etc-release.x``
 - **instnum.x** - for facts of the form ``instnum.x``
+- **jboss.x** - for facts of the form ``jboss.x``
 - **redhat-packages.x** - for facts of the form ``redhat-packages.x``
 - **redhat-release.x** - for facts of the form ``redhat-release.x``
 - **subman.x** - for facts of the form ``subman.x``
