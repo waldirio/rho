@@ -132,19 +132,19 @@ of these facts can be requested by either as a CLI list i.e. ``--facts <fact_1> 
 or by passing in a file with a new fact on every line in the format as follows. A value
 of 'default' will get all the information listed above.
 
-- **Cpu_cpu.x** - for facts of the form ``cpu.x``
-- **Date_date.x** - for facts of the form ``date.x``
-- **Dmi_dmi.x** - for facts of the form ``dmi.x``
-- **EtcIssue_etc-issue.x** - for facts of the form ``etc-issue.x``
-- **EtcRelease_etc-release.x** - for facts of the form ``etc-release.x``
-- **Instnum_instnum.x** - for facts of the form ``instnum.x``
-- **RedhatPackages_redhat-packages.x** - for facts of the form ``redhat-packages.x``
-- **RedhatRelease_redhat-release.x** - for facts of the form ``redhat-release.x``
-- **SubmanFacts_virt.x** - for facts of the form ``subman.x``
-- **SysId_systemid.x** - for facts of the form ``systemid.x``
-- **Username_uname.x** - for facts of the form ``uname.x``
-- **Virt_virt.x** - for facts of the form ``virt.x``
-- **VirtWhat_virt-what.x** - for facts of the form ``virt-what.x``
+- **cpu.x** - for facts of the form ``cpu.x``
+- **date.x** - for facts of the form ``date.x``
+- **dmi.x** - for facts of the form ``dmi.x``
+- **etc-issue.x** - for facts of the form ``etc-issue.x``
+- **etc-release.x** - for facts of the form ``etc-release.x``
+- **instnum.x** - for facts of the form ``instnum.x``
+- **redhat-packages.x** - for facts of the form ``redhat-packages.x``
+- **redhat-release.x** - for facts of the form ``redhat-release.x``
+- **subman.x** - for facts of the form ``subman.x``
+- **systemid.x** - for facts of the form ``systemid.x``
+- **uname.x** - for facts of the form ``uname.x``
+- **virt.x** - for facts of the form ``virt.x``
+- **virt-what.x** - for facts of the form ``virt-what.x``
 
 As hinted at previously, the auths that have been used in a particular scan are
 the first valid auths in the list passed in order to the profile. All the valid

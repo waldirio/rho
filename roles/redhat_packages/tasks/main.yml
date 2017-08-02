@@ -34,7 +34,7 @@
   raw: rpm -qa --qf "%{NAME}|%{VERSION}|%{RELEASE}|%{INSTALLTIME}|%{VENDOR}|%{BUILDTIME}|%{BUILDHOST}|%{SOURCERPM}|%{LICENSE}|%{PACKAGER}|%{INSTALLTIME:date}|%{BUILDTIME:date}\n"
   register: redhat_packages_results
   ignore_errors: yes
-  when: '"RedhatPackages_redhat-packages.is_redhat" in facts_to_collect'
+  when: '"redhat-packages.is_redhat" in facts_to_collect'
 
 - name: add redhat-packages.results to dictionary
   set_fact:

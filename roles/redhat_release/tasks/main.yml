@@ -4,7 +4,7 @@
   raw: rpm -q --queryformat "%{NAME}\n" --whatprovides redhat-release
   register: redhat_release_name
   ignore_errors: yes
-  when: '"RedhatRelease_redhat-release.name" in facts_to_collect'
+  when: '"redhat-release.name" in facts_to_collect'
 
 - name: add redhat-release.name to dictionary
   set_fact:
@@ -16,7 +16,7 @@
   raw: rpm -q --queryformat "%{VERSION}\n" --whatprovides redhat-release
   register: redhat_release_version
   ignore_errors: yes
-  when: '"RedhatRelease_redhat-release.version" in facts_to_collect'
+  when: '"redhat-release.version" in facts_to_collect'
 
 - name: add redhat-release.version to dictionary
   set_fact:
@@ -28,7 +28,7 @@
   raw: rpm -q --queryformat "%{RELEASE}\n" --whatprovides redhat-release
   register: redhat_release_release
   ignore_errors: yes
-  when: '"RedhatRelease_redhat-release.release" in facts_to_collect'
+  when: '"redhat-release.release" in facts_to_collect'
 
 - name: add redhat-release.release to dictionary
   set_fact:

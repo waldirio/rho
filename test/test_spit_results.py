@@ -45,9 +45,9 @@ class TestSpitResults(unittest.TestCase):
                           'fact2': 'value2',
                           'res': {'fact3': 'value3'},
                           'connection.uuid': '1'}},
-            "fact_names": ['fact1', 'connection.uuid'
-                           "SysId_systemid.username",
-                           "RedhatPackages_redhat-packages.last_built"]
+            "fact_names": ['fact1', 'connection.uuid',
+                           'systemid.username',
+                           'redhat-packages.last_built']
         }
         mod_obj.params = args
         spit_results.main()

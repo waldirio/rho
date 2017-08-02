@@ -4,32 +4,32 @@
   raw: cmd=$(command -v virt-what>/dev/null); if $cmd; then echo "Y"; else echo "N"; fi
   register: virt_what_found
   ignore_errors: yes
-  when: '"VirtWhat_virt-what.type" in facts_to_collect'
+  when: '"virt-what.type" in facts_to_collect'
 
 - name: set virt-what.type fact to error if virt-what not found
   set_fact: virt_what_type="error"
-  when: '"VirtWhat_virt-what.type" in facts_to_collect and virt_what_found["stdout_lines"][0] == "N"'
+  when: '"virt-what.type" in facts_to_collect and virt_what_found["stdout_lines"][0] == "N"'
 
 - name: execute virt-what
   raw: sudo -n virt-what;echo $?
   register: virt_what_output
   ignore_errors: yes
-  when: '"VirtWhat_virt-what.type" in facts_to_collect and virt_what_found["stdout_lines"][0] == "Y"'
+  when: '"virt-what.type" in facts_to_collect and virt_what_found["stdout_lines"][0] == "Y"'
 
 - name: extract virt-what error code
   set_fact:
     virt_what_error: '{{ virt_what_output["stdout"].split("\r\n")[-1] | int }}'
-  when: '"VirtWhat_virt-what.type" in facts_to_collect and virt_what_found["stdout_lines"][0] == "Y"'
+  when: '"virt-what.type" in facts_to_collect and virt_what_found["stdout_lines"][0] == "Y"'
 
 - name: set virt-what.type fact to bare metal if virt-what errored
   set_fact:
     virt_what_type: "bare metal"
-  when: '"VirtWhat_virt-what.type" in facts_to_collect and (not virt_what_error|int  == 0)'
+  when: '"virt-what.type" in facts_to_collect and (not virt_what_error|int  == 0)'
 
 - name: set virt-what.type fact if virt-what ran successfully
   set_fact:
     virt_what_type: '{{ ";".join(virt_what_output["stdout_lines"][:-1]) }}'
-  when: '"VirtWhat_virt-what.type" in facts_to_collect and (virt_what_error|int == 0)'
+  when: '"virt-what.type" in facts_to_collect and (virt_what_error|int == 0)'
 
 - name: add virt-what.type to dictionary
   set_fact:
