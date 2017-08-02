@@ -84,13 +84,13 @@ SUBMAN_FACTS_TUPLE = ('subman.cpu.core(s)_per_socket',
                       'subman.virt.uuid',
                       'subman.has_facts_file')
 
-JBOSS_FACTS_TUPLE = ('jboss.installed_versions',
-                     'jboss.deploy_dates',
-                     'jboss.running_versions')
+JBOSS_FACTS_TUPLE = ('jboss.installed-versions',
+                     'jboss.deploy-dates',
+                     'jboss.running-versions')
 
-BRMS_FACTS_TUPLE = ('jboss.brms.kie_api_ver',
-                    'jboss.brms.drools_core_ver',
-                    'jboss.brms.kie_war_ver')
+BRMS_FACTS_TUPLE = ('jboss.brms.kie-api-ver',
+                    'jboss.brms.drools-core-ver',
+                    'jboss.brms.kie-war-ver')
 
 FUSE_FACTS_TUPLE = ('jboss.fuse.activemq-ver',
                     'jboss.fuse.camel-ver',
