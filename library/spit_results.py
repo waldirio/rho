@@ -145,10 +145,14 @@ def process_jboss_versions(host_vars):
 
     lines = []
 
-    if 'jboss_jar_ver' in host_vars:
-        lines.extend(host_vars['jboss_jar_ver']['stdout_lines'])
-    if 'jboss_run_jar_ver' in host_vars:
-        lines.extend(host_vars['jboss_run_jar_ver']['stdout_lines'])
+    # host_vars is not used after this function (data that we return
+    # is copied to host_vals instead), so by not returning
+    # jboss.jar_ver and jboss.run_jar_ver, we are implicitly removing
+    # them from the output.
+    if 'jboss.jar_ver' in host_vars:
+        lines.extend(host_vars['jboss.jar_ver']['stdout_lines'])
+    if 'jboss.run_jar_ver' in host_vars:
+        lines.extend(host_vars['jboss.run_jar_ver']['stdout_lines'])
 
     jboss_releases = []
     deploy_dates = []
@@ -165,8 +169,8 @@ def process_jboss_versions(host_vars):
         return {}
 
     return {
-        'installed_versions': '; '.join(jboss_releases),
-        'deploy_dates': '; '.join(deploy_dates)
+        'jboss.installed_versions': '; '.join(jboss_releases),
+        'jboss.deploy_dates': '; '.join(deploy_dates)
     }
 
 
@@ -197,13 +201,13 @@ def process_addon_versions(host_vars):
                 host_vars[key]['stdout_lines'],
                 classifications)
 
-    classify('brms_kie_api_ver', BRMS_CLASSIFICATIONS)
-    classify('brms_drools_core_ver', BRMS_CLASSIFICATIONS)
-    classify('brms_kie_war_ver', BRMS_CLASSIFICATIONS)
+    classify('jboss.brms.kie_api_ver', BRMS_CLASSIFICATIONS)
+    classify('jboss.brms.drools_core_ver', BRMS_CLASSIFICATIONS)
+    classify('jboss.brms.kie_war_ver', BRMS_CLASSIFICATIONS)
 
-    classify('activemq-ver', FUSE_CLASSIFICATIONS)
-    classify('camel-ver', FUSE_CLASSIFICATIONS)
-    classify('cxf-ver', FUSE_CLASSIFICATIONS)
+    classify('jboss.fuse.activemq-ver', FUSE_CLASSIFICATIONS)
+    classify('jboss.fuse.camel-ver', FUSE_CLASSIFICATIONS)
+    classify('jboss.fuse.cxf-ver', FUSE_CLASSIFICATIONS)
 
     return result
 
@@ -328,8 +332,8 @@ class Results(object):
             installed_packages = [self.PkgInfo(self, line, "|")
                                   for line in
                                   data['redhat-packages.results']]
-            rh_packages = filter(self.PkgInfo.is_red_hat_pkg,
-                                 installed_packages)
+            rh_packages = list(filter(self.PkgInfo.is_red_hat_pkg,
+                                      installed_packages))
 
             rhpkg_prefix = 'RedhatPackages_redhat-packages.'
             is_rhpkg_str = rhpkg_prefix + 'is_redhat'
@@ -356,7 +360,7 @@ class Results(object):
                         max_build_time = pkg.build_time
                         last_built = pkg
 
-                is_red_hat = "Y" if rh_packages > 0 else "N"
+                is_red_hat = "Y" if rh_packages else "N"
 
                 if is_rhpkg_in_facts:
                     data['redhat-packages.is_redhat'] = is_red_hat
