@@ -358,6 +358,11 @@ class ScanCommand(CliCommand):
             assert isinstance(facts, list)
             facts_to_collect = facts
 
+        # always output connection.x
+        for key in utilities.CONNECTION_FACTS_TUPLE:
+            if key not in facts_to_collect:
+                facts_to_collect.append(key)
+
         ansible_vars = {'facts_to_collect': facts_to_collect,
                         'report_path': report_path}
 

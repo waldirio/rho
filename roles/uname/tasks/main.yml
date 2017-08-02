@@ -1,5 +1,9 @@
 ---
 
+- name: initialize uname dictionary
+  set_fact:
+    uname: "{{ uname|default({}) }}"
+
 - name: gather uname.os fact
   raw: uname -s
   register: uname_os
@@ -8,9 +12,10 @@
 
 - name: add uname.os to dictionary
   set_fact:
-    uname: "{{ uname|default({}) | combine({ item: uname_os['stdout_lines'][0] }) }}"
+    uname: "{{ uname|default({}) | combine({ item: uname_os['stdout_lines'][0] | default('error') }) }}"
   with_items:
   - 'uname.os'
+  when: '"uname.os" in facts_to_collect'
 
 - name: gather uname.hostname fact
   raw: uname -n
@@ -20,9 +25,10 @@
 
 - name: add uname.hostname to dictionary
   set_fact:
-    uname: "{{ uname|default({}) | combine({ item: uname_hostname['stdout_lines'][0] }) }}"
+    uname: "{{ uname|default({}) | combine({ item: uname_hostname['stdout_lines'][0] | default('error') }) }}"
   with_items:
   - 'uname.hostname'
+  when: '"uname.hostname" in facts_to_collect'
 
 - name: gather uname.processor fact
   raw: uname -p
@@ -32,9 +38,10 @@
 
 - name: add uname.processor to dictionary
   set_fact:
-    uname: "{{ uname|default({}) | combine({ item: uname_processor['stdout_lines'][0] }) }}"
+    uname: "{{ uname|default({}) | combine({ item: uname_processor['stdout_lines'][0] | default('error') }) }}"
   with_items:
   - 'uname.processor'
+  when: '"uname.processor" in facts_to_collect'
 
 - name: gather uname.kernel fact
   raw: uname -r
@@ -44,9 +51,10 @@
 
 - name: add uname.kernel to dictionary
   set_fact:
-    uname: "{{ uname|default({}) | combine({ item: uname_kernel['stdout_lines'][0] }) }}"
+    uname: "{{ uname|default({}) | combine({ item: uname_kernel['stdout_lines'][0] | default('error') }) }}"
   with_items:
   - 'uname.kernel'
+  when: '"uname.kernel" in facts_to_collect'
 
 - name: gather uname.all fact
   raw: uname -a
@@ -56,9 +64,10 @@
 
 - name: add uname.all to dictionary
   set_fact:
-    uname: "{{ uname|default({}) | combine({ item: uname_all['stdout_lines'][0] }) }}"
+    uname: "{{ uname|default({}) | combine({ item: uname_all['stdout_lines'][0] | default('error') }) }}"
   with_items:
   - 'uname.all'
+  when: '"uname.all" in facts_to_collect'
 
 - name: gather uname.hardware_platform fact
   raw: uname -i
@@ -68,6 +77,7 @@
 
 - name: add uname.hardware_platform to dictionary
   set_fact:
-    uname: "{{ uname|default({}) | combine({ item: uname_hardware_platform['stdout_lines'][0] }) }}"
+    uname: "{{ uname|default({}) | combine({ item: uname_hardware_platform['stdout_lines'][0] | default('error') }) }}"
   with_items:
   - 'uname.hardware_platform'
+  when: '"uname.hardware_platform" in facts_to_collect'

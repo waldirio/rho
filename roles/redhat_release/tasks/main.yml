@@ -1,5 +1,9 @@
 ---
 
+- name: initialize redhat_release dictionary
+  set_fact:
+    redhat_release: "{{ redhat_release|default({}) }}"
+
 - name: gather redhat-release.name fact
   raw: rpm -q --queryformat "%{NAME}\n" --whatprovides redhat-release
   register: redhat_release_name
@@ -8,9 +12,10 @@
 
 - name: add redhat-release.name to dictionary
   set_fact:
-    redhat_release: "{{ redhat_release|default({}) | combine({ item: redhat_release_name['stdout_lines'][0] }) }}"
+    redhat_release: "{{ redhat_release|default({}) | combine({ item: redhat_release_name['stdout_lines'][0] | default('error') }) }}"
   with_items:
   - 'redhat-release.name'
+  when: '"redhat-release.name" in facts_to_collect'
 
 - name: gather redhat-release.version fact
   raw: rpm -q --queryformat "%{VERSION}\n" --whatprovides redhat-release
@@ -20,9 +25,10 @@
 
 - name: add redhat-release.version to dictionary
   set_fact:
-    redhat_release: "{{ redhat_release|default({}) | combine({ item: redhat_release_version['stdout_lines'][0] }) }}"
+    redhat_release: "{{ redhat_release|default({}) | combine({ item: redhat_release_version['stdout_lines'][0] | default('error') }) }}"
   with_items:
   - 'redhat-release.version'
+  when: '"redhat-release.version" in facts_to_collect'
 
 - name: gather redhat-release.release fact
   raw: rpm -q --queryformat "%{RELEASE}\n" --whatprovides redhat-release
@@ -32,6 +38,7 @@
 
 - name: add redhat-release.release to dictionary
   set_fact:
-    redhat_release: "{{ redhat_release|default({}) | combine({ item: redhat_release_release['stdout_lines'][0] }) }}"
+    redhat_release: "{{ redhat_release|default({}) | combine({ item: redhat_release_release['stdout_lines'][0] | default('error') }) }}"
   with_items:
   - 'redhat-release.release'
+  when: '"redhat-release.release" in facts_to_collect'

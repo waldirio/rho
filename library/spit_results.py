@@ -328,10 +328,10 @@ class Results(object):
             installed_packages = [self.PkgInfo(self, line, "|")
                                   for line in
                                   data['redhat-packages.results']]
-            rh_packages = filter(self.PkgInfo.is_red_hat_pkg,
-                                 installed_packages)
+            rh_packages = list(filter(self.PkgInfo.is_red_hat_pkg,
+                                      installed_packages))
 
-            rhpkg_prefix = 'RedhatPackages_redhat-packages.'
+            rhpkg_prefix = 'redhat-packages.'
             is_rhpkg_str = rhpkg_prefix + 'is_redhat'
             num_rh_str = rhpkg_prefix + 'num_rh_packages'
             installed_pkg_str = rhpkg_prefix + 'num_installed_packages'
@@ -356,7 +356,7 @@ class Results(object):
                         max_build_time = pkg.build_time
                         last_built = pkg
 
-                is_red_hat = "Y" if rh_packages > 0 else "N"
+                is_red_hat = "Y" if rh_packages else "N"
 
                 if is_rhpkg_in_facts:
                     data['redhat-packages.is_redhat'] = is_red_hat

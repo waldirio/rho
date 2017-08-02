@@ -1,76 +1,86 @@
 ---
 
+- name: initialize cpu dictionary
+  set_fact:
+    cpu: "{{ cpu|default({}) }}"
+
 - name: gather cpu.vendor_id fact
-  raw: cat /proc/cpuinfo | grep '^vendor_id\s*:' | sed -n -e 's/^.*vendor_id\s*:\s//p'
+  raw: cat /proc/cpuinfo | grep '^vendor_id\s*' | sed -n -e 's/^.*vendor_id\s*.\s*//p'
   register: cpu_vendor_id
   ignore_errors: yes
   when: '"cpu.vendor_id" in facts_to_collect'
 
 - name: add cpu.vendor_id to dictionary
   set_fact:
-    cpu: "{{ cpu|default({}) | combine({ item: cpu_vendor_id['stdout_lines'][0] }) }}"
+    cpu: "{{ cpu|default({}) | combine({ item: cpu_vendor_id['stdout_lines'][0] | default('error') }) }}"
   with_items:
   - 'cpu.vendor_id'
+  when: '"cpu.vendor_id" in facts_to_collect'
 
 - name: gather cpu.model_name fact
-  raw: cat /proc/cpuinfo | grep '^model name\s*:' | sed -n -e 's/^.*model name\s*:\s//p'
+  raw: cat /proc/cpuinfo | grep '^model name\s*.' | sed -n -e 's/^.*model name\s*.\s*//p'
   register: cpu_model_name
   ignore_errors: yes
   when: '"cpu.model_name" in facts_to_collect'
 
 - name: add cpu.model_name to dictionary
   set_fact:
-    cpu: "{{ cpu|default({}) | combine({ item: cpu_model_name['stdout_lines'][0] }) }}"
+    cpu: "{{ cpu|default({}) | combine({ item: cpu_model_name['stdout_lines'][0] | default('error') }) }}"
   with_items:
   - 'cpu.model_name'
+  when: '"cpu.model_name" in facts_to_collect'
 
 - name: gather cpu.bogomips fact
-  raw: cat /proc/cpuinfo | grep '^bogomips\s*:' | sed -n -e 's/^.*bogomips\s*:\s//p'
+  raw: cat /proc/cpuinfo | grep '^bogomips\s*.' | sed -n -e 's/^.*bogomips\s*.\s*//p'
   register: cpu_bogomips
   ignore_errors: yes
   when: '"cpu.bogomips" in facts_to_collect'
 
 - name: add cpu.bogomips to dictionary
   set_fact:
-    cpu: "{{ cpu|default({}) | combine({ item: cpu_bogomips['stdout_lines'][0] }) }}"
+    cpu: "{{ cpu|default({}) | combine({ item: cpu_bogomips['stdout_lines'][0] | default('error') }) }}"
   with_items:
   - 'cpu.bogomips'
+  when: '"cpu.bogomips" in facts_to_collect'
 
 - name: gather cpu.cpu_family fact
-  raw: cat /proc/cpuinfo | grep '^cpu family\s*:' | sed -n -e 's/^.*cpu family\s*:\s//p'
+  raw: cat /proc/cpuinfo | grep '^cpu family\s*.' | sed -n -e 's/^.*cpu family\s*.\s*//p'
   register: cpu_cpu_family
   ignore_errors: yes
   when: '"cpu.cpu_family" in facts_to_collect'
 
 - name: add cpu.cpu_family to dictionary
   set_fact:
-    cpu: "{{ cpu|default({}) | combine({ item: cpu_cpu_family['stdout_lines'][0] }) }}"
+    cpu: "{{ cpu|default({}) | combine({ item: cpu_cpu_family['stdout_lines'][0] | default('error') }) }}"
   with_items:
   - 'cpu.cpu_family'
+  when: '"cpu.cpu_family" in facts_to_collect'
 
 - name: gather cpu.model_ver fact
-  raw: cat /proc/cpuinfo | grep '^model\s*:' | sed -n -e 's/^.*model\s*:\s//p'
+  raw: cat /proc/cpuinfo | grep '^model\s*.' | sed -n -e 's/^.*model\s*.\s*//p'
   register: cpu_model_ver
   ignore_errors: yes
   when: '"cpu.model_ver" in facts_to_collect'
 
 - name: add cpu.model_ver to dictionary
   set_fact:
-    cpu: "{{ cpu|default({}) | combine({ item: cpu_model_ver['stdout_lines'][0] }) }}"
+    cpu: "{{ cpu|default({}) | combine({ item: cpu_model_ver['stdout_lines'][0] | default('error') }) }}"
   with_items:
   - 'cpu.model_ver'
+  when: '"cpu.model_ver" in facts_to_collect'
 
 - name: gather cpu.count fact
-  raw: cat /proc/cpuinfo | grep '^processor\s*:' | wc -l
+  raw: cat /proc/cpuinfo | grep '^processor\s*.' | wc -l
   register: cpu_count
   ignore_errors: yes
   when: '"cpu.count" in facts_to_collect'
 
 - name: add cpu.count to dictionary
   set_fact:
-    cpu: "{{ cpu|default({}) | combine({ item: cpu_count['stdout_lines'][0] }) }}"
+    cpu: "{{ cpu|default({}) | combine({ item: cpu_count['stdout_lines'][0] | default('error') }) }}"
   with_items:
   - 'cpu.count'
+  when: '"cpu.count" in facts_to_collect'
 
 - name: gather cpu.socket_count fact
   raw: sudo -n /usr/sbin/dmidecode -t 4 | grep 'Socket Designation'| wc -l
@@ -80,6 +90,7 @@
 
 - name: add cpu.socket_count to dictionary
   set_fact:
-    cpu: "{{ cpu|default({}) | combine({ item: cpu_socket_count['stdout_lines'][0] }) }}"
+    cpu: "{{ cpu|default({}) | combine({ item: cpu_socket_count['stdout_lines'][0] | default('error') }) }}"
   with_items:
   - 'cpu.socket_count'
+  when: '"cpu.socket_count" in facts_to_collect'

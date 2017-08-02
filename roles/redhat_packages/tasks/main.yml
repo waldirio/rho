@@ -1,43 +1,78 @@
 ---
 
+- name: initialize redhat_packages dictionary
+  set_fact:
+    redhat_packages: "{{ redhat_packages|default({}) }}"
+
+- name: set gather_is_redhat fact
+  set_fact:
+    gather_is_redhat: "{{ 'redhat-packages.is_redhat' in facts_to_collect }}"
+
+- name: set gather_num_rh_packages fact
+  set_fact:
+    gather_num_rh_packages: "{{ 'redhat-packages.num_rh_packages' in facts_to_collect }}"
+
+- name: set gather_num_installed_packages fact
+  set_fact:
+    gather_num_installed_packages: "{{ 'redhat-packages.num_installed_packages' in facts_to_collect }}"
+
+- name: set gather_last_installed fact
+  set_fact:
+    gather_last_installed: "{{ 'redhat-packages.last_installed' in facts_to_collect }}"
+
+- name: set gather_last_built fact
+  set_fact:
+    gather_last_built: "{{ 'redhat-packages.last_built' in facts_to_collect }}"
+
+
+- name: set gather_redhat_packages fact
+  set_fact:
+    gather_redhat_packages: "{{ gather_is_redhat or gather_num_rh_packages or gather_num_installed_packages or gather_last_installed or gather_last_built }}"
+
 - name: initialize redhat-packages.is_redhat to dictionary
   set_fact:
     redhat_packages: "{{ redhat_packages|default({}) | combine({ item: '' }) }}"
   with_items:
   - 'redhat-packages.is_redhat'
+  when: gather_is_redhat
 
 - name: initialize redhat-packages.num_rh_packages to dictionary
   set_fact:
     redhat_packages: "{{ redhat_packages|default({}) | combine({ item: '' }) }}"
   with_items:
   - 'redhat-packages.num_rh_packages'
+  when: gather_num_rh_packages
 
 - name: initialize redhat-packages.num_installed_packages to dictionary
   set_fact:
     redhat_packages: "{{ redhat_packages|default({}) | combine({ item: '' }) }}"
   with_items:
   - 'redhat-packages.num_installed_packages'
+  when: gather_num_installed_packages
 
 - name: initialize redhat-packages.last_installed to dictionary
   set_fact:
     redhat_packages: "{{ redhat_packages|default({}) | combine({ item: '' }) }}"
   with_items:
   - 'redhat-packages.last_installed'
+  when: gather_last_installed
 
 - name: initialize redhat-packages.last_built to dictionary
   set_fact:
     redhat_packages: "{{ redhat_packages|default({}) | combine({ item: '' }) }}"
   with_items:
   - 'redhat-packages.last_built'
+  when: gather_last_built
 
 - name: gather redhat-packages fact data
   raw: rpm -qa --qf "%{NAME}|%{VERSION}|%{RELEASE}|%{INSTALLTIME}|%{VENDOR}|%{BUILDTIME}|%{BUILDHOST}|%{SOURCERPM}|%{LICENSE}|%{PACKAGER}|%{INSTALLTIME:date}|%{BUILDTIME:date}\n"
   register: redhat_packages_results
   ignore_errors: yes
-  when: '"redhat-packages.is_redhat" in facts_to_collect'
+  when: gather_redhat_packages
 
 - name: add redhat-packages.results to dictionary
   set_fact:
-    redhat_packages: "{{ redhat_packages|default({}) | combine({ item: redhat_packages_results['stdout_lines'] }) }}"
+    redhat_packages: "{{ redhat_packages|default({}) | combine({ item: redhat_packages_results['stdout_lines'] | default([]) }) }}"
   with_items:
   - 'redhat-packages.results'
+  when: gather_redhat_packages
