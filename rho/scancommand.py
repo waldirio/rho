@@ -283,6 +283,25 @@ class ScanCommand(CliCommand):
                 self.parser.print_help()
                 sys.exit(1)
 
+        # perform fact validation
+        facts = self.options.facts
+        default_facts = False
+        if facts == ['default']:
+            default_facts = True
+        elif os.path.isfile(facts[0]):
+            facts_to_collect = _read_in_file(facts[0])
+        else:
+            assert isinstance(facts, list)
+            facts_to_collect = facts
+        # check facts_to_collect is subset of utilities.DEFAULT_FACTS_TUPLE
+        all_facts = utilities.DEFAULT_FACTS_TUPLE
+        if not default_facts and not set(facts_to_collect).issubset(all_facts):
+            invalid_facts = set(facts_to_collect).difference(all_facts)
+            print(_("Invalid facts were supplied to scan command: " +
+                    ",".join(invalid_facts)))
+            self.parser.print_help()
+            sys.exit(1)
+
     def _do_command(self):
         # pylint: disable=too-many-locals
         # pylint: disable=too-many-branches
