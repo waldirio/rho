@@ -74,7 +74,7 @@ class ProfileClearCommand(CliCommand):
 
             for index, curr_profile in enumerate(profiles_list):
                 if curr_profile.get('name') == profile:
-                    del curr_profile[index]
+                    del profiles_list[index]
                     profile_found = True
                     break
 
