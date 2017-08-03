@@ -399,7 +399,6 @@ class ScanCommand(CliCommand):
         run_ansible_with_vault(cmd_string, vault_pass)
 
         print(_("Scanning has completed. The mapping has been"
-                " stored in file '" + self.options.profile +
-                "_host_auth_map'. The"
-                " facts have been stored in '" +
+                " stored in file 'data/" + self.options.profile +
+                "_host_auth_mapping'. The facts have been stored in '" +
                 report_path + "'"))
