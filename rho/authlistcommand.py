@@ -17,6 +17,7 @@ for system access
 from __future__ import print_function
 import os
 import sys
+import json
 from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault
@@ -51,14 +52,8 @@ class AuthListCommand(CliCommand):
         cred_list = vault.load_as_json(utilities.CREDENTIALS_PATH)
 
         for cred in cred_list:
-            output = cred.get('id') + ','
-            output += cred.get('name') + ','
-            output += cred.get('username')
-            password = cred.get('password')
-            sshkeyfile = cred.get('ssh_key_file')
-            if not password == '':
-                output += ',******'
-            if not sshkeyfile == '':
-                output += ',' + sshkeyfile
-
-            print(output)
+            if not cred.get('password') == '':
+                cred['password'] = '**********'
+        data = json.dumps(cred_list, sort_keys=True, indent=4,
+                          separators=(',', ': '))
+        print(data)
