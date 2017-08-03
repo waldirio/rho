@@ -16,6 +16,7 @@
 from __future__ import print_function
 import os
 import sys
+import json
 from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault
@@ -62,17 +63,13 @@ class AuthShowCommand(CliCommand):
             for cred in cred_list:
                 if cred.get('name') == self.options.name:
                     auth_found = True
-                    output = cred.get('id') + ','
-                    output += cred.get('name') + ','
-                    output += cred.get('username')
                     password = cred.get('password')
-                    sshkeyfile = cred.get('ssh_key_file')
                     if not password == '':
-                        output += ',******'
-                    if not sshkeyfile == '':
-                        output += ',' + sshkeyfile
+                        cred['password'] = '******'
 
-                    print(output)
+                    data = json.dumps(cred, sort_keys=True, indent=4,
+                                      separators=(',', ': '))
+                    print(data)
                     break
 
             if not auth_found:
