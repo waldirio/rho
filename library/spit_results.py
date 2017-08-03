@@ -82,7 +82,8 @@ EAP_CLASSIFICATIONS = {
     '1.3.6.Final-redhat-1': 'EAP-6.4',
     '1.3.7.Final-redhat-1': 'EAP-6.4',
     '1.4.4.Final-redhat-1': 'EAP-7.0',
-    '1.5.1.Final-redhat-1': 'EAP-7.0'
+    '1.5.1.Final-redhat-1': 'EAP-7.0',
+    '1.5.4.Final-redhat-1': 'EAP-7.0'
 }
 
 BRMS_CLASSIFICATIONS = {
@@ -144,6 +145,7 @@ def process_jboss_versions(host_vars):
     """Get JBoss version information from the host_vars."""
 
     lines = []
+    val = {}
 
     # host_vars is not used after this function (data that we return
     # is copied to host_vals instead), so by not returning
@@ -153,12 +155,17 @@ def process_jboss_versions(host_vars):
         lines.extend(host_vars['jboss.jar-ver']['stdout_lines'])
     if 'jboss.run-jar-ver' in host_vars:
         lines.extend(host_vars['jboss.run-jar-ver']['stdout_lines'])
+    if 'jboss.running-versions' in host_vars:
+        running_ver = 'jboss.running-versions'
+        val[running_ver] = host_vars[running_ver]['stdout']
 
     jboss_releases = []
     deploy_dates = []
     for line in lines:
         if line:
-            version, deploy_date = line.split('**')
+            line_format = line.split('**')
+            version = line_format[0]
+            deploy_date = line_format[-1]
             deploy_dates.append(deploy_date)
             if version in EAP_CLASSIFICATIONS:
                 jboss_releases.append(EAP_CLASSIFICATIONS[version])
@@ -166,12 +173,11 @@ def process_jboss_versions(host_vars):
                 jboss_releases.append('Unknown-Release: ' + version)
 
     if not jboss_releases:
-        return {}
+        return val
 
-    return {
-        'jboss.installed-versions': '; '.join(jboss_releases),
-        'jboss.deploy-dates': '; '.join(deploy_dates)
-    }
+    val['jboss.installed-versions'] = '; '.join(jboss_releases)
+    val['jboss.deploy-dates'] = '; '.join(deploy_dates)
+    return val
 
 
 def classify_releases(lines, classifications):
@@ -395,7 +401,7 @@ class Results(object):
         try:
             # Special processing for JBoss facts.
             for _, host_vars in iteritems(self.all_vars):
-                uuid = host_vars['connection.uuid']
+                uuid = host_vars['connection']['connection.uuid']
                 host_vals = safe_next((vals
                                        for vals in self.vals
                                        if vals['connection.uuid'] == uuid))

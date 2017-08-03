@@ -44,7 +44,10 @@ class TestSpitResults(unittest.TestCase):
                          {'fact1': 'value1',
                           'fact2': 'value2',
                           'res': {'fact3': 'value3'},
-                          'connection.uuid': '1'}},
+                          'connection:': {'connection.uuid': '1'},
+                          'jboss.jar-ver':
+                          {'stdout_lines':
+                           ['1.5.4.Final-redhat-1**2017-08-03']}}},
             "fact_names": ['fact1', 'connection.uuid',
                            'systemid.username',
                            'redhat-packages.last_built']
