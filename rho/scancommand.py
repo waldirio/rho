@@ -208,7 +208,7 @@ def run_ansible_with_vault(cmd_string, vault_pass, ssh_key_passphrase=None,
             child.sendline(ssh_key_passphrase)
             child.logfile = logfile
             child.expect(pexpect.EOF)
-        return child.before
+        return child
     except pexpect.EOF:
         print(str(result))
         print('pexpect unexpected EOF')
@@ -396,9 +396,13 @@ class ScanCommand(CliCommand):
         # process finally runs ansible on the
         # playbook and inventories thus created.
         print('Running:', cmd_string)
-        run_ansible_with_vault(cmd_string, vault_pass)
-
-        print(_("Scanning has completed. The mapping has been"
-                " stored in file 'data/" + self.options.profile +
-                "_host_auth_mapping'. The facts have been stored in '" +
-                report_path + "'"))
+        process = run_ansible_with_vault(cmd_string, vault_pass)
+        process.close()
+        if process.exitstatus == 0 and process.signalstatus is None:
+            print(_("Scanning has completed. The mapping has been"
+                    " stored in file 'data/" + self.options.profile +
+                    "_host_auth_mapping'. The facts have been stored in '" +
+                    report_path + "'"))
+        else:
+            print(_("An error has occurred during the scan. Please review" +
+                    " the output to resolve the given issue."))
