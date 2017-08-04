@@ -60,6 +60,19 @@ directory. Run the following command to provision the systems::
 
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Note: testing on RHEL
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The Vagrantfile assumes the existance of a Vagrant box called
+`rhel-server-7-1`. You can make a RHEL box by following one of the
+many tutorials, such as
+https://developers.redhat.com/blog/2016/06/06/using-vagrant-to-get-started-with-rhel/
+.
+
+If you don't want to test with RHEL, you can replace that box name
+with a different one, such as `centos/7`.
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Executing rho on Test Bed
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 You should have three virtual systems running with the following IP Address:
