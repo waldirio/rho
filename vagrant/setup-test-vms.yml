@@ -3,3 +3,7 @@
     - role: user-ssh
       become: yes
       become_user: root
+
+- hosts: test_2
+  roles:
+    - jboss-standalone
