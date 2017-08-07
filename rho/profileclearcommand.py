@@ -21,9 +21,7 @@ import glob
 from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault
-from rho.translation import get_translation
-
-_ = get_translation()
+from rho.translation import _
 
 
 class ProfileClearCommand(CliCommand):

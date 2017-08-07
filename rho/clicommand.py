@@ -15,9 +15,7 @@
 from __future__ import print_function
 import sys
 from optparse import OptionParser  # pylint: disable=deprecated-module
-from rho.translation import get_translation
-
-_ = get_translation()
+from rho.translation import _
 
 
 class CliCommand(object):

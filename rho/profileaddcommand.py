@@ -22,9 +22,7 @@ from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault
 from rho.utilities import multi_arg, _check_range_validity, _read_in_file
-from rho.translation import get_translation
-
-_ = get_translation()
+from rho.translation import _
 
 
 def profile_exists(profile_list, profile_name):
