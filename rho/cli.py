@@ -31,9 +31,6 @@ from rho.profileeditcommand import ProfileEditCommand  # noqa
 from rho.profilelistcommand import ProfileListCommand  # noqa
 from rho.profileshowcommand import ProfileShowCommand  # noqa
 from rho.scancommand import ScanCommand  # noqa
-from rho.translation import get_translation
-
-_ = get_translation()
 
 
 class CLI(object):

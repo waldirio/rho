@@ -24,9 +24,7 @@ from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault_and_password
 from rho.utilities import multi_arg, _read_in_file, str_to_ascii
-from rho.translation import get_translation
-
-_ = get_translation()
+from rho.translation import _
 
 
 # Read ssh key from file
@@ -101,11 +99,12 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
         with open('data/ping_log', 'r') as ping_log:
             out = ping_log.readlines()
 
-        for line, _ in enumerate(out):
-            if 'pong' in out[line]:
+        # pylint: disable=unused-variable
+        for linenum, line in enumerate(out):
+            if 'pong' in out[linenum]:
                 tup_auth_item = tuple(auth_item)
                 success_auths.add(tup_auth_item)
-                host_line = out[line - 2].replace('\x1b[0;32m', '')
+                host_line = out[linenum - 2].replace('\x1b[0;32m', '')
                 host_ip = host_line.split('|')[0].strip()
                 success_hosts.add(host_ip)
                 if host_ip not in mapped_hosts:

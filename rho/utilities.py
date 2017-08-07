@@ -14,7 +14,7 @@ from __future__ import print_function
 import os
 import sys
 import re
-from rho.translation import get_translation
+from rho.translation import _
 
 CREDENTIALS_PATH = 'data/credentials'
 PROFILES_PATH = 'data/profiles'
@@ -110,9 +110,6 @@ def ensure_config_dir_exists():
 
     if not os.path.exists('data'):
         os.makedirs('data')
-
-
-_ = get_translation()
 
 
 # pylint: disable=unused-argument
