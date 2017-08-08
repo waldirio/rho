@@ -14,6 +14,7 @@ There are eight rho commands:
  * ``edit`` - to modify an existing entry
  * ``clear`` - to remove any or all entries
  * ``show`` and ``list`` - to display one or more entries
+ * ``list-facts`` - to list the facts Rho can collect
 
 The complete list of options for each command and subcommand are listed in the
 rho manpage with other usage examples. The common options are listed with the
@@ -164,9 +165,9 @@ scan identified by the timestamp.
 For further details of the command usage view the following
 `example <command_example.rst>`_.
 
-^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^
 Scan User Permissions
-^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^
 Some of the output facts will report an error if the user used to perform the
 scan does not have the appropriate permissions to execute the command used to
 gather the targeted facts. The following set of facts require *admin/root*

@@ -27,6 +27,7 @@ from rho.authlistcommand import AuthListCommand
 from rho.authclearcommand import AuthClearCommand
 from rho.autheditcommand import AuthEditCommand
 from rho.authshowcommand import AuthShowCommand
+from rho.listfactscommand import ListFactsCommand
 from rho.profileaddcommand import ProfileAddCommand
 from rho.profileclearcommand import ProfileClearCommand
 from rho.profileeditcommand import ProfileEditCommand
@@ -307,6 +308,12 @@ class CliCommandsTests(unittest.TestCase):
         with redirect_credentials(creds):
             AuthClearCommand().main()
         self.assertEqual(creds, [])
+
+    def test_list_facts(self):
+        """Test that the list-facts command finishes successfully"""
+
+        sys.argv = ['/bin/rho', 'list-facts']
+        ListFactsCommand().main()
 
     def test_profile_add_hosts_list(self):
         """Test the profile command adding a profile with a list and

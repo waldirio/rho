@@ -20,7 +20,8 @@ help:
 all: build lint tests-coverage
 
 docs:
-	@cd doc; $(MAKE) gen-api; $(MAKE) html; $(MAKE) nojekyll
+	@cd doc; $(MAKE) gen-api; $(MAKE) html; $(MAKE) nojekyll; $(MAKE) gen-python
+	mv doc/fact_docs.py rho
 
 build: clean
 	$(PYTHON) setup.py build -f
@@ -44,7 +45,7 @@ tests-coverage:
 	-py.test -v --cov=rho --cov=library
 
 lint-flake8:
-	flake8 . --ignore D203
+	flake8 . --ignore D203 --exclude fact_docs.py
 
 lint-pylint:
 	pylint --disable=duplicate-code */*.py
@@ -61,7 +62,7 @@ tests-coverage-3:
 	-py.test-3 -v --cov=rho --cov=library
 
 lint-flake8-3:
-	python3 -m flake8 . --ignore D203
+	python3 -m flake8 . --ignore D203 --exclude fact_docs.py
 
 lint-pylint-3:
 	python3 -m pylint --disable=duplicate-code,locally-disabled */*.py -rn

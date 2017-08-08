@@ -202,3 +202,15 @@ def str_to_ascii(in_string):
     :returns: ASCII encoded string
     """
     return in_string.decode('utf-8').encode('ascii')
+
+
+def iteritems(dictionary):
+    """Iterate over a dictionary's (key, value) pairs using Python 2 or 3.
+
+    :param dictionary: the dictionary to iterate over.
+    """
+
+    if sys.version_info.major == 2:
+        return dictionary.iteritems()
+
+    return dictionary.items()

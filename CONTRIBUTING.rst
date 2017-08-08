@@ -70,6 +70,22 @@ You should also add tests for any new features and bug fixes.
 
 rho uses `pytest`_ for testing.
 
+Adding Facts
+------------
+
+If you want to make a change that affects the documentation of
+particular facts,
+
+1. Make the change in `doc/command_syntax_usage.rst`
+2. Run `doc/generate_python_docs.py` to update `rho/fact_docs.py`
+3. Check in the new version of `rho/fact_docs.py` with your change
+
+Rho keeps fact documentation in two places - in
+`docs/command_syntax_usage.rst`, and in `rho/fact_docs.py` for use by
+the program at runtime. The second is generated from the first at
+build time rather than runtime to minimize the number of things that
+can go wrong at runtime.
+
 
 Running all tests:
 ******************
