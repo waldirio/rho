@@ -1,23 +1,27 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 Name: rho
-Version: 0.0.27
+Version: 0.0.28
 Release: 1%{?dist}
 Summary: An SSH system profiler
 
 Group: Applications/Internet
 License: GPLv2
-URL: https://github.com/candlepin/rho
+URL: https://github.com/quipucords/rho
 Source0: http://alikins.fedorapeople.org/files/rho/rho-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildArch: noarch
 BuildRequires: python-devel
 BuildRequires: python-setuptools
-Requires: python-paramiko
 Requires: python-netaddr
 Requires: python-simplejson
 Requires: python-crypto
+Requires: python-ansible
+Requires: python-pexpect
+Requires: python-future
+Requires: python-six
+Requires: python-enum34
 
 %description
 Rho is a tool for scanning your network, logging into systems via SSH, and

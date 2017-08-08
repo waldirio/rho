@@ -17,13 +17,16 @@ help:
 	@echo "  test           to run unit tests"
 	@echo "  test-coverage  to run unit tests and measure test coverage"
 
-all: build lint tests-coverage docs
+all: build lint tests-coverage
 
 docs:
 	@cd doc; $(MAKE) gen-api; $(MAKE) html; $(MAKE) nojekyll
 
 build: clean
 	$(PYTHON) setup.py build -f
+
+build-rpm: clean
+	$(PYTHON) setup.py bdist_rpm
 
 clean:
 	-rm -f  MANIFEST etc/version

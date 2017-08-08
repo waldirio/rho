@@ -11,6 +11,8 @@ install:
 # command to run tests
 script:
   - make all
+  - pip install -r doc-requirements.txt
+  - make docs
 after_success:
   coveralls
 deploy:

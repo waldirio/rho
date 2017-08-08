@@ -6,14 +6,13 @@ pytest-cov
 Mock
 
 #Linting
+enum34
+configparser
 flake8
 pylint
 
 #Coverage
 Coverage
-
-#Docs
-Sphinx
 
 # Needed for StringIO
 six
