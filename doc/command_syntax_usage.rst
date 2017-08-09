@@ -5,7 +5,7 @@ The basic syntax is:
 
 ``rho command subcommand [options]``
 
-There are eight rho commands:
+There are nine rho commands:
  * ``auth`` - for managing auth entries
  * ``profile`` - for managing profile entries
  * ``scan`` - for running scans
@@ -14,7 +14,7 @@ There are eight rho commands:
  * ``edit`` - to modify an existing entry
  * ``clear`` - to remove any or all entries
  * ``show`` and ``list`` - to display one or more entries
- * ``list-facts`` - to list the facts Rho can collect
+ * ``fact`` - to show information about the facts Rho can collect
 
 The complete list of options for each command and subcommand are listed in the
 rho manpage with other usage examples. The common options are listed with the
