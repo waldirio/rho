@@ -16,3 +16,6 @@ Coverage
 
 # Needed for StringIO
 six
+
+# Fact documentation
+docutils

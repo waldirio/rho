@@ -20,16 +20,16 @@ from rho.translation import _
 
 
 # pylint: disable=too-few-public-methods
-class ListFactsCommand(CliCommand):
+class FactListCommand(CliCommand):
     """List available facts."""
 
     def __init__(self):
-        usage = _('usage: %prog list-facts')
+        usage = _('usage: %prog fact list')
         shortdesc = _('list facts that Rho can detect')
         desc = _('list facts that Rho can detect. Filter fact names with '
                  '--filter <regex>')
 
-        CliCommand.__init__(self, 'list-facts', usage, shortdesc, desc)
+        CliCommand.__init__(self, 'fact list', usage, shortdesc, desc)
 
         self.parser.add_option('--filter', dest='filter', metavar='filter',
                                help=_('regexp to filter facts - optional'))
