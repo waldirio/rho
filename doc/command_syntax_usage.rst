@@ -14,7 +14,7 @@ There are nine rho commands:
  * ``edit`` - to modify an existing entry
  * ``clear`` - to remove any or all entries
  * ``show`` and ``list`` - to display one or more entries
- * ``fact`` - to show information about the facts Rho can collect
+ * ``fact`` - to show information about the facts rho can collect
 
 The complete list of options for each command and subcommand are listed in the
 rho manpage with other usage examples. The common options are listed with the
