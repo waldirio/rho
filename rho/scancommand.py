@@ -18,6 +18,7 @@ import sys
 import re
 import time
 import json
+import subprocess
 from collections import defaultdict
 import pexpect
 from rho import utilities
@@ -92,9 +93,10 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
 
         my_env = os.environ.copy()
         my_env["ANSIBLE_HOST_KEY_CHECKING"] = "False"
-        with open('data/ping_log', 'w') as ping_log:
-            run_ansible_with_vault(cmd_string, vault_pass,
-                                   logfile=ping_log, env=my_env)
+        run_ansible_with_vault(cmd_string, vault_pass,
+                               log_path='data/ping_log',
+                               env=my_env,
+                               log_to_stdout=False)
 
         with open('data/ping_log', 'r') as ping_log:
             out = ping_log.readlines()
@@ -191,22 +193,58 @@ def _create_main_inventory(vault, success_hosts, success_port_map, best_map,
 
 
 def run_ansible_with_vault(cmd_string, vault_pass, ssh_key_passphrase=None,
-                           env=None, logfile=sys.stdout):
+                           env=None, log_path=None, log_to_stdout=True):
     """ Runs ansible command allowing for password to be provided after
-    process triggered
+    process triggered.
+
+    Returns after the process completes.
+
+    :param cmd_string: the command to run.
+    :param vault_pass: the password to the user's Ansible Vault.
+    :param ssh_key_passphrase: the password for the user's SSH key(s).
+    :param env: the environment to run the subprocess in.
+    :param log_path: a path to write the process's log to. Defaults to
+        'data/ansible_log'.
+    :param log_to_stdout: if True, write Ansible's log to stdout. Defaults to
+        True.
+    :returns: the popen.spawn object for the process.
     """
+
+    # pexpect provides the ability to send the process's output to a
+    # single Python file object. We want to send it to a file and
+    # maybe also stdout. The solution is to have pexpect log to the
+    # file and then use 'tail -f' to copy that to stdout.
+
+    if not log_path:
+        log_path = 'data/ansible_log'
+
     result = None
     try:
-        child = pexpect.spawn(cmd_string, timeout=None, env=env)
-        result = child.expect('Vault password:')
-        child.sendline(vault_pass)
-        child.logfile = logfile
-        i = child.expect([pexpect.EOF, 'Enter passphrase for key .*:'])
-        if i == 1:
-            child.logfile = None
-            child.sendline(ssh_key_passphrase)
-            child.logfile = logfile
-            child.expect(pexpect.EOF)
+        with open(log_path, 'w') as logfile:
+            child = pexpect.spawn(cmd_string, timeout=None,
+                                  env=env, logfile=logfile)
+
+            if log_to_stdout:
+                tail = subprocess.Popen(['tail', '-f', '-n', '+0',
+                                         '--pid={0}'.format(child.pid),
+                                         log_path])
+
+            result = child.expect('Vault password:')
+            child.sendline(vault_pass)
+
+            i = child.expect([pexpect.EOF, 'Enter passphrase for key .*:'])
+            if i == 1:
+                child.logfile = None
+                child.sendline(ssh_key_passphrase)
+                child.logfile = logfile
+                child.expect(pexpect.EOF)
+
+            child.wait()
+            if log_to_stdout:
+                # tail will kill itself once it is done copying data
+                # to stdout, thanks to the --pid option.
+                tail.wait()
+
         return child
     except pexpect.EOF:
         print(str(result))
@@ -252,6 +290,9 @@ class ScanCommand(CliCommand):
         self.parser.add_option("--vault", dest="vaultfile", metavar="VAULT",
                                help=_("file containing vault password for"
                                       " scripting"))
+
+        self.parser.add_option("--logfile", dest="logfile", metavar="LOGFILE",
+                               help=_("file to log scan output to"))
 
     def _validate_options(self):
         CliCommand._validate_options(self)
@@ -394,9 +435,14 @@ class ScanCommand(CliCommand):
 
         # process finally runs ansible on the
         # playbook and inventories thus created.
+        if self.options.logfile:
+            log_path = self.options.logfile
+        else:
+            log_path = 'data/scan_log'
         print('Running:', cmd_string)
-        process = run_ansible_with_vault(cmd_string, vault_pass)
-        process.close()
+        process = run_ansible_with_vault(cmd_string, vault_pass,
+                                         log_path=log_path,
+                                         log_to_stdout=True)
         if process.exitstatus == 0 and process.signalstatus is None:
             print(_("Scanning has completed. The mapping has been"
                     " stored in file 'data/" + self.options.profile +
