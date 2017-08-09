@@ -20,7 +20,10 @@ help:
 all: build lint tests-coverage
 
 docs:
-	@cd doc; $(MAKE) gen-api; $(MAKE) html; $(MAKE) nojekyll; $(MAKE) gen-python
+	@cd doc; $(MAKE) gen-api; $(MAKE) html; $(MAKE) nojekyll
+
+gen-python-docs:
+	@cd doc; $(MAKE) gen-python
 	mv doc/fact_docs.py rho
 
 build: clean
