@@ -20,7 +20,7 @@ command and command options with rho, see the *manpage*.
 - `Installation`_
 - `Command Syntax & Usage`_
 - `Development`_
-- `Known Issues`_
+- `Issues`_
 - `Changes`_
 - `Authors`_
 - `Contributing`_
@@ -219,10 +219,11 @@ information in `functional test document <doc/functional_test.rst>`_.
 
 
 -------------
-Known Issues
+Issues
 -------------
 To report bugs for rho `open issues <https://github.com/quipucords/rho/issues>`_
-against this repository in Github.
+against this repository in Github. Please complete the issue template when
+opening a new bug to improve investigation and resolution time.
 
 ----------------
 Changes
