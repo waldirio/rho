@@ -5,16 +5,21 @@ The basic syntax is:
 
 ``rho command subcommand [options]``
 
-There are nine rho commands:
+There are four rho commands:
  * ``auth`` - for managing auth entries
  * ``profile`` - for managing profile entries
  * ``scan`` - for running scans
- * ``auth`` and ``profile`` both have three subcommands:
+ * ``fact`` - to show information about the facts rho can collect
+
+``auth`` and ``profile`` both have five subcommands:
  * ``add`` - to create a new entry
  * ``edit`` - to modify an existing entry
  * ``clear`` - to remove any or all entries
- * ``show`` and ``list`` - to display one or more entries
- * ``fact`` - to show information about the facts rho can collect
+ * ``show`` - to display a specific entry
+ * ``list`` - to display one or more entries
+
+``fact`` has one subcommand:
+  * ``list`` - to display the list of facts that can be scanned
 
 The complete list of options for each command and subcommand are listed in the
 rho manpage with other usage examples. The common options are listed with the
@@ -26,7 +31,7 @@ Auth Entries
 The first step to configuring rho is adding auth credentials to use to connect
 over SSH. Each authentication identity requires its own auth entry.
 
-``rho auth add --name server1creds --username rho-user --sshkeyfile /etc/ssh/ssh_host_rsa_key``
+``rho auth add --name=server1creds --username=rho-user --sshkeyfile=/etc/ssh/ssh_host_rsa_key``
 
 *Note:* --password not being passed or passed as empty are considered the same thing.
 
@@ -36,9 +41,17 @@ Profiles
 Then, create the profile to use for the scan. This should include a list of IP
 addresses or ranges, and the auth identity to use.
 
-``rho profile edit --name profile1 --hosts "1.2.3.0 - 1.2.3.255" --auth server1creds server2creds``
+``rho profile add --name=profile1 --hosts 1.2.3.[0:255] --auth server1creds server2creds``
 
-The hosts can be passed in as a file with all the ranges listed in newlines.
+The hosts can be passed in as a file with all the ranges listed in newlines. Example below:
+
+``rho profile edit --name=profile1 --hosts hosts_file --auth server1creds server2creds``
+
+where ``hosts_file`` contains the ip address or ranges separated by newlines::
+
+  1.2.3.1
+  1.2.3.14
+  1.2.4.34
 
 ^^^^^^^^^
 Scanning
@@ -49,7 +62,7 @@ Finally an important argument is ``reset``. This tells rho that the profile you 
 passing in is either new or has been updated with changes in either the hosts or
 auths or both and that rho has to process it afresh.
 
-``rho scan --reset --profile profile1 --facts default --reportfile report.csv``
+``rho scan --reset --profile=profile1 --facts default --reportfile=report.csv``
 
 Since rho collects the successful host auth mappings from a full scan with reset
 the user doesn't have to worry about iterating through multiple auths and hosts
@@ -141,26 +154,6 @@ The output can then be configured to contain any combination of these fields by 
 of these facts can be requested by either as a CLI list i.e. ``--facts <fact_1> <fact_2>`` etc
 or by passing in a file with a new fact on every line in the format as follows. A value
 of 'default' will get all the information listed above.
-
-- **cpu.x** - for facts of the form ``cpu.x``
-- **date.x** - for facts of the form ``date.x``
-- **dmi.x** - for facts of the form ``dmi.x``
-- **etc-issue.x** - for facts of the form ``etc-issue.x``
-- **etc-release.x** - for facts of the form ``etc-release.x``
-- **instnum.x** - for facts of the form ``instnum.x``
-- **jboss.x** - for facts of the form ``jboss.x``
-- **redhat-packages.x** - for facts of the form ``redhat-packages.x``
-- **redhat-release.x** - for facts of the form ``redhat-release.x``
-- **subman.x** - for facts of the form ``subman.x``
-- **systemid.x** - for facts of the form ``systemid.x``
-- **uname.x** - for facts of the form ``uname.x``
-- **virt.x** - for facts of the form ``virt.x``
-- **virt-what.x** - for facts of the form ``virt-what.x``
-
-As hinted at previously, the auths that have been used in a particular scan are
-the first valid auths in the list passed in order to the profile. All the valid
-auths are of course listed in the host auth mapping file for the profile for that
-scan identified by the timestamp.
 
 For further details of the command usage view the following
 `example <command_example.rst>`_.
