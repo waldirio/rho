@@ -653,4 +653,5 @@ class CliCommandsTests(unittest.TestCase):
         command.main()
 
         self.assertEqual(command.verbosity, 2)
-        self.assertEqual(logging.getLogger().getEffectiveLevel(), logging.DEBUG)
+        self.assertEqual(logging.getLogger().getEffectiveLevel(),
+                         logging.DEBUG)

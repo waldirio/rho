@@ -37,7 +37,6 @@ class CliCommand(object):
 
         self.parser.add_option("-v", dest="verbosity", action="count")
 
-
     def _validate_options(self):
         """
         Sub-commands can override to do any argument validation they
