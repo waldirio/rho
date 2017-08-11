@@ -14,6 +14,7 @@
 """ Unit tests for CLI """
 
 import contextlib
+import logging
 import unittest
 import sys
 import os
@@ -27,6 +28,7 @@ from rho.authlistcommand import AuthListCommand
 from rho.authclearcommand import AuthClearCommand
 from rho.autheditcommand import AuthEditCommand
 from rho.authshowcommand import AuthShowCommand
+from rho.clicommand import CliCommand
 from rho.factlistcommand import FactListCommand
 from rho.profileaddcommand import ProfileAddCommand
 from rho.profileclearcommand import ProfileClearCommand
@@ -639,3 +641,16 @@ class CliCommandsTests(unittest.TestCase):
                         "bad.fact1", "bad.fact2", "ansible_forks",
                         "100", "--vault", TMP_VAULT_PASS]
             ScanCommand().main()
+
+    def test_verbosity(self):
+        """Test that -vv sets verbosity and log level correctly."""
+
+        command = CliCommand()
+        sys.argv = ['/bin/rho', '-vv']
+
+        # CliCommand.main() will set up the command's environment but
+        # not actually do anything.
+        command.main()
+
+        self.assertEqual(command.verbosity, 2)
+        self.assertEqual(logging.getLogger().getEffectiveLevel(), logging.DEBUG)
