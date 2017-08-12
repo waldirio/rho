@@ -103,6 +103,7 @@ class AuthEditCommand(CliCommand):
 
         if not os.path.isfile(utilities.CREDENTIALS_PATH):
             print(_("No auth credentials found"))
+            sys.exit(1)
         else:
             cred_list = vault.load_as_json(utilities.CREDENTIALS_PATH)
 
