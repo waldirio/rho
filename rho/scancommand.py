@@ -239,7 +239,8 @@ def run_ansible_with_vault(cmd_string, vault_pass, ssh_key_passphrase=None,
                 child.logfile = logfile
                 child.expect(pexpect.EOF)
 
-            child.wait()
+            if child.isalive():
+                child.wait()
             if log_to_stdout:
                 # tail will kill itself once it is done copying data
                 # to stdout, thanks to the --pid option.
@@ -425,10 +426,19 @@ class ScanCommand(CliCommand):
         ansible_vars = {'facts_to_collect': facts_to_collect,
                         'report_path': report_path}
 
-        cmd_string = ('ansible-playbook rho_playbook.yml '
+        playbook = utilities.PLAYBOOK_DEV_PATH
+        if not os.path.isfile(playbook):
+            playbook = utilities.PLAYBOOK_RPM_PATH
+            if not os.path.isfile(playbook):
+                print(_("rho scan playbook not found locally or in '%s'")
+                      % playbook)
+                sys.exit(1)
+
+        cmd_string = ('ansible-playbook {playbook} '
                       '-i data/{profile}_hosts.yml -v -f {forks} '
                       '--ask-vault-pass '
                       '--extra-vars \'{vars}\'').format(
+                          playbook=playbook,
                           profile=profile,
                           forks=forks,
                           vars=json.dumps(ansible_vars))

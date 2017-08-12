@@ -98,10 +98,7 @@ setup(
     url='',
     license='GPLv2',
 
-    package_dir={
-        'rho': 'library/rho',
-    },
-    packages=find_packages('library'),
+    packages=find_packages(exclude=["tests_*"]),
     include_package_data=True,
 
     # non-python scripts go here

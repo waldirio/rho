@@ -19,6 +19,9 @@ from rho.translation import _
 CREDENTIALS_PATH = 'data/credentials'
 PROFILES_PATH = 'data/profiles'
 
+PLAYBOOK_DEV_PATH = 'rho_playbook.yml'
+PLAYBOOK_RPM_PATH = '/usr/share/ansible/rho/rho_playbook.yml'
+
 CONNECTION_FACTS_TUPLE = ('connection.host',
                           'connection.port',
                           'connection.uuid')
