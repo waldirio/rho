@@ -62,7 +62,7 @@ class AuthShowCommand(CliCommand):
                 if cred.get('name') == self.options.name:
                     auth_found = True
                     password = cred.get('password')
-                    if not password == '':
+                    if password is not None:
                         cred['password'] = '******'
 
                     data = json.dumps(cred, sort_keys=True, indent=4,

@@ -74,8 +74,7 @@ class AuthEditCommand(CliCommand):
                                help=_("password for authenticating"
                                       " against target machine"))
         self.parser.add_option("--sshkeyfile", dest="filename",
-                               metavar="FILENAME", action='callback',
-                               callback=optional_arg('empty'),
+                               metavar="FILENAME",
                                help=_("file containing SSH key"))
         self.parser.add_option("--vault", dest="vaultfile", metavar="VAULT",
                                help=_("file containing vault password for"

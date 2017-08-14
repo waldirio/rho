@@ -50,7 +50,7 @@ class AuthListCommand(CliCommand):
         cred_list = vault.load_as_json(utilities.CREDENTIALS_PATH)
 
         for cred in cred_list:
-            if not cred.get('password') == '':
+            if cred.get('password') is not None:
                 cred['password'] = '**********'
         data = json.dumps(cred_list, sort_keys=True, indent=4,
                           separators=(',', ': '))
