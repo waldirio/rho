@@ -58,13 +58,19 @@ class AuthClearCommand(CliCommand):
 
     def _do_command(self):
         if self.options.name:
+            auth_found = False
             vault = get_vault(self.options.vaultfile)
             if os.path.isfile(utilities.CREDENTIALS_PATH):
                 cred_list = vault.load_as_json(utilities.CREDENTIALS_PATH)
                 for index, cred in enumerate(cred_list):
                     if cred.get('name') == self.options.name:
                         del cred_list[index]
+                        print(_('Auth "%s" was removed' % self.options.name))
+                        auth_found = True
                         break
+                if not auth_found:
+                    print(_('Auth "%s" was not found' % self.options.name))
+                    sys.exit(1)
                 vault.dump_as_json_to_file(
                     cred_list, utilities.CREDENTIALS_PATH)
 
