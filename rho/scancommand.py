@@ -41,7 +41,7 @@ def _read_key_file(filename):
 # successful auths and the hosts they worked on
 # pylint: disable=too-many-statements, too-many-arguments
 def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
-                           profile_auth_list, forks):
+                           profile_auth_list, forks, ansible_verbosity):
     # pylint: disable=too-many-locals
     success_auths = set()
     success_hosts = set()
@@ -96,7 +96,8 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
         run_ansible_with_vault(cmd_string, vault_pass,
                                log_path='data/ping_log',
                                env=my_env,
-                               log_to_stdout=False)
+                               log_to_stdout=True,
+                               ansible_verbosity=ansible_verbosity)
 
         with open('data/ping_log', 'r') as ping_log:
             out = ping_log.readlines()
@@ -193,7 +194,8 @@ def _create_main_inventory(vault, success_hosts, success_port_map, best_map,
 
 
 def run_ansible_with_vault(cmd_string, vault_pass, ssh_key_passphrase=None,
-                           env=None, log_path=None, log_to_stdout=True):
+                           env=None, log_path=None, log_to_stdout=True,
+                           ansible_verbosity=0):
     """ Runs ansible command allowing for password to be provided after
     process triggered.
 
@@ -207,6 +209,7 @@ def run_ansible_with_vault(cmd_string, vault_pass, ssh_key_passphrase=None,
         'data/ansible_log'.
     :param log_to_stdout: if True, write Ansible's log to stdout. Defaults to
         True.
+    :param ansible_verbosity: the number of v's of Ansible verbosity.
     :returns: the popen.spawn object for the process.
     """
 
@@ -217,6 +220,9 @@ def run_ansible_with_vault(cmd_string, vault_pass, ssh_key_passphrase=None,
 
     if not log_path:
         log_path = 'data/ansible_log'
+
+    if ansible_verbosity:
+        cmd_string = cmd_string + ' -' + 'v' * ansible_verbosity
 
     result = None
     try:
@@ -394,7 +400,8 @@ class ScanCommand(CliCommand):
                                                           profile_ranges,
                                                           profile_port,
                                                           profile_auth_list,
-                                                          forks)
+                                                          forks,
+                                                          self.verbosity)
 
             if not success_auths:
                 print(_('All auths are invalid for this profile'))
@@ -435,7 +442,7 @@ class ScanCommand(CliCommand):
                 sys.exit(1)
 
         cmd_string = ('ansible-playbook {playbook} '
-                      '-i data/{profile}_hosts.yml -v -f {forks} '
+                      '-i data/{profile}_hosts.yml -f {forks} '
                       '--ask-vault-pass '
                       '--extra-vars \'{vars}\'').format(
                           playbook=playbook,
@@ -452,7 +459,8 @@ class ScanCommand(CliCommand):
         print('Running:', cmd_string)
         process = run_ansible_with_vault(cmd_string, vault_pass,
                                          log_path=log_path,
-                                         log_to_stdout=True)
+                                         log_to_stdout=True,
+                                         ansible_verbosity=self.verbosity)
         if process.exitstatus == 0 and process.signalstatus is None:
             print(_("Scanning has completed. The mapping has been"
                     " stored in file 'data/" + self.options.profile +

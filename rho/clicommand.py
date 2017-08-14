@@ -13,6 +13,7 @@
 """ Base CLI Command Class """
 
 from __future__ import print_function
+import logging
 import sys
 from optparse import OptionParser  # pylint: disable=deprecated-module
 from rho.translation import _
@@ -32,6 +33,11 @@ class CliCommand(object):
         self.passphrase = None
         self.args = None
         self.options = None
+        self.verbosity = 0
+
+        self.parser.add_option(
+            "-v", dest="verbosity", action="count",
+            help=_("Verbose mode. Use up to -vvvv for more verbosity."))
 
     def _validate_options(self):
         """
@@ -60,6 +66,21 @@ class CliCommand(object):
         self.args = self.args[1:]
 
         self._validate_options()
+
+        # Verbosity propagates in two ways to the individual commands:
+        # first, as self.verbosity, and second, through the default
+        # log level for the logging module. This means that other
+        # modules can just use Python logging and it will work with
+        # the verbosity by default.
+        self.verbosity = self.options.verbosity
+        if self.verbosity == 0:
+            log_level = logging.WARNING
+        elif self.verbosity == 1:
+            log_level = logging.INFO
+        else:
+            log_level = logging.DEBUG
+
+        logging.basicConfig(level=log_level)
 
         if len(sys.argv) < 2:
 
