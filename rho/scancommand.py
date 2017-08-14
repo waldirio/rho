@@ -222,7 +222,7 @@ def run_ansible_with_vault(cmd_string, vault_pass, ssh_key_passphrase=None,
     try:
         with open(log_path, 'w') as logfile:
             child = pexpect.spawn(cmd_string, timeout=None,
-                                  env=env, logfile=logfile)
+                                  env=env)
 
             if log_to_stdout:
                 tail = subprocess.Popen(['tail', '-f', '-n', '+0',
@@ -231,6 +231,9 @@ def run_ansible_with_vault(cmd_string, vault_pass, ssh_key_passphrase=None,
 
             result = child.expect('Vault password:')
             child.sendline(vault_pass)
+            # Set the log file *after* we send the user's Vault
+            # password to Ansible, so we don't log the password.
+            child.logfile = logfile
 
             i = child.expect([pexpect.EOF, 'Enter passphrase for key .*:'])
             if i == 1:
