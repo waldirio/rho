@@ -212,7 +212,7 @@ class CliCommandsTests(unittest.TestCase):
                          [{u'id': u'1',
                            u'name': u'auth_1',
                            u'username': u'user',
-                           u'password': u'',
+                           u'password': None,
                            u'ssh_key_file': u'./privatekey'}])
 
     # pylint: disable=unused-argument
@@ -240,7 +240,7 @@ class CliCommandsTests(unittest.TestCase):
                           {u'id': u'2',
                            u'name': u'auth_2',
                            u'username': u'user',
-                           u'password': u'',
+                           u'password': None,
                            u'ssh_key_file': u'./privatekey'}])
 
     def test_auth_list(self):

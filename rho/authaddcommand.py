@@ -101,8 +101,8 @@ class AuthAddCommand(CliCommand):
     def _do_command(self):
         vault = get_vault(self.options.vaultfile)
         cred = OrderedDict()
-        ssh_file = 'empty'
-        pass_to_store = ''
+        ssh_file = None
+        pass_to_store = None
         auth_name = self.options.name
         cred_list = []
 
@@ -115,7 +115,7 @@ class AuthAddCommand(CliCommand):
 
         if self.options.password:
             pass_prompt = getpass()
-            pass_to_store = 'empty' if pass_prompt == '' else pass_prompt
+            pass_to_store = None if pass_prompt == '' else pass_prompt
 
         if self.options.filename:
             # using sshkey
