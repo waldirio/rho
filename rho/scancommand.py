@@ -281,8 +281,8 @@ class ScanCommand(CliCommand):
 
         self.parser.add_option("--facts", dest="facts", metavar="FACTS",
                                action="callback", callback=multi_arg,
-                               default=[], help=_("'default' or list " +
-                                                  " - REQUIRED"))
+                               default=[], help=_("'default', list, " +
+                                                  " or file"))
 
         self.parser.add_option("--ansible_forks", dest="ansible_forks",
                                metavar="FORKS",
@@ -295,16 +295,13 @@ class ScanCommand(CliCommand):
         self.parser.add_option("--logfile", dest="logfile", metavar="LOGFILE",
                                help=_("file to log scan output to"))
 
+        self.parser.set_defaults(facts=['default'])
+
     def _validate_options(self):
         CliCommand._validate_options(self)
 
         if not self.options.profile:
             print(_("No profile specified."))
-            self.parser.print_help()
-            sys.exit(1)
-
-        if not self.options.facts:
-            print(_("No facts specified."))
             self.parser.print_help()
             sys.exit(1)
 
