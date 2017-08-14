@@ -7,21 +7,22 @@ Summary: An SSH system profiler
 
 Group: Applications/Internet
 License: GPLv2
-URL: https://github.com/quipucords/rho
-Source0: http://alikins.fedorapeople.org/files/rho/rho-%{version}.tar.gz
+URL: http://github.com/quipucords/rho
+Source0: http://github.com/quipucords/rho/archive/master.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildArch: noarch
 BuildRequires: python-devel
 BuildRequires: python-setuptools
 Requires: python-netaddr
-Requires: python-simplejson
 Requires: python-crypto
-Requires: python-ansible
-Requires: python-pexpect
-Requires: python-future
+Requires: ansible
+Requires: pexpect
 Requires: python-six
 Requires: python-enum34
+Requires: python-yaml
+Requires: epel-release
+Requires: python2-future
 
 %description
 Rho is a tool for scanning your network, logging into systems via SSH, and
@@ -38,15 +39,24 @@ rm -rf $RPM_BUILD_ROOT
 %{__python} setup.py install --skip-build --root $RPM_BUILD_ROOT
 install -D -p -m 644 doc/rho.1 $RPM_BUILD_ROOT%{_mandir}/man1/rho.1
 
+mkdir -p %{buildroot}%{_datadir}/ansible/%{name}
+cp rho_playbook.yml %{buildroot}%{_datadir}/ansible/%{name}
+cp -rp library %{buildroot}%{_datadir}/ansible/%{name}/
+cp -rp roles %{buildroot}%{_datadir}/ansible/%{name}/
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%doc README AUTHORS COPYING
+%doc README.rst AUTHORS.rst COPYING
 %{_bindir}/rho
 %{python_sitelib}/*
 %{_mandir}/man1/rho.1.gz
+%dir %{_datadir}/ansible/%{name}
+%{_datadir}/ansible/%{name}/rho_playbook.yml
+%{_datadir}/ansible/%{name}/library/*
+%{_datadir}/ansible/%{name}/roles/*
 
 %changelog
 * Mon Oct 17 2016 Alex Wood <awood@redhat.com> 0.0.27-1
