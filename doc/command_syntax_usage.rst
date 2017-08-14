@@ -89,8 +89,8 @@ default, for debugging. This location can be changed with the
 Common Flags
 ^^^^^^^^^^^^
 
-All Rho commands accept the `-v` flag, which increases the verbosity
-of Rho's output. It comes in four varieties: `-v`, `-vv`, `-vvv`, and
+All rho commands accept the `-v` flag, which increases the verbosity
+of rho's output. It comes in four varieties: `-v`, `-vv`, `-vvv`, and
 `-vvvv`, with more `v`'s indicating more verbose output. The verbose
 output can be useful in debugging.
 
