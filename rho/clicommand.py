@@ -65,8 +65,6 @@ class CliCommand(object):
 
         self.args = self.args[1:]
 
-        self._validate_options()
-
         # Verbosity propagates in two ways to the individual commands:
         # first, as self.verbosity, and second, through the default
         # log level for the logging module. This means that other
@@ -81,6 +79,8 @@ class CliCommand(object):
             log_level = logging.DEBUG
 
         logging.basicConfig(level=log_level)
+
+        self._validate_options()
 
         if len(sys.argv) < 2:
 
