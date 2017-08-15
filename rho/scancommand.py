@@ -226,7 +226,7 @@ def run_ansible_with_vault(cmd_string, vault_pass, ssh_key_passphrase=None,
 
     result = None
     try:
-        with open(log_path, 'w') as logfile:
+        with open(log_path, 'wb') as logfile:
             child = pexpect.spawn(cmd_string, timeout=None,
                                   env=env)
 
