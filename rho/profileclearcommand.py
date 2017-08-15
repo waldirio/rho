@@ -65,38 +65,43 @@ class ProfileClearCommand(CliCommand):
         profiles_list = []
 
         if self.options.name:
-            vault = get_vault(self.options.vaultfile)
-            profile = self.options.name
-            profiles_list = vault.load_as_json(utilities.PROFILES_PATH)
-            profile_found = False
+            if os.path.isfile(utilities.PROFILES_PATH):
+                vault = get_vault(self.options.vaultfile)
+                profile = self.options.name
+                profiles_list = vault.load_as_json(utilities.PROFILES_PATH)
+                profile_found = False
 
-            for index, curr_profile in enumerate(profiles_list):
-                if curr_profile.get('name') == profile:
-                    del profiles_list[index]
-                    profile_found = True
-                    break
+                for index, curr_profile in enumerate(profiles_list):
+                    if curr_profile.get('name') == profile:
+                        del profiles_list[index]
+                        profile_found = True
+                        break
 
-            if not profile_found:
-                print(_("No such profile: '%s'") % profile)
-                sys.exit(1)
+                if not profile_found:
+                    print(_("No such profile: '%s'") % profile)
+                    sys.exit(1)
 
-            vault.dump_as_json_to_file(profiles_list, utilities.PROFILES_PATH)
+                vault.dump_as_json_to_file(profiles_list,
+                                           utilities.PROFILES_PATH)
 
-            # removes inventory associated with the profile
-            if os.path.isfile('data/' + profile + "_hosts"):
-                os.remove('data/' + profile + "_hosts")
+                # removes inventory associated with the profile
+                if os.path.isfile('data/' + profile + "_hosts"):
+                    os.remove('data/' + profile + "_hosts")
 
-            profile_mapping = 'data/' + profile + '_host_auth_mapping'
+                profile_mapping = 'data/' + profile + '_host_auth_mapping'
 
-            # when a profile is removed, it 'archives' the host auth mapping
-            # by renaming it '(DELETED PROFILE)<profile_name>_host_auth_mapping
-            # for identification by the user. The time stamps in mapping files
-            # help in identifying the various forms and times in which the said
-            # profile existed.
-            if os.path.isfile(profile_mapping):
-                os.rename(profile_mapping,
-                          'data/(DELETED PROFILE)' +
-                          profile + '_host_auth_mapping')
+                # when a profile is removed, it 'archives' the host auth
+                # mapping by renaming it
+                # '(DELETED PROFILE)<profile_name>_host_auth_mapping
+                # for identification by the user. The time stamps in
+                # mapping files help in identifying the various forms and
+                # times in which the said profile existed.
+                if os.path.isfile(profile_mapping):
+                    os.rename(profile_mapping,
+                              'data/(DELETED PROFILE)' +
+                              profile + '_host_auth_mapping')
+            else:
+                print(_("All network profiles removed"))
 
         # removes all inventories ever.
         elif self.options.all:
