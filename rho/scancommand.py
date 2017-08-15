@@ -93,11 +93,15 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
 
         my_env = os.environ.copy()
         my_env["ANSIBLE_HOST_KEY_CHECKING"] = "False"
+        # Don't pass ansible_verbosity here as adding too much
+        # verbosity can break our parsing of Ansible's output. This is
+        # a temporary fix - a better solution would be less-fragile
+        # output parsing.
         run_ansible_with_vault(cmd_string, vault_pass,
                                log_path='data/ping_log',
                                env=my_env,
                                log_to_stdout=True,
-                               ansible_verbosity=ansible_verbosity)
+                               ansible_verbosity=0)
 
         with open('data/ping_log', 'r') as ping_log:
             out = ping_log.readlines()
