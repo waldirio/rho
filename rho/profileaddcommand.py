@@ -110,13 +110,15 @@ class ProfileAddCommand(CliCommand):
                 print(str(port_error))
                 self.parser.print_help()
                 sys.exit(1)
+        else:
+            self.options.sshport = 22
 
     # pylint: disable=too-many-locals
     def _do_command(self):
         vault = get_vault(self.options.vaultfile)
         hosts_list = self.options.hosts
         profiles_list = []
-        ssh_port = 22
+        ssh_port = self.options.sshport
 
         if os.path.isfile(utilities.PROFILES_PATH):
             profiles_list = vault.load_as_json(utilities.PROFILES_PATH)
