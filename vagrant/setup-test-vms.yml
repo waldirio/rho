@@ -7,3 +7,13 @@
 - hosts: test_2
   roles:
     - jboss-standalone
+
+- hosts: askpass
+  tasks:
+    - user:
+        name: askpass
+        state: present
+        groups: wheel
+        # Crypted version of "password"
+        password: $6$ZBtzwTi5YgUbr1cT$jVTtaH6lVVTndZJLHqcWtZoxPS0Siz/ms8bOKA/F/r1Np0zeptDERYIfbmRN0dLbu9Z7S./bIGzGR9nUXl59W/
+  become: yes
