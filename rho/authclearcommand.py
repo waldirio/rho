@@ -73,6 +73,8 @@ class AuthClearCommand(CliCommand):
                     sys.exit(1)
                 vault.dump_as_json_to_file(
                     cred_list, utilities.CREDENTIALS_PATH)
+            else:
+                print(_("All authorization credentials removed"))
 
         elif self.options.all:
             if os.path.isfile(utilities.CREDENTIALS_PATH):
