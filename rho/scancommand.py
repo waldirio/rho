@@ -290,8 +290,7 @@ class ScanCommand(CliCommand):
 
         self.parser.add_option("--facts", dest="facts", metavar="FACTS",
                                action="callback", callback=multi_arg,
-                               default=[], help=_("'default', list, " +
-                                                  " or file"))
+                               default=[], help=_("'default', list or file"))
 
         self.parser.add_option("--ansible_forks", dest="ansible_forks",
                                metavar="FORKS",
@@ -304,7 +303,7 @@ class ScanCommand(CliCommand):
         self.parser.add_option("--logfile", dest="logfile", metavar="LOGFILE",
                                help=_("file to log scan output to"))
 
-        self.parser.set_defaults(facts=['default'])
+        self.facts_to_collect = None
 
     def _validate_options(self):
         CliCommand._validate_options(self)
@@ -332,18 +331,18 @@ class ScanCommand(CliCommand):
 
         # perform fact validation
         facts = self.options.facts
-        default_facts = False
-        if facts == ['default']:
-            default_facts = True
+        if facts == [] or facts == ['default']:
+            self.facts_to_collect = list(utilities.DEFAULT_FACTS_TUPLE)
         elif os.path.isfile(facts[0]):
-            facts_to_collect = _read_in_file(facts[0])
+            self.facts_to_collect = _read_in_file(facts[0])
         else:
             assert isinstance(facts, list)
-            facts_to_collect = facts
+            self.facts_to_collect = facts
         # check facts_to_collect is subset of utilities.DEFAULT_FACTS_TUPLE
         all_facts = utilities.DEFAULT_FACTS_TUPLE
-        if not default_facts and not set(facts_to_collect).issubset(all_facts):
-            invalid_facts = set(facts_to_collect).difference(all_facts)
+        facts_to_collect_set = set(self.facts_to_collect)
+        if not facts_to_collect_set.issubset(all_facts):
+            invalid_facts = facts_to_collect_set.difference(all_facts)
             print(_("Invalid facts were supplied to scan command: " +
                     ",".join(invalid_facts)))
             self.parser.print_help()
@@ -358,7 +357,6 @@ class ScanCommand(CliCommand):
         profile_ranges = []
         profile_port = 22
         profile = self.options.profile
-        facts = self.options.facts
         forks = self.options.ansible_forks \
             if self.options.ansible_forks else '50'
         report_path = os.path.abspath(os.path.normpath(
@@ -417,20 +415,12 @@ class ScanCommand(CliCommand):
                   "Please use --reset with profile first.")
             sys.exit(1)
 
-        if facts == ['default']:
-            facts_to_collect = list(utilities.DEFAULT_FACTS_TUPLE)
-        elif os.path.isfile(facts[0]):
-            facts_to_collect = _read_in_file(facts[0])
-        else:
-            assert isinstance(facts, list)
-            facts_to_collect = facts
-
         # always output connection.x
         for key in utilities.CONNECTION_FACTS_TUPLE:
-            if key not in facts_to_collect:
-                facts_to_collect.append(key)
+            if key not in self.facts_to_collect:
+                self.facts_to_collect.append(key)
 
-        ansible_vars = {'facts_to_collect': facts_to_collect,
+        ansible_vars = {'facts_to_collect': self.facts_to_collect,
                         'report_path': report_path}
 
         playbook = utilities.PLAYBOOK_DEV_PATH
