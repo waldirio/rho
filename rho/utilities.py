@@ -210,7 +210,10 @@ def str_to_ascii(in_string):
     :param in_string: input string to convert to ascii
     :returns: ASCII encoded string
     """
-    return in_string.decode('utf-8').encode('ascii')
+    if sys.version_info.major == 2:
+        return in_string.decode('utf-8').encode('ascii')
+
+    return in_string
 
 
 def iteritems(dictionary):

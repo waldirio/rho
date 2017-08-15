@@ -24,7 +24,7 @@ import pexpect
 from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault_and_password
-from rho.utilities import multi_arg, _read_in_file, str_to_ascii
+from rho.utilities import multi_arg, _read_in_file, str_to_ascii, iteritems
 from rho.translation import _
 
 
@@ -136,7 +136,7 @@ def _create_hosts_auths_file(success_map, profile):
                                                 '---' \
                                                 '---' \
                                                 '---\n'
-        for host, line in success_map.iteritems():
+        for host, line in iteritems(success_map):
             string_to_write += host + '\n----------------------\n'
             for auth in line:
                 string_to_write += ', '.join(auth[1:3]) + ', ********, ' +\
@@ -226,7 +226,7 @@ def run_ansible_with_vault(cmd_string, vault_pass, ssh_key_passphrase=None,
 
     result = None
     try:
-        with open(log_path, 'w') as logfile:
+        with open(log_path, 'wb') as logfile:
             child = pexpect.spawn(cmd_string, timeout=None,
                                   env=env)
 
