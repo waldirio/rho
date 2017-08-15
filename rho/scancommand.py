@@ -24,7 +24,7 @@ import pexpect
 from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault_and_password
-from rho.utilities import multi_arg, _read_in_file, str_to_ascii
+from rho.utilities import multi_arg, _read_in_file, str_to_ascii, iteritems
 from rho.translation import _
 
 
@@ -136,7 +136,7 @@ def _create_hosts_auths_file(success_map, profile):
                                                 '---' \
                                                 '---' \
                                                 '---\n'
-        for host, line in success_map.iteritems():
+        for host, line in iteritems(success_map):
             string_to_write += host + '\n----------------------\n'
             for auth in line:
                 string_to_write += ', '.join(auth[1:3]) + ', ********, ' +\
