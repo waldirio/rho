@@ -74,6 +74,7 @@ class ProfileClearCommand(CliCommand):
                 for index, curr_profile in enumerate(profiles_list):
                     if curr_profile.get('name') == profile:
                         del profiles_list[index]
+                        print(_('Profile "%s" was removed' % profile))
                         profile_found = True
                         break
 
