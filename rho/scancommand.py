@@ -290,7 +290,7 @@ class ScanCommand(CliCommand):
 
         self.parser.add_option("--facts", dest="facts", metavar="FACTS",
                                action="callback", callback=multi_arg,
-                               default=[], help=_("list or file"))
+                               default=[], help=_("'default', list or file"))
 
         self.parser.add_option("--ansible_forks", dest="ansible_forks",
                                metavar="FORKS",
@@ -331,7 +331,7 @@ class ScanCommand(CliCommand):
 
         # perform fact validation
         facts = self.options.facts
-        if facts == []:
+        if facts == [] or facts == ['default']:
             self.facts_to_collect = list(utilities.DEFAULT_FACTS_TUPLE)
         elif os.path.isfile(facts[0]):
             self.facts_to_collect = _read_in_file(facts[0])
