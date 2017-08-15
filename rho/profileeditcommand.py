@@ -71,6 +71,17 @@ class ProfileEditCommand(CliCommand):
             self.parser.print_help()
             sys.exit(1)
 
+        if hasattr(self.options, 'sshport') \
+           and self.options.sshport is not None:
+            ssh_port = self.options.sshport
+            try:
+                ssh_port = utilities.validate_port(ssh_port)
+                self.options.sshport = ssh_port
+            except ValueError as port_error:
+                print(str(port_error))
+                self.parser.print_help()
+                sys.exit(1)
+
     def _do_command(self):
         # pylint: disable=too-many-locals, too-many-branches
         # pylint: disable=too-many-statements, too-many-nested-blocks
@@ -109,8 +120,7 @@ class ProfileEditCommand(CliCommand):
                     curr_profile['hosts'] = range_list
 
                 if self.options.sshport:
-                    curr_profile['ssh_port'] = str(
-                        utilities.validate_port(self.options.sshport))
+                    curr_profile['ssh_port'] = str(self.options.sshport)
 
                 if self.options.auth:
                     new_auths = []

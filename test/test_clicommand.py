@@ -413,6 +413,23 @@ class CliCommandsTests(unittest.TestCase):
                     'name': 'auth_1'}]}]):
                 ProfileAddCommand().main()
 
+    def test_profile_add_bad_port(self):
+        """Testing the profile add command execution"""
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', "profile", "add", "--name",
+                        "p1", "--hosts", "1.2.3.4",
+                        "--auth", "auth1", "--sshport", "abcd",
+                        "--vault", TMP_VAULT_PASS]
+            with redirect_profiles([{
+                'name': 'p1',
+                'hosts': ['1.2.3.4'],
+                'ssh_port': '22',
+                'auth': [{
+                    'id': '1',
+                    'name': 'auth_1'}]}]):
+                ProfileAddCommand().main()
+
     def test_profile_edit(self):
         """Testing the profile edit command execution"""
 

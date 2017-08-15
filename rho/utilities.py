@@ -185,16 +185,22 @@ def validate_port(arg):
     """
 
     if isinstance(arg, str):
-        arg = int(arg)
+        try:
+            arg = int(arg)
+        except ValueError:
+            raise ValueError('Port value %s'
+                             ' should be a positive integer'
+                             ' in the valid range (0-65535)' % arg)
     elif not isinstance(arg, int):
-        raise ValueError('Port %s not of recognized type '
-                         '(should be string or int)' % arg)
+        raise ValueError('Port value %s should be a positive integer'
+                         ' in the valid range (0-65535)' % arg)
 
     # We need to support both system and user ports (see
     # https://en.wikipedia.org/wiki/Registered_port) because we don't
     # know how the user will have configured their system.
     if arg < 0 or arg > 65535:
-        raise ValueError('Port %s not in valid range (0-65535)' % arg)
+        raise ValueError('Port value %s should be a positive integer'
+                         ' in the valid range (0-65535)' % arg)
 
     return arg
 

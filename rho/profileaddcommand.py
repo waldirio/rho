@@ -100,16 +100,23 @@ class ProfileAddCommand(CliCommand):
             self.parser.print_help()
             sys.exit(1)
 
+        if hasattr(self.options, 'sshport') \
+           and self.options.sshport is not None:
+            ssh_port = self.options.sshport
+            try:
+                ssh_port = utilities.validate_port(ssh_port)
+                self.options.sshport = ssh_port
+            except ValueError as port_error:
+                print(str(port_error))
+                self.parser.print_help()
+                sys.exit(1)
+
     # pylint: disable=too-many-locals
     def _do_command(self):
         vault = get_vault(self.options.vaultfile)
         hosts_list = self.options.hosts
         profiles_list = []
         ssh_port = 22
-
-        if hasattr(self.options, 'sshport') \
-           and self.options.sshport is not None:
-            ssh_port = utilities.validate_port(self.options.sshport)
 
         if os.path.isfile(utilities.PROFILES_PATH):
             profiles_list = vault.load_as_json(utilities.PROFILES_PATH)
