@@ -12,6 +12,7 @@
 
 from __future__ import print_function
 import os
+import sys
 import json
 import uuid
 from tempfile import gettempdir
@@ -19,6 +20,8 @@ from shutil import move
 from getpass import getpass
 import yaml
 from ansible.parsing.vault import VaultLib
+from ansible.errors import AnsibleError
+from rho.translation import _ as t
 
 
 def represent_none(self, _):
@@ -88,7 +91,11 @@ class Vault(object):
         :param stream: The stream to read data from
         :returns: The decrypted data
         """
-        return self.vault.decrypt(stream)
+        try:
+            return self.vault.decrypt(stream)
+        except AnsibleError:
+            print(t("Unable to decrypt file using given vault password"))
+            sys.exit(1)
 
     def load_secure_file(self, secure_file):
         """ Read vault secured file and return python object
