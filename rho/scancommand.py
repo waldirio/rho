@@ -39,7 +39,7 @@ def _read_key_file(filename):
 
 # Creates the inventory for pinging all hosts and records
 # successful auths and the hosts they worked on
-# pylint: disable=too-many-statements, too-many-arguments
+# pylint: disable=too-many-statements, too-many-arguments, unused-argument
 def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
                            profile_auth_list, forks, ansible_verbosity):
     # pylint: disable=too-many-locals
