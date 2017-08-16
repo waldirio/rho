@@ -129,13 +129,20 @@ The following python packages are required to build & test rho from source:
 -------------
 Installation
 -------------
-rho is available for `download <http://download.fedora.redhat.com/pub/epel/>`_ with the other Fedora EPEL packages.
+rho is available for `download <https://copr.fedorainfracloud.org/coprs/chambridge/rho/>`_ from fedora COPR.
 
-1. First, make sure that the EPEL repo is enabled for the server:
+1. First, make sure that the EPEL repo is enabled for the server.
+You can find the appropriate architecture and version on the `EPEL wiki <https://fedoraproject.org/wiki/EPEL>`_::
 
-``rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-2.noarch.rpm``
+  rpm -Uvh http://fedora-epel.mirrors.tds.net/fedora-epel/7/x86_64/e/epel-release-7-10.noarch.rpm
 
-2. Then, install the rho packages:
+2. Next, add the COPR repo to your server.
+You can find the appropriate architecture and version on the `COPR rho page <https://copr.fedorainfracloud.org/coprs/chambridge/rho/>`_::
+
+  cd /etc/yum.repos.d/
+  wget https://copr.fedorainfracloud.org/coprs/chambridge/rho/repo/epel-7/chambridge-rho-epel-7.repo
+
+3. Then, install the rho package:
 
 ``yum install rho``
 
@@ -146,18 +153,25 @@ The basic syntax is:
 
 ``rho command subcommand [options]``
 
-There are eight rho commands:
+There are four rho commands:
  * ``auth`` - for managing auth entries
  * ``profile`` - for managing profile entries
  * ``scan`` - for running scans
- * ``auth`` and ``profile`` both have three subcommands:
+ * ``fact`` - to show information about the facts rho can collect
+
+``auth`` and ``profile`` both have five subcommands:
  * ``add`` - to create a new entry
  * ``edit`` - to modify an existing entry
  * ``clear`` - to remove any or all entries
- * ``show`` and ``list`` - to display one or more entries
+ * ``show`` - to display a specific entry
+ * ``list`` - to display one or more entries
+
+``fact`` has one subcommand:
+  * ``list`` - to display the list of facts that can be scanned
 
 The complete list of options for each command and subcommand are listed in the
-rho manpage with other usage examples.
+rho manpage with other usage examples. The common options are listed with the
+examples in this document.
 
 For expanded information on auth entries, profiles, scanning, and output read
 the `syntax and usage document <doc/command_syntax_usage.rst>`_.
