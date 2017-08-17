@@ -99,8 +99,6 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
 
     :returns: a tuple of
       (list of IP addresses that worked for any auth,
-       map from host IPs to a list of all auths that worked with
-         that host,
        map from host IPs to SSH ports that worked with them,
        map from host IPs to lists of auths that worked with them
       )
