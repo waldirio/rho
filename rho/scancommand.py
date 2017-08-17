@@ -65,6 +65,24 @@ def auth_as_ansible_host_vars(auth):
     return ansible_vars
 
 
+def format_auth_for_host_auth_mapping(auth):
+    """Format an auth for the host auth mapping file.
+
+    :param auth: the auth. A dictionary with fields 'id', 'name',
+        'username', 'password', and 'ssh_key_file'.
+
+    :returns: a string of the form
+      'name, username, ********, ssh_key_file'
+    """
+
+    name = auth.get('name')
+    username = auth.get('username')
+    ssh_key_file = auth.get('ssh_key_file')
+
+    return '{0}, {1}, ********, {2}'.format(
+        name, username, ssh_key_file)
+
+
 # Creates the inventory for pinging all hosts and records
 # successful auths and the hosts they worked on
 # pylint: disable=too-many-statements, too-many-arguments, unused-argument
@@ -80,10 +98,7 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
     :param forks: the number of Ansible forks to use
 
     :returns: a tuple of
-      (list of auths that worked for any host,
-       list of IP addresses that worked for any auth,
-       map from auth to list of host IPs that auth worked with
-         (but each host IP can only appear in one list),
+      (list of IP addresses that worked for any auth,
        map from host IPs to a list of all auths that worked with
          that host,
        map from host IPs to SSH ports that worked with them,
@@ -92,13 +107,9 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
     """
 
     # pylint: disable=too-many-locals
-    success_auths = set()
     success_hosts = set()
     success_port_map = defaultdict()
     success_auth_map = defaultdict(list)
-    success_map = defaultdict(list)
-    best_map = defaultdict(list)
-    mapped_hosts = set()
     hosts_dict = {}
 
     for profile_range in profile_ranges:
@@ -115,11 +126,6 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
     for cred_item in profile_auth_list:
         cred_pass = cred_item.get('password')
         cred_sshkey = cred_item.get('ssh_key_file')
-        auth_item = [cred_item.get('id'),
-                     cred_item.get('name'),
-                     cred_item.get('username'),
-                     cred_item.get('password'),
-                     cred_item.get('ssh_key_file')]
 
         vars_dict = auth_as_ansible_host_vars(cred_item)
 
@@ -149,26 +155,19 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
         # pylint: disable=unused-variable
         for linenum, line in enumerate(out):
             if 'pong' in out[linenum]:
-                tup_auth_item = tuple(auth_item)
-                success_auths.add(tup_auth_item)
                 host_line = out[linenum - 2].replace('\x1b[0;32m', '')
                 host_ip = host_line.split('|')[0].strip()
                 success_hosts.add(host_ip)
                 success_auth_map[host_ip].append(cred_item)
-                if host_ip not in mapped_hosts:
-                    best_map[tup_auth_item].append(host_ip)
-                    mapped_hosts.add(host_ip)
-                success_map[host_ip].append(tup_auth_item)
                 success_port_map[host_ip] = profile_port
 
-    return list(success_auths), list(success_hosts), best_map, success_map, \
-        success_port_map, success_auth_map
+    return list(success_hosts), success_port_map, success_auth_map
 
 
 # Helper function to create a file to store the mapping
 # between hosts and ALL the auths that were ever succesful
 # with them arranged according to profile and date of scan.
-def _create_hosts_auths_file(success_map, profile):
+def _create_hosts_auths_file(success_auth_map, profile):
     with open('data/' + profile + '_host_auth_mapping', 'a') as host_auth_file:
         string_to_write = time.strftime("%c") + '\n-' \
                                                 '---' \
@@ -181,11 +180,10 @@ def _create_hosts_auths_file(success_map, profile):
                                                 '---' \
                                                 '---' \
                                                 '---\n'
-        for host, line in iteritems(success_map):
+        for host, line in iteritems(success_auth_map):
             string_to_write += host + '\n----------------------\n'
             for auth in line:
-                string_to_write += ', '.join(auth[1:3]) + ', ********, ' +\
-                    auth[4]
+                string_to_write += format_auth_for_host_auth_mapping(auth)
             string_to_write += '\n\n'
         string_to_write += '\n*******************************' \
                            '*********************************' \
@@ -199,12 +197,11 @@ def _create_hosts_auths_file(success_map, profile):
 # processed and the valid mapping as been figured out by
 # pinging.
 # pylint: disable=too-many-locals
-def make_inventory_dict(success_hosts, success_port_map, best_map, auth_map):
+def make_inventory_dict(success_hosts, success_port_map, auth_map):
     """Make the inventory for the scan, as a dict.
 
     :param success_hosts: a list of hosts for the inventory
     :param success_port_map: mapping from hosts to SSH ports
-    :param best_map: mapping from an auth to a list of host IPs it works with
     :param auth_map: map from host IP to a list of auths it works with
     
     :returns: a dict with the structure
@@ -232,9 +229,9 @@ def make_inventory_dict(success_hosts, success_port_map, best_map, auth_map):
     return yml_dict
     
 
-def _create_main_inventory(vault, success_hosts, success_port_map, best_map,
+def _create_main_inventory(vault, success_hosts, success_port_map,
                            auth_map, profile):
-    yml_dict = make_inventory_dict(success_hosts, success_port_map, best_map, auth_map)
+    yml_dict = make_inventory_dict(success_hosts, success_port_map, auth_map)
 
     logging.debug('Main inventory:\n%s', yaml.dump(yml_dict))
     vault.dump_as_yaml_to_file(yml_dict, 'data/' + profile + '_hosts.yml')
@@ -440,22 +437,22 @@ class ScanCommand(CliCommand):
         # reset is used when the profile has just been created
         # or freshly updated.
         if self.options.reset:
-            success_auths, success_hosts, best_map, success_map, \
-                success_port_map, auth_map = _create_ping_inventory(vault, vault_pass,
-                                                          profile_ranges,
-                                                          profile_port,
-                                                          profile_auth_list,
-                                                          forks,
-                                                          self.verbosity)
+            success_hosts, success_port_map, auth_map = _create_ping_inventory(
+                vault, vault_pass,
+                profile_ranges,
+                profile_port,
+                profile_auth_list,
+                forks,
+                self.verbosity)
 
-            if not success_auths:
+            if not success_hosts:
                 print(_('All auths are invalid for this profile'))
                 sys.exit(1)
 
-            _create_hosts_auths_file(success_map, profile)
+            _create_hosts_auths_file(auth_map, profile)
 
             _create_main_inventory(vault, success_hosts, success_port_map,
-                                   best_map, auth_map, profile)
+                                   auth_map, profile)
 
         elif not os.path.isfile('data/' + profile + '_hosts'):
             print("Profile '" + profile + "' has not been processed. " +

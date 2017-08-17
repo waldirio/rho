@@ -15,24 +15,23 @@
 # infrastructure for mocking out credentials and profiles is.
 
 import unittest
-import mock
 
 from rho import scancommand
 
 
 class TestScanCommand(unittest.TestCase):
     def test_make_inventory_dict_one_host(self):
-        auth_item = [
-            '1',       # ID
-            'auth_1',  # name
-            'user',    # username
-            'pass',    # password
-            'sshkey']  # ssh_key_file
+        auth = {
+            'id': '1',
+            'name': 'auth_1',
+            'username': 'user',
+            'password': 'pass',
+            'ssh_key_file': 'sshkey'}
         self.assertEqual(
             scancommand.make_inventory_dict(
-                ['host_ip_1'],                       # success_map
-                {'host_ip_1': '22'},                 # success_port_map
-                {tuple(auth_item): ['host_ip_1']}),  # best_map
+                ['host_ip_1'],           # success_hosts
+                {'host_ip_1': '22'},     # success_port_map
+                {'host_ip_1': [auth]}),  # auth_map
             {'alpha':
              {'hosts':
               {'host_ip_1':
