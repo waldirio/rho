@@ -48,6 +48,10 @@ class ProfileListCommand(CliCommand):
             sys.exit(1)
 
         profiles_list = vault.load_as_json(utilities.PROFILES_PATH)
-        data = json.dumps(profiles_list, sort_keys=True, indent=4,
-                          separators=(',', ': '))
-        print(data)
+        if len(profiles_list) == 0:  # pylint: disable=len-as-condition
+            print(_('No profiles exist yet.'))
+            sys.exit(1)
+        else:
+            data = json.dumps(profiles_list, sort_keys=True, indent=4,
+                              separators=(',', ': '))
+            print(data)
