@@ -14,7 +14,6 @@
 
 from __future__ import print_function
 import logging
-import yaml
 import os
 import sys
 import re
@@ -23,6 +22,7 @@ import json
 import subprocess
 from collections import defaultdict
 import pexpect
+import yaml
 from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault_and_password
@@ -65,7 +65,7 @@ def auth_as_ansible_host_vars(auth):
     return ansible_vars
 
 
-def format_auth_for_host_auth_mapping(auth):
+def redacted_auth_string(auth):
     """Format an auth for the host auth mapping file.
 
     :param auth: the auth. A dictionary with fields 'id', 'name',
@@ -124,9 +124,6 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
             hosts_dict[hostname] = None
 
     for cred_item in profile_auth_list:
-        cred_pass = cred_item.get('password')
-        cred_sshkey = cred_item.get('ssh_key_file')
-
         vars_dict = auth_as_ansible_host_vars(cred_item)
 
         yml_dict = {'all': {'hosts': hosts_dict, 'vars': vars_dict}}
@@ -183,7 +180,7 @@ def _create_hosts_auths_file(success_auth_map, profile):
         for host, line in iteritems(success_auth_map):
             string_to_write += host + '\n----------------------\n'
             for auth in line:
-                string_to_write += format_auth_for_host_auth_mapping(auth)
+                string_to_write += redacted_auth_string(auth)
             string_to_write += '\n\n'
         string_to_write += '\n*******************************' \
                            '*********************************' \
@@ -203,7 +200,7 @@ def make_inventory_dict(success_hosts, success_port_map, auth_map):
     :param success_hosts: a list of hosts for the inventory
     :param success_port_map: mapping from hosts to SSH ports
     :param auth_map: map from host IP to a list of auths it works with
-    
+
     :returns: a dict with the structure
     {'alpha':
       {'hosts'
@@ -227,7 +224,7 @@ def make_inventory_dict(success_hosts, success_port_map, auth_map):
     yml_dict['alpha'] = {'hosts': alpha_hosts}
 
     return yml_dict
-    
+
 
 def _create_main_inventory(vault, success_hosts, success_port_map,
                            auth_map, profile):

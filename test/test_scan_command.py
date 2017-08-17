@@ -7,7 +7,7 @@
 # along with this software; if not, see
 # http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
 
-"""Unit tests for the scan command."""
+"""Unit tests for scancommand.py."""
 
 # This file has tests for specific functions in rho.scancommand, but
 # does not actually call ScanCommand.main(). The tests that do call
@@ -19,8 +19,13 @@ import unittest
 from rho import scancommand
 
 
+# pylint: disable=invalid-name
 class TestScanCommand(unittest.TestCase):
+    """Unit tests for scancommand.py."""
+
     def test_make_inventory_dict_one_host(self):
+        """Test scancommand.make_inventory_dict with just one host."""
+
         auth = {
             'id': '1',
             'name': 'auth_1',
