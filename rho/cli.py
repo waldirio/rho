@@ -112,9 +112,14 @@ class CLI(object):
         to find the best command match. If no match is found the
         usage is displayed
         """
-        if len(sys.argv) < 2 or not self._find_best_match(sys.argv):
-            self._usage()
-            sys.exit(1)
+        len_sys_argv = len(sys.argv)
+        if len_sys_argv < 2 or not self._find_best_match(sys.argv):
+            if len_sys_argv == 2 and sys.argv[1] == '--help':
+                self._usage()
+                sys.exit(0)
+            else:
+                self._usage()
+                sys.exit(1)
 
         cmd = self._find_best_match(sys.argv)
         if not cmd:
