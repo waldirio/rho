@@ -161,3 +161,4 @@ class ProfileAddCommand(CliCommand):
                                    ("auth", creds)])
 
         _save_profile(vault, new_profile, profiles_list)
+        print(_('Profile "%s" was added' % self.options.name))
