@@ -145,3 +145,4 @@ class AuthAddCommand(CliCommand):
                                  ssh_file)])
 
         _save_cred(vault, cred, cred_list)
+        print(_('Auth "%s" was added' % self.options.name))
