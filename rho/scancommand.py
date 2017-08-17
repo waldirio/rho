@@ -13,6 +13,8 @@
 """ Rho CLI Commands """
 
 from __future__ import print_function
+import logging
+import yaml
 import os
 import sys
 import re
@@ -42,6 +44,26 @@ def _read_key_file(filename):
 # pylint: disable=too-many-statements, too-many-arguments, unused-argument
 def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
                            profile_auth_list, forks, ansible_verbosity):
+    """Find which auths work with which hosts.
+
+    :param vault: a Vault object
+    :param vault_pass: password for the Vault?
+    :param profile_ranges: hosts for the profile
+    :param profile_port: the SSH port to use
+    :param profile_auth_list: auths to use
+    :param forks: the number of Ansible forks to use
+
+    :returns: a tuple of
+      (list of auths that worked for any host,
+       list of IP addresses that worked for any auth,
+       map from auth to list of host IPs that auth worked with
+         (but each host IP can only appear in one list),
+       map from host IPs to a list of all auths that worked with
+         that host,
+       map from host IPs to SSH ports that worked with them
+      )
+    """
+
     # pylint: disable=too-many-locals
     success_auths = set()
     success_hosts = set()
@@ -85,6 +107,7 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
                     str_to_ascii(cred_sshkey)
 
         yml_dict = {'all': {'hosts': hosts_dict, 'vars': vars_dict}}
+        logging.debug('Ping inventory:\n%s', yaml.dump(yml_dict))
         vault.dump_as_yaml_to_file(yml_dict, 'data/ping-inventory.yml')
 
         cmd_string = 'ansible all -m' \
