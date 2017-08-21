@@ -19,6 +19,8 @@ from __future__ import print_function
 import sys
 import os
 import inspect
+import ansible
+import rho
 from rho.clicommand import CliCommand
 from rho.authaddcommand import AuthAddCommand  # noqa
 from rho.authclearcommand import AuthClearCommand  # noqa
@@ -116,6 +118,11 @@ class CLI(object):
         if len_sys_argv < 2 or not self._find_best_match(sys.argv):
             if len_sys_argv == 2 and sys.argv[1] == '--help':
                 self._usage()
+                sys.exit(0)
+            elif len_sys_argv == 2 and sys.argv[1] == '--version':
+                print('version: ' + rho.__version__)
+                print('\tansible: ' + ansible.__version__)
+                print('\tpython: ' + sys.version)
                 sys.exit(0)
             else:
                 self._usage()
