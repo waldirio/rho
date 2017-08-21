@@ -18,13 +18,13 @@ import os
 import json
 import sys
 import xml
-from past.builtins import long  # pylint: disable=redefined-builtin
 # pylint: disable=import-error
 from ansible.module_utils.basic import AnsibleModule
 
 # for parsing systemid
 if sys.version_info > (3,):
     import xmlrpc.client as xmlrpclib  # pylint: disable=import-error
+    long = int  # pylint: disable=invalid-name,redefined-builtin
 else:
     import xmlrpclib  # pylint: disable=import-error
 
