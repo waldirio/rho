@@ -18,6 +18,7 @@ import subprocess
 
 from setuptools import setup, find_packages
 from setuptools import Command
+from rho import __version__
 
 
 class BuildLangs(Command):
@@ -91,7 +92,7 @@ def get_data_files():
 
 setup(
     name="rho",
-    version='0.0.28',
+    version=__version__,
     description='Network scanner to identify operating systems and versions.',
     author='Red Hat',
     author_email='',
