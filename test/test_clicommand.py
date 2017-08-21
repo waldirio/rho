@@ -213,6 +213,7 @@ class CliCommandsTests(unittest.TestCase):
                            u'name': u'auth_1',
                            u'username': u'user',
                            u'password': None,
+                           u'sudo_password': None,
                            u'ssh_key_file': u'./privatekey'}])
 
     # pylint: disable=unused-argument
@@ -226,7 +227,8 @@ class CliCommandsTests(unittest.TestCase):
                     TMP_VAULT_PASS]
 
         creds = [{u'id': u'1', u'name': u'auth_1', u'username': u'user',
-                  u'password': u'', u'ssh_key_file': u'./privatekey'}]
+                  u'password': u'', u'sudo_password': None,
+                  u'ssh_key_file': u'./privatekey'}]
 
         with redirect_credentials(creds):
             AuthAddCommand().main()
@@ -236,11 +238,13 @@ class CliCommandsTests(unittest.TestCase):
                            u'name': u'auth_1',
                            u'username': u'user',
                            u'password': u'',
+                           u'sudo_password': None,
                            u'ssh_key_file': u'./privatekey'},
                           {u'id': u'2',
                            u'name': u'auth_2',
                            u'username': u'user',
                            u'password': None,
+                           u'sudo_password': None,
                            u'ssh_key_file': u'./privatekey'}])
 
     def test_auth_list(self):

@@ -73,6 +73,9 @@ class AuthEditCommand(CliCommand):
                                action="store_true",
                                help=_("password for authenticating"
                                       " against target machine"))
+        self.parser.add_option("--sudo-password", dest="sudo_password",
+                               action="store_true",
+                               help=_("password for running sudo"))
         self.parser.add_option("--sshkeyfile", dest="filename",
                                metavar="FILENAME",
                                help=_("file containing SSH key"))
@@ -81,6 +84,7 @@ class AuthEditCommand(CliCommand):
                                       " scripting"))
 
         self.parser.set_defaults(password=False)
+        self.parser.set_defaults(sudo_password=False)
 
     def _validate_options(self):
         CliCommand._validate_options(self)
@@ -91,9 +95,11 @@ class AuthEditCommand(CliCommand):
 
         if not (self.options.filename or
                 self.options.username or
-                self.options.password):
-            print(_("Should specify an option to update:"
-                    " --username, --password or --sshkeyfile"))
+                self.options.password or
+                self.options.sudo_password):
+            print(_("Should specify an option to update: "
+                    "--username, --password, --sshkeyfile "
+                    "or --sudo-password"))
             sys.exit(1)
 
     def _do_command(self):
@@ -112,7 +118,11 @@ class AuthEditCommand(CliCommand):
                     if self.options.username:
                         cred['username'] = self.options.username
                     if self.options.password:
+                        print(_('Provide connection password.'))
                         cred['password'] = getpass()
+                    if self.options.sudo_password:
+                        print(_('Provide password for sudo.'))
+                        cred['sudo_password'] = getpass()
                     if self.options.filename:
                         cred['ssh_key_file'] = self.options.filename
                     break

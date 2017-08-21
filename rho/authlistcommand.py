@@ -49,13 +49,15 @@ class AuthListCommand(CliCommand):
 
         cred_list = vault.load_as_json(utilities.CREDENTIALS_PATH)
 
-        if len(cred_list) == 0:  # pylint: disable=len-as-condition
+        if not cred_list:
             print(_('No credentials exist yet.'))
             sys.exit(1)
         else:
             for cred in cred_list:
                 if cred.get('password') is not None:
                     cred['password'] = '**********'
+                if cred.get('sudo_password') is not None:
+                    cred['sudo_password'] = '**********'
             data = json.dumps(cred_list, sort_keys=True, indent=4,
                               separators=(',', ': '))
             print(data)

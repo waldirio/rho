@@ -48,7 +48,7 @@ class ProfileListCommand(CliCommand):
             sys.exit(1)
 
         profiles_list = vault.load_as_json(utilities.PROFILES_PATH)
-        if len(profiles_list) == 0:  # pylint: disable=len-as-condition
+        if not profiles_list:
             print(_('No profiles exist yet.'))
             sys.exit(1)
         else:

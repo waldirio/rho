@@ -19,7 +19,6 @@ import os
 import sys
 import uuid
 from getpass import getpass
-from collections import OrderedDict
 from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault
@@ -53,6 +52,36 @@ def _save_cred(vault, new_cred, cred_list):
     vault.dump_as_json_to_file(cred_list, utilities.CREDENTIALS_PATH)
 
 
+def make_auth_for_options(options):
+    """Construct the OrderedDict auth given our options.
+
+    :param options: an options object, from optparse
+    :returns: an OrderedDict representing the auth being added
+    """
+
+    auth = {'id': str(uuid.uuid4()),
+            'name': options.name,
+            'username': options.username}
+
+    if options.password:
+        print(_('Provide connection password.'))
+        pass_prompt = getpass()
+        auth['password'] = pass_prompt or None
+    else:
+        auth['password'] = None
+
+    auth['ssh_key_file'] = options.filename or None
+
+    if options.sudo_password:
+        print(_('Provide password for sudo.'))
+        sudo_pass_prompt = getpass()
+        auth['sudo_password'] = sudo_pass_prompt or None
+    else:
+        auth['sudo_password'] = None
+
+    return auth
+
+
 class AuthAddCommand(CliCommand):
     """
     This command is for creating new auths
@@ -80,6 +109,9 @@ class AuthAddCommand(CliCommand):
                                action="store_true",
                                help=_("password for authenticating against"
                                       " target machine"))
+        self.parser.add_option("--sudo-password", dest="sudo_password",
+                               action="store_true",
+                               help=_("password for running sudo"))
         self.parser.add_option("--vault", dest="vaultfile", metavar="VAULT",
                                help=_("file containing vault password for"
                                       " scripting"))
@@ -100,9 +132,6 @@ class AuthAddCommand(CliCommand):
 
     def _do_command(self):
         vault = get_vault(self.options.vaultfile)
-        cred = OrderedDict()
-        ssh_file = None
-        pass_to_store = None
         auth_name = self.options.name
         cred_list = []
 
@@ -113,36 +142,6 @@ class AuthAddCommand(CliCommand):
                 print(_("Auth with name exists"))
                 sys.exit(1)
 
-        if self.options.password:
-            pass_prompt = getpass()
-            pass_to_store = None if pass_prompt == '' else pass_prompt
-
-        if self.options.filename:
-            # using sshkey
-            ssh_file = self.options.filename
-
-            cred = OrderedDict([("id",
-                                 str(uuid.uuid4())),
-                                ("name",
-                                 self.options.name),
-                                ("username",
-                                 self.options.username),
-                                ("password",
-                                 pass_to_store),
-                                ("ssh_key_file",
-                                 ssh_file)])
-
-        elif self.options.username and self.options.password:
-            cred = OrderedDict([("id",
-                                 str(uuid.uuid4())),
-                                ("name",
-                                 self.options.name),
-                                ("username",
-                                 self.options.username),
-                                ("password",
-                                 pass_to_store),
-                                ("ssh_key_file",
-                                 ssh_file)])
-
+        cred = make_auth_for_options(self.options)
         _save_cred(vault, cred, cred_list)
         print(_('Auth "%s" was added' % self.options.name))

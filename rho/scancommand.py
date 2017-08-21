@@ -52,6 +52,7 @@ def auth_as_ansible_host_vars(auth):
     username = auth.get('username')
     password = auth.get('password')
     ssh_key_file = auth.get('ssh_key_file')
+    sudo_password = auth.get('sudo_password')
 
     ansible_vars = {}
 
@@ -61,6 +62,8 @@ def auth_as_ansible_host_vars(auth):
     if ssh_key_file:
         ansible_vars['ansible_ssh_private_key_file'] = \
             str_to_ascii(ssh_key_file)
+    if sudo_password:
+        ansible_vars['ansible_become_pass'] = sudo_password
 
     return ansible_vars
 

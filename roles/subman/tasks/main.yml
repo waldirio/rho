@@ -5,9 +5,10 @@
     subman: "{{ subman|default({}) }}"
 
 - name: gather subman.cpu.cpu(s) fact
-  raw: sudo -n subscription-manager facts --list | grep '^cpu.cpu(s).' | sed -n -e 's/^.*cpu.cpu(s).\s*//p'
+  raw: subscription-manager facts --list | grep '^cpu.cpu(s).' | sed -n -e 's/^.*cpu.cpu(s).\s*//p'
   register: subman_cpu_cpu
   ignore_errors: yes
+  become: yes
   when: '"subman.cpu.cpu(s)" in facts_to_collect'
 
 - name: add subman.cpu.cpu(s) to dictionary
@@ -18,9 +19,10 @@
   when: '"subman.cpu.cpu(s)" in facts_to_collect'
 
 - name: gather subman.cpu.core(s)_per_socket fact
-  raw: sudo -n subscription-manager facts --list | grep '^cpu.core(s)_per_socket.' | sed -n -e 's/^.*cpu.core(s)_per_socket.\s*//p'
+  raw: subscription-manager facts --list | grep '^cpu.core(s)_per_socket.' | sed -n -e 's/^.*cpu.core(s)_per_socket.\s*//p'
   register: subman_cpu_core_per_socket
   ignore_errors: yes
+  become: yes
   when: '"subman.cpu.core(s)_per_socket" in facts_to_collect'
 
 - name: add subman.cpu.core(s)_per_socket to dictionary
@@ -31,9 +33,10 @@
   when: '"subman.cpu.core(s)_per_socket" in facts_to_collect'
 
 - name: gather subman.cpu.cpu_socket(s) fact
-  raw: sudo -n subscription-manager facts --list | grep '^cpu.cpu_socket(s).' | sed -n -e 's/^.*cpu.cpu_socket(s).\s*//p'
+  raw: subscription-manager facts --list | grep '^cpu.cpu_socket(s).' | sed -n -e 's/^.*cpu.cpu_socket(s).\s*//p'
   register: subman_cpu_cpu_socket
   ignore_errors: yes
+  become: yes
   when: '"subman.cpu.cpu_socket(s)" in facts_to_collect'
 
 - name: add subman.cpu.cpu_socket(s) to dictionary
@@ -44,9 +47,10 @@
   when: '"subman.cpu.cpu_socket(s)" in facts_to_collect'
 
 - name: gather subman.virt.host_type fact
-  raw: sudo -n subscription-manager facts --list | grep '^virt.host_type.' | sed -n -e 's/^.*virt.host_type.\s*//p'
+  raw: subscription-manager facts --list | grep '^virt.host_type.' | sed -n -e 's/^.*virt.host_type.\s*//p'
   register: subman_virt_host_type
   ignore_errors: yes
+  become: yes
   when: '"subman.virt.host_type" in facts_to_collect'
 
 - name: add subman.virt.host_type to dictionary
@@ -57,9 +61,10 @@
   when: '"subman.virt.host_type" in facts_to_collect'
 
 - name: gather subman.virt.is_guest fact
-  raw: sudo -n subscription-manager facts --list | grep '^virt.is_guest.' | sed -n -e 's/^.*virt.is_guest.\s*//p'
+  raw: subscription-manager facts --list | grep '^virt.is_guest.' | sed -n -e 's/^.*virt.is_guest.\s*//p'
   register: subman_virt_is_guest
   ignore_errors: yes
+  become: yes
   when: '"subman.virt.is_guest" in facts_to_collect'
 
 - name: add subman.virt.is_guest to dictionary
@@ -70,9 +75,10 @@
   when: '"subman.virt.is_guest" in facts_to_collect'
 
 - name: gather subman.virt.uuid fact
-  raw: sudo -n subscription-manager facts --list | grep '^virt.uuid.' | sed -n -e 's/^.*virt.uuid.\s*//p'
+  raw: subscription-manager facts --list | grep '^virt.uuid.' | sed -n -e 's/^.*virt.uuid.\s*//p'
   register: subman_virt_uuid
   ignore_errors: yes
+  become: yes
   when: '"subman.virt.uuid" in facts_to_collect'
 
 - name: add subman.virt.uuid to dictionary

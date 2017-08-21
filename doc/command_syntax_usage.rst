@@ -184,7 +184,7 @@ permissions to collect the facts:
 - ``virt-what.x``
 
 The scan user can successful collect these values if the user is **root** or
-has the ability to perform a ``sudo`` without a password. The following
+has the ability to perform a ``sudo``. The following
 provides the necessary content for the ``/etc/sudoers`` file where *scanuser*
 represents the username used for the scan.
 
@@ -192,3 +192,8 @@ represents the username used for the scan.
 
   Cmnd_Alias SCAN = /sbin/subscription-manager, /usr/sbin/dmidecode, /usr/sbin/virt-what
   scanuser ALL=NOPASSWD: SCAN
+
+If the scan user uses a password to sudo, one can be given with the
+`--sudo-password` argument to the `auth add` and `auth edit`
+commands. The sudo-with-password fundtionality can be tested by using
+the 'askpass' box in the Vagrantfile.

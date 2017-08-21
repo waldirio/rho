@@ -1,6 +1,6 @@
 ---
 - name: Set authorized key for user vagrant copying it from current user
   authorized_key:
-    user: vagrant
+    user: "{{ user }}"
     state: present
     key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}"

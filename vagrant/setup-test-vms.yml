@@ -1,6 +1,7 @@
 - hosts: all
   roles:
     - role: user-ssh
+      user: vagrant
       become: yes
       become_user: root
 
@@ -17,3 +18,8 @@
         # Crypted version of "password"
         password: $6$ZBtzwTi5YgUbr1cT$jVTtaH6lVVTndZJLHqcWtZoxPS0Siz/ms8bOKA/F/r1Np0zeptDERYIfbmRN0dLbu9Z7S./bIGzGR9nUXl59W/
   become: yes
+  roles:
+    - role: user-ssh
+      user: askpass
+      become: yes
+      become_user: root

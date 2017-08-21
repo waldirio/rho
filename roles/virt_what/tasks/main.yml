@@ -15,9 +15,10 @@
   when: '"virt-what.type" in facts_to_collect and virt_what_found["stdout_lines"][0] == "N"'
 
 - name: execute virt-what
-  raw: sudo -n virt-what;echo $?
+  raw: virt-what;echo $?
   register: virt_what_output
   ignore_errors: yes
+  become: yes
   when: '"virt-what.type" in facts_to_collect and virt_what_found["stdout_lines"][0] == "Y"'
 
 - name: extract virt-what error code
