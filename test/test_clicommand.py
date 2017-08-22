@@ -262,8 +262,8 @@ class CliCommandsTests(unittest.TestCase):
         self.assertEqual(auth_list_out.getvalue().replace('\n', '')
                          .replace(' ', '').strip(),
                          '[{"id":"1","name":"name",' +
-                         '"password":"**********",' +
-                         '"ssh_key_file":"file",' +
+                         '"password":"' + utilities.PASSWORD_MASKING +
+                         '",' + '"ssh_key_file":"file",' +
                          '"username":"username"}]')
 
     def test_auth_edit(self):
@@ -299,7 +299,8 @@ class CliCommandsTests(unittest.TestCase):
 
         self.assertEqual(auth_show_out.getvalue().replace('\n', '')
                          .replace(' ', '').strip(),
-                         '{"id":"1","name":"auth_1","password":"******",' +
+                         '{"id":"1","name":"auth_1","password":"' +
+                         utilities.PASSWORD_MASKING + '",' +
                          '"ssh_key_file":"file_1","username":"user_1"}')
 
     def test_auth_clear_all(self):

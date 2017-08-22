@@ -82,8 +82,40 @@ def redacted_auth_string(auth):
     username = auth.get('username')
     ssh_key_file = auth.get('ssh_key_file')
 
-    return '{0}, {1}, ********, {2}'.format(
-        name, username, ssh_key_file)
+    return '{0}, {1}, {2}, {3}'.format(
+        name, username, utilities.PASSWORD_MASKING, ssh_key_file)
+
+
+def redact_dict(redact_key_list, a_dict):
+    """redact_values in a dictionary
+    :param redact_key_list: keys in dictionary that value should be redacted
+    :param a_dict: A dictionary to redact
+    :return dictionary
+    """
+    for key in redact_key_list:
+        if a_dict is not None and key in a_dict:
+            a_dict[key] = utilities.PASSWORD_MASKING
+    return a_dict
+
+
+def log_yaml_inventory(label, inventory):
+    """Log yaml inventory but mask passwords
+
+    :param inventory: A dictionary of the ansible inventory
+    """
+    alpha = inventory.get('alpha')
+    hosts_dict = alpha.get('hosts')
+    vars_dict = alpha.get('vars')
+    redact_key_list = ['ansible_become_pass', 'ansible_ssh_pass']
+
+    # pylint: disable=unused-variable
+    for host, host_dict in iteritems(hosts_dict):
+        host_dict = redact_dict(redact_key_list, host_dict)
+
+    vars_dict = redact_dict(redact_key_list, vars_dict)
+
+    logging.debug('%s:\n%s', label, yaml.dump(inventory))
+    return inventory
 
 
 # Creates the inventory for pinging all hosts and records
@@ -127,11 +159,11 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
     for cred_item in profile_auth_list:
         vars_dict = auth_as_ansible_host_vars(cred_item)
 
-        yml_dict = {'all': {'hosts': hosts_dict, 'vars': vars_dict}}
-        logging.debug('Ping inventory:\n%s', yaml.dump(yml_dict))
+        yml_dict = {'alpha': {'hosts': hosts_dict, 'vars': vars_dict}}
         vault.dump_as_yaml_to_file(yml_dict, 'data/ping-inventory.yml')
+        log_yaml_inventory('Ping inventory', yml_dict)
 
-        cmd_string = 'ansible all -m' \
+        cmd_string = 'ansible alpha -m' \
                      ' ping  -i data/ping-inventory.yml --ask-vault-pass -f ' \
                      + forks
 
@@ -230,9 +262,8 @@ def make_inventory_dict(success_hosts, success_port_map, auth_map):
 def _create_main_inventory(vault, success_hosts, success_port_map,
                            auth_map, profile):
     yml_dict = make_inventory_dict(success_hosts, success_port_map, auth_map)
-
-    logging.debug('Main inventory:\n%s', yaml.dump(yml_dict))
     vault.dump_as_yaml_to_file(yml_dict, 'data/' + profile + '_hosts.yml')
+    log_yaml_inventory('Main inventory', yml_dict)
 
 
 def run_ansible_with_vault(cmd_string, vault_pass, ssh_key_passphrase=None,

@@ -63,9 +63,9 @@ class AuthShowCommand(CliCommand):
                     auth_found = True
                     password = cred.get('password')
                     if password is not None:
-                        cred['password'] = '******'
+                        cred['password'] = utilities.PASSWORD_MASKING
                     if cred.get('sudo_password') is not None:
-                        cred['sudo_password'] = '******'
+                        cred['sudo_password'] = utilities.PASSWORD_MASKING
 
                     data = json.dumps(cred, sort_keys=True, indent=4,
                                       separators=(',', ': '))
