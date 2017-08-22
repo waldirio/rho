@@ -25,8 +25,8 @@ class FactListCommand(CliCommand):
 
     def __init__(self):
         usage = _('usage: %prog fact list')
-        shortdesc = _('list facts that Rho can detect')
-        desc = _('list facts that Rho can detect. Filter fact names with '
+        shortdesc = _('list facts that rho can detect')
+        desc = _('list facts that rho can detect. Filter fact names with '
                  '--filter <regex>')
 
         CliCommand.__init__(self, 'fact list', usage, shortdesc, desc)

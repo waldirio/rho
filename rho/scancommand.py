@@ -305,7 +305,6 @@ def run_ansible_with_vault(cmd_string, vault_pass, ssh_key_passphrase=None,
 
             if log_to_stdout:
                 tail = subprocess.Popen(['tail', '-f', '-n', '+0',
-                                         '--pid={0}'.format(child.pid),
                                          log_path])
 
             result = child.expect('Vault password:')
@@ -324,9 +323,8 @@ def run_ansible_with_vault(cmd_string, vault_pass, ssh_key_passphrase=None,
             if child.isalive():
                 child.wait()
             if log_to_stdout:
-                # tail will kill itself once it is done copying data
-                # to stdout, thanks to the --pid option.
-                tail.wait()
+                time.sleep(2)
+                tail.terminate()
 
         return child
     except pexpect.EOF:
