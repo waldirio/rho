@@ -349,10 +349,10 @@ class ScanCommand(CliCommand):
 
         CliCommand.__init__(self, "scan", usage, shortdesc, desc)
 
-        self.parser.add_option("--reset", dest="reset", action="store_true",
+        self.parser.add_option("--cache", dest="cache", action="store_true",
                                metavar="RESET", default=False,
-                               help=_("Use if profiles/auths have been "
-                                      "changed"))
+                               help=_("Use if profiles/auths previously "
+                                      "discovered should be reused"))
 
         self.parser.add_option("--profile", dest="profile", metavar="PROFILE",
                                help=_("NAME of the profile - REQUIRED"))
@@ -463,9 +463,9 @@ class ScanCommand(CliCommand):
             print(_("Invalid profile. Create profile first"))
             sys.exit(1)
 
-        # reset is used when the profile has just been created
-        # or freshly updated.
-        if self.options.reset:
+        # cache is used when the profile/auth mapping has been previously
+        # used and does not need to be rerun.
+        if not self.options.cache:
             success_hosts, success_port_map, auth_map = _create_ping_inventory(
                 vault, vault_pass,
                 profile_ranges,
@@ -483,9 +483,9 @@ class ScanCommand(CliCommand):
             _create_main_inventory(vault, success_hosts, success_port_map,
                                    auth_map, profile)
 
-        elif not os.path.isfile('data/' + profile + '_hosts'):
+        elif os.path.isfile('data/' + profile + '_hosts'):
             print("Profile '" + profile + "' has not been processed. " +
-                  "Please use --reset with profile first.")
+                  "Please run without using --cache with the profile first.")
             sys.exit(1)
 
         # always output connection.x

@@ -553,20 +553,20 @@ class CliCommandsTests(unittest.TestCase):
         """
 
         with self.assertRaises(SystemExit):
-            sys.argv = ['/bin/rho', "scan", "--reset", "--reportfile",
+            sys.argv = ['/bin/rho', "scan", "--reportfile",
                         TMP_TEST_REPORT, "--facts",
                         "default", "ansible_forks",
                         "100", "--vault", TMP_VAULT_PASS]
             with redirect_credentials([]):
                 ScanCommand().main()
 
-    def test_scan_facts_no_facts(self):
-        """Test utilizing the scan command catch no facts error
+    def test_scan_facts_no_cache(self):
+        """Test utilizing the scan command catch no cache error
         """
 
         with self.assertRaises(SystemExit):
             sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
-                        "--reset", "--reportfile",
+                        "--cache", "--reportfile",
                         TMP_TEST_REPORT, "ansible_forks",
                         "100", "--vault", TMP_VAULT_PASS]
             with redirect_credentials([]):
@@ -578,7 +578,7 @@ class CliCommandsTests(unittest.TestCase):
 
         with self.assertRaises(SystemExit):
             sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
-                        "--reset", "--facts", "default", "ansible_forks",
+                        "--facts", "default", "ansible_forks",
                         "100", "--vault", TMP_VAULT_PASS]
             with redirect_credentials([]):
                 ScanCommand().main()
@@ -589,7 +589,7 @@ class CliCommandsTests(unittest.TestCase):
 
         with self.assertRaises(SystemExit):
             sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
-                        "--reset", "--reportfile", TMP_TEST_REPORT,
+                        "--reportfile", TMP_TEST_REPORT,
                         "--facts", "default", "ansible_forks",
                         "a", "--vault", TMP_VAULT_PASS]
             with redirect_credentials([]):
@@ -601,7 +601,7 @@ class CliCommandsTests(unittest.TestCase):
 
         with self.assertRaises(SystemExit):
             sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
-                        "--reset", "--reportfile",
+                        "--reportfile",
                         TMP_TEST_REPORT, "--facts",
                         "default", "ansible_forks",
                         "-4", "--vault", TMP_VAULT_PASS]
@@ -615,7 +615,7 @@ class CliCommandsTests(unittest.TestCase):
 
         with self.assertRaises(SystemExit):
             sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
-                        "--reset", "--reportfile",
+                        "--reportfile",
                         TMP_TEST_REPORT, "--facts",
                         "default", "ansible_forks",
                         "100", "--vault", TMP_VAULT_PASS]
@@ -629,7 +629,7 @@ class CliCommandsTests(unittest.TestCase):
 
         with self.assertRaises(SystemExit):
             sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
-                        "--reset", "--reportfile",
+                        "--reportfile",
                         TMP_TEST_REPORT, "--facts",
                         TMP_FACTS, "ansible_forks",
                         "100", "--vault", TMP_VAULT_PASS]
@@ -642,7 +642,7 @@ class CliCommandsTests(unittest.TestCase):
 
         with self.assertRaises(SystemExit):
             sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
-                        "--reset", "--reportfile",
+                        "--reportfile",
                         TMP_TEST_REPORT, "--facts",
                         "uname.all",
                         "cpu.bogomips",
@@ -658,7 +658,7 @@ class CliCommandsTests(unittest.TestCase):
 
         with self.assertRaises(SystemExit):
             sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
-                        "--reset", "--reportfile",
+                        "--reportfile",
                         TMP_TEST_REPORT, "--facts",
                         "bad.fact1", "bad.fact2", "ansible_forks",
                         "100", "--vault", TMP_VAULT_PASS]

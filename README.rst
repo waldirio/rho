@@ -72,13 +72,13 @@ roles are used by ``rho_playbook.yml`` to perform the fact collection.
 Running the scan is simple. Just point the rho tool to the profile
 to use, the facts to collect and print the results to a CSV output file.
 Optional parameters are the number of processes Ansible should use and whether
-or not to process the profile using ``--reset``. A newly created or
-freshly edited profile has to be processed using reset so that it creates
-an Ansible inventory called ``<profile name>_hosts`` that includes the working
-hosts matched with an auth each (the auths are chosen in the order passed in
-to the profile add or edit command as will be explained later).
+or not to process the profile using ``--cache``. A newly created or
+freshly edited profile cannot be processed using cache as the program must
+create an Ansible inventory called ``<profile name>_hosts.yml`` that includes the
+working hosts matched with an auth each (the auths are chosen in the order
+passed in to the profile add or edit command as will be explained later).
 
-``rho scan --reset --profile big_test --facts data/facts_eg --ansible_forks 100 --reportfile rep.csv``
+``rho scan --profile big_test --facts data/facts_eg --ansible_forks 100 --reportfile rep.csv``
 
 The output is simple CSV format. If 'default' is the argument for ``--facts``,
 the csv output contains the following information:

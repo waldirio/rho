@@ -3,9 +3,9 @@ Example rho Scan
 ^^^^^^^^^^^^^^^^^
 
 Following is the results of an example rho scan. This is the example of the
-profile called 'big_test' and it's host auth mapping
-after the original reset. This is for the scan performed on Wed Aug 10 23:33:17
-2016. Below you will find the example contents for:
+profile called 'big_test' and it's host auth mapping utilizing the cached
+connection data. This is for the scan performed on Wed Aug 10 23:33:17 2016.
+Below you will find the example contents for:
 
 - Host Auth Mapping
 - Output

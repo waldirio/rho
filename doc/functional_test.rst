@@ -91,6 +91,6 @@ commands to execute a scan using `rho`::
 
   rho auth add --name=test --username=vagrant --sshkeyfile=~/.ssh/id_rsa.pub
   rho profile add --name=all_test --hosts 192.168.50.[10:12] --auth test
-  rho scan --profile=all_test --reset --facts default --reportfile=out.csv
+  rho scan --profile=all_test --reportfile=out.csv
 
 You should be able to view the output of the scan in your local directory.

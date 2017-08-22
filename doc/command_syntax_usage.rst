@@ -56,19 +56,19 @@ where ``hosts_file`` contains the ip address or ranges separated by newlines::
 ^^^^^^^^^
 Scanning
 ^^^^^^^^^
-The arguments required for a scan are the profile to use, the file path for the report
-and the facts to be collected. Optionally we can pass the number of Ansible forks.
-Finally an important argument is ``reset``. This tells rho that the profile you are
-passing in is either new or has been updated with changes in either the hosts or
-auths or both and that rho has to process it afresh.
+The options required for a scan are the profile to use and the file path for
+the report. Optionally we can pass the number of Ansible forks and the facts to
+be collected. Finally the ``cache`` option tells rho that the profile you are
+providing has already been processed for connection mappings.
 
-``rho scan --reset --profile=profile1 --facts default --reportfile=report.csv``
+``rho scan --profile=profile1 --reportfile=report.csv``
 
-Since rho collects the successful host auth mappings from a full scan with reset
+Since rho collects the successful host auth mappings from a full scan
 the user doesn't have to worry about iterating through multiple auths and hosts
-again and again in the same profile as long as the profile hasn't changed.
-For purposes of record keeping the host mapping files are always written to whenever
-a scan is done using a profile. When profiles are deleted the host auth mappings
+again and again in the same profile as long as the profile hasn't changed when
+utilizing the ``cache`` option. For purposes of record keeping the host
+mapping files are always written to whenever a scan is done using a profile.
+When profiles are deleted the host auth mappings
 corresponding to the profile are renamed with prefix *(DELETED PROFILE)* so that
 they are recognizable. Every scan has a timestamp in the mappings.
 
@@ -163,7 +163,7 @@ this contains a large amount of information about the operating system, hardware
 - ``virt-what.type`` - What type of virtualization a system is running
 
 The output can then be configured to contain any combination of these fields by using the
-``--facts`` argument. The following is the format rho understands for all the facts. Some or all
+``--facts`` option. The following is the format rho understands for all the facts. Some or all
 of these facts can be requested by either as a CLI list i.e. ``--facts <fact_1> <fact_2>`` etc
 or by passing in a file with a new fact on every line in the format as follows. A value
 of 'default' will get all the information listed above.
@@ -194,6 +194,6 @@ represents the username used for the scan.
   scanuser ALL=NOPASSWD: SCAN
 
 If the scan user uses a password to sudo, one can be given with the
-`--sudo-password` argument to the `auth add` and `auth edit`
+`--sudo-password` option to the `auth add` and `auth edit`
 commands. The sudo-with-password fundtionality can be tested by using
 the 'askpass' box in the Vagrantfile.
