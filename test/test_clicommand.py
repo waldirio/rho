@@ -15,6 +15,7 @@
 
 import contextlib
 import unittest
+import csv
 import sys
 import os
 import tempfile
@@ -29,6 +30,7 @@ from rho.autheditcommand import AuthEditCommand
 from rho.authshowcommand import AuthShowCommand
 from rho.clicommand import CliCommand
 from rho.factlistcommand import FactListCommand
+from rho.factredactcommand import FactRedactCommand
 from rho.profileaddcommand import ProfileAddCommand
 from rho.profileclearcommand import ProfileClearCommand
 from rho.profileeditcommand import ProfileEditCommand
@@ -42,6 +44,7 @@ TMP_VAULT_PASS = "/tmp/vault_pass"
 TMP_FACTS = "/tmp/facts.txt"
 TMP_HOSTS = "/tmp/hosts.txt"
 TMP_TEST_REPORT = "/tmp/test_report.csv"
+TMP_TEST_REPORT_SENSITIVE = "/tmp/test_report_sensitive.csv"
 
 
 class HushUpStderr(object):
@@ -151,19 +154,19 @@ class CliCommandsTests(unittest.TestCase):
         if os.path.isfile(TMP_FACTS):
             os.remove(TMP_FACTS)
         with open(TMP_FACTS, 'w') as facts_file:
-            # Username_uname.hostname
-            # Username_uname.os
-            # Date_date.date
-            # Cpu_cpu.bogomips
-            # Cpu_cpu.vendor_id
-            # RedhatRelease_redhat-release.name
-            # RedhatPackages_redhat-packages.num_installed_packages
-            facts_file.write('Username_uname.hostname\n')
-            facts_file.write('Username_uname.os\n')
-            facts_file.write('Date_date.date\n')
-            facts_file.write('Cpu_cpu.bogomips\n')
-            facts_file.write('Cpu_cpu.vendor_id\n')
-            facts_file.write('RedhatRelease_redhat-release.name\n')
+            # uname.hostname
+            # uname.os
+            # date.date
+            # cpu.bogomips
+            # cpu.vendor_id
+            # redhat-release.name
+            # redhat-packages.num_installed_packages
+            facts_file.write('uname.hostname\n')
+            facts_file.write('uname.os\n')
+            facts_file.write('date.date\n')
+            facts_file.write('cpu.bogomips\n')
+            facts_file.write('cpu.vendor_id\n')
+            facts_file.write('redhat-release.name\n')
 
         if os.path.isfile(TMP_HOSTS):
             os.remove(TMP_HOSTS)
@@ -179,6 +182,42 @@ class CliCommandsTests(unittest.TestCase):
             hosts_file.write('192.168.124.153\n')
             hosts_file.write('192.168.124.[150:200]\n')
 
+            report_keys = {'subman.cpu.core(s)_per_socket',
+                           'dmi.processor-family',
+                           'uname.processor',
+                           'dmi.system-manufacturer',
+                           'redhat-release.version',
+                           'redhat-release.release',
+                           'uname.hostname',
+                           'uname.kernel',
+                           'cpu.cpu_family',
+                           'date.machine_id',
+                           'jboss.installed-versions',
+                           'uname.hardware_platform'}
+            report = [{'subman.cpu.core(s)_per_socket': '1',
+                       'dmi.processor-family': 'UnknownUnknown',
+                       'uname.processor': 'x86_64',
+                       'dmi.system-manufacturer': 'VMware, Inc.',
+                       'redhat-release.version': '7.4',
+                       'redhat-release.release': '18.el7',
+                       'uname.hostname': 'dhcp181-175.gsslab.rdu2.redhat.com',
+                       'uname.kernel': '3.10.0-693.el7.x86_64',
+                       'cpu.cpu_family': '6',
+                       'date.machine_id': '2017-07-18',
+                       'jboss.installed-versions': 'WildFly-10',
+                       'uname.hardware_platform': 'x86_64'}]
+            with open(TMP_TEST_REPORT_SENSITIVE, 'wb') as data_temp:
+                writer = csv.DictWriter(data_temp,
+                                        fieldnames=sorted(report_keys),
+                                        delimiter=',')
+
+                # Write a CSV header if necessary
+                writer.writeheader()
+
+                # Write the data
+                for row in report:
+                    writer.writerow(row)
+
     def tearDown(self):
         # Restore stderr
         sys.stderr = self.orig_stderr
@@ -193,6 +232,9 @@ class CliCommandsTests(unittest.TestCase):
 
         if os.path.isfile(TMP_HOSTS):
             os.remove(TMP_HOSTS)
+
+        if os.path.isfile(TMP_TEST_REPORT_SENSITIVE):
+            os.remove(TMP_TEST_REPORT_SENSITIVE)
 
     # pylint: disable=unused-argument
     @mock.patch('uuid.uuid4', return_value=1)
@@ -320,6 +362,46 @@ class CliCommandsTests(unittest.TestCase):
 
         sys.argv = ['/bin/rho', 'fact', 'list']
         FactListCommand().main()
+
+    def test_fact_list_filter(self):
+        """Test that the 'fact list' command finishes successfully"""
+
+        sys.argv = ['/bin/rho', 'fact', 'list', '--filter', 'uname.*']
+        FactListCommand().main()
+
+    def test_redact_no_report_specified(self):
+        """Test that the 'fact redact' command fails as expected
+         if the reportfile is missing"""
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', 'fact', 'redact']
+            FactRedactCommand().main()
+
+    def test_redact_no_report_found(self):
+        """Test that the 'fact redact' command fails as expected
+         if the reportfile is doesn't exist"""
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', 'fact', 'redact',
+                        '--reportfile', 'no_report.csv']
+            FactRedactCommand().main()
+
+    def test_fact_redact(self):
+        """Test that the 'fact redact' command runs successfully"""
+
+        sys.argv = ['/bin/rho', 'fact', 'redact',
+                    '--reportfile', TMP_TEST_REPORT_SENSITIVE]
+        FactRedactCommand().main()
+
+    def test_fact_redact_bad_facts(self):
+        """Test that the 'fact redact' command fails as expected
+         if the reportfile is doesn't exist"""
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', 'fact', 'redact',
+                        '--reportfile', TMP_TEST_REPORT_SENSITIVE,
+                        '--facts', 'foo']
+            FactRedactCommand().main()
 
     def test_profile_add_hosts_list(self):
         """Test the profile command adding a profile with a list and

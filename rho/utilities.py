@@ -24,6 +24,11 @@ PLAYBOOK_RPM_PATH = '/usr/share/ansible/rho/rho_playbook.yml'
 
 PASSWORD_MASKING = '********'
 
+SENSITIVE_FACTS_TUPLE = ('connection.host',
+                         'connection.port',
+                         'uname.all',
+                         'uname.hostname')
+
 CONNECTION_FACTS_TUPLE = ('connection.host',
                           'connection.port',
                           'connection.uuid')

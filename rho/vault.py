@@ -14,8 +14,7 @@ from __future__ import print_function
 import os
 import sys
 import json
-import uuid
-from tempfile import gettempdir
+import tempfile
 from shutil import move
 from getpass import getpass
 import yaml
@@ -137,13 +136,10 @@ class Vault(object):
         :param obj: Python object to convert to json
         :param file_path: The file to write data to via temp file
         """
-        tempdir = gettempdir()
-        tempfilename = 'tmp_' + str(uuid.uuid4())
-        temppath = os.path.join(tempdir, tempfilename)
-        with open(temppath, 'wb') as data_temp:
+        with tempfile.NamedTemporaryFile(mode='wb', delete=False) as data_temp:
             self.dump_as_json(obj, data_temp)
         data_temp.close()
-        move(temppath, os.path.abspath(file_path))
+        move(data_temp.name, os.path.abspath(file_path))
 
     def dump_as_yaml(self, obj, stream=None):
         """ Convert object to yaml and encrypt the data.
@@ -159,10 +155,7 @@ class Vault(object):
         :param obj: Python object to convert to yaml
         :param file_path: The file to write data to via temp file
         """
-        tempdir = gettempdir()
-        tempfilename = 'tmp_' + str(uuid.uuid4())
-        temppath = os.path.join(tempdir, tempfilename)
-        with open(temppath, 'wb') as data_temp:
+        with tempfile.NamedTemporaryFile(mode='wb', delete=False) as data_temp:
             self.dump_as_yaml(obj, data_temp)
         data_temp.close()
-        move(temppath, os.path.abspath(file_path))
+        move(data_temp.name, os.path.abspath(file_path))
