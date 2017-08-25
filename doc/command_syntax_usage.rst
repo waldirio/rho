@@ -22,6 +22,7 @@ There are four rho commands:
   * ``list`` - to display the list of facts that can be scanned
   * ``redact`` - to remove sensitive facts from a scanned report
   * ``encrypt`` - to encrypt sensitive facts within report
+  * ``decrypt`` - to decrypt sensitive facts within report
 
 The complete list of options for each command and subcommand are listed in the
 rho manpage with other usage examples. The common options are listed with the

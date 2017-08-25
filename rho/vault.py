@@ -94,7 +94,7 @@ class Vault(object):
         try:
             return self.vault.decrypt(stream)
         except AnsibleError:
-            print(t("Unable to decrypt file using given vault password"))
+            print(t("Unable to decrypt using given password"))
             sys.exit(1)
 
     def load_secure_file(self, secure_file):
