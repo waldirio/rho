@@ -32,6 +32,7 @@ from rho.clicommand import CliCommand
 from rho.factlistcommand import FactListCommand
 from rho.factredactcommand import FactRedactCommand
 from rho.factencryptcommand import FactEncryptCommand
+from rho.factdecryptcommand import FactDecryptCommand
 from rho.profileaddcommand import ProfileAddCommand
 from rho.profileclearcommand import ProfileClearCommand
 from rho.profileeditcommand import ProfileEditCommand
@@ -432,6 +433,34 @@ class CliCommandsTests(unittest.TestCase):
                         '--reportfile', TMP_TEST_REPORT_SENSITIVE,
                         '--facts', 'foo']
             FactEncryptCommand().main()
+
+    def test_decrypt_no_report(self):
+        """Test that the 'fact decrypt' command fails as expected
+         if the reportfile is missing"""
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', 'fact', 'decrypt']
+            FactDecryptCommand().main()
+
+    def test_decrypt_no_report_found(self):
+        """Test that the 'fact decrypt' command fails as expected
+         if the reportfile is doesn't exist"""
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', 'fact', 'decrypt',
+                        '--reportfile', 'no_report.csv']
+            FactDecryptCommand().main()
+
+    def test_fact_decrypt_bad_facts(self):
+        """Test that the 'fact decrypt' command fails as expected
+         if the facts to decrypt are invalid
+        """
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', 'fact', 'decrypt',
+                        '--reportfile', TMP_TEST_REPORT_SENSITIVE,
+                        '--facts', 'foo']
+            FactDecryptCommand().main()
 
     def test_profile_add_hosts_list(self):
         """Test the profile command adding a profile with a list and
