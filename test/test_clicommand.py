@@ -31,6 +31,7 @@ from rho.authshowcommand import AuthShowCommand
 from rho.clicommand import CliCommand
 from rho.factlistcommand import FactListCommand
 from rho.factredactcommand import FactRedactCommand
+from rho.factencryptcommand import FactEncryptCommand
 from rho.profileaddcommand import ProfileAddCommand
 from rho.profileclearcommand import ProfileClearCommand
 from rho.profileeditcommand import ProfileEditCommand
@@ -395,13 +396,42 @@ class CliCommandsTests(unittest.TestCase):
 
     def test_fact_redact_bad_facts(self):
         """Test that the 'fact redact' command fails as expected
-         if the reportfile is doesn't exist"""
+         if the facts to redact are invalid
+        """
 
         with self.assertRaises(SystemExit):
             sys.argv = ['/bin/rho', 'fact', 'redact',
                         '--reportfile', TMP_TEST_REPORT_SENSITIVE,
                         '--facts', 'foo']
             FactRedactCommand().main()
+
+    def test_encrypt_no_report(self):
+        """Test that the 'fact encrypt' command fails as expected
+         if the reportfile is missing"""
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', 'fact', 'encrypt']
+            FactEncryptCommand().main()
+
+    def test_encrypt_no_report_found(self):
+        """Test that the 'fact encrypt' command fails as expected
+         if the reportfile is doesn't exist"""
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', 'fact', 'encrypt',
+                        '--reportfile', 'no_report.csv']
+            FactEncryptCommand().main()
+
+    def test_fact_encrypt_bad_facts(self):
+        """Test that the 'fact encrypt' command fails as expected
+         if the facts to encrypt are invalid
+        """
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', 'fact', 'encrypt',
+                        '--reportfile', TMP_TEST_REPORT_SENSITIVE,
+                        '--facts', 'foo']
+            FactEncryptCommand().main()
 
     def test_profile_add_hosts_list(self):
         """Test the profile command adding a profile with a list and

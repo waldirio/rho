@@ -14,6 +14,9 @@ from __future__ import print_function
 import os
 import sys
 import re
+import csv
+import tempfile
+from shutil import move
 from rho.translation import _
 
 CREDENTIALS_PATH = 'data/credentials'
@@ -233,3 +236,25 @@ def iteritems(dictionary):
         return dictionary.iteritems()
 
     return dictionary.items()
+
+
+def write_csv_data(keys, data, path):
+    """ Write csv data with input fieldnames a dictionary of data and
+    the file path to write to.
+    :param keys: The field names and keys of the dictionary
+    :param data: The dictionary of data to convert to csv
+    :param path: The file path to write to
+    """
+    with tempfile.NamedTemporaryFile(mode='wb', delete=False) as data_temp:
+        # Construct the CSV writer
+        writer = csv.DictWriter(
+            data_temp, fieldnames=sorted(keys), delimiter=',')
+
+        # Write a CSV header if necessary
+        writer.writeheader()
+
+        # Write the data
+        for row in data:
+            writer.writerow(row)
+    data_temp.close()
+    move(data_temp.name, path)

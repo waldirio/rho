@@ -29,6 +29,7 @@ from rho.authlistcommand import AuthListCommand  # noqa
 from rho.authshowcommand import AuthShowCommand  # noqa
 from rho.factlistcommand import FactListCommand  # noqa
 from rho.factredactcommand import FactRedactCommand  # noqa
+from rho.factencryptcommand import FactEncryptCommand  # noqa
 from rho.profileaddcommand import ProfileAddCommand  # noqa
 from rho.profileclearcommand import ProfileClearCommand  # noqa
 from rho.profileeditcommand import ProfileEditCommand  # noqa
