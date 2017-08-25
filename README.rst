@@ -166,9 +166,10 @@ There are four rho commands:
  * ``show`` - to display a specific entry
  * ``list`` - to display one or more entries
 
- ``fact`` has two subcommands:
+ ``fact`` has three subcommands:
    * ``list`` - to display the list of facts that can be scanned
    * ``redact`` - to remove sensitive facts from a scanned report
+   * ``encrypt`` - to encrypt sensitive facts within report
 
 The complete list of options for each command and subcommand are listed in the
 rho manpage with other usage examples. The common options are listed with the

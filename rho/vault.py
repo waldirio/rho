@@ -22,6 +22,8 @@ from ansible.parsing.vault import VaultLib
 from ansible.errors import AnsibleError
 from rho.translation import _ as t
 
+PROMPT = "Please enter your rho vault password: "
+
 
 def represent_none(self, _):
     """ Render None with nothing in yaml string when dumped """
@@ -47,13 +49,12 @@ def read_vault_password(vault_password_file):
     return vault_password
 
 
-def get_vault_password():
+def get_vault_password(prompt=PROMPT):
     """ Requests the users password from the command line """
-    prompt = "Please enter your rho vault password: "
     return getpass("\033[01;36m" + prompt + "\033[0m")
 
 
-def get_vault_and_password(vaultfile=None):
+def get_vault_and_password(vaultfile=None, prompt=PROMPT):
     """ Helper method that will get the vault password via input file or from
     standard input and then initialize a vault for users
     :param vaultfile: The location of a file with the vault password
@@ -63,18 +64,18 @@ def get_vault_and_password(vaultfile=None):
     if vaultfile:
         vault_pass = read_vault_password(vaultfile)
     if vault_pass is None:
-        vault_pass = get_vault_password()
+        vault_pass = get_vault_password(prompt)
     return Vault(vault_pass), vault_pass
 
 
-def get_vault(vaultfile=None):
+def get_vault(vaultfile=None, prompt=PROMPT):
     """ Helper method that will get the vault password via input file or from
     standard input and then initialize a vault for users
     :param vaultfile: The location of a file with the vault password
     :returns: An initialized vault
     """
     # pylint: disable=unused-variable
-    vault, vault_pass = get_vault_and_password(vaultfile)
+    vault, vault_pass = get_vault_and_password(vaultfile, prompt)
     return vault
 
 
