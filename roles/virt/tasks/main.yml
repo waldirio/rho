@@ -29,26 +29,30 @@
   when: '"virt.virt" in facts_to_collect or "virt.type" in facts_to_collect'
 
 - name: check system manufacture for VMware
-  raw: manufacturer=$(sudo -n /usr/sbin/dmidecode | grep -A4 'System Information' | grep 'Manufacturer' | sed -n -e 's/^.*Manufacturer:\s//p'); if [[ $manufacturer == *"VMware"* ]]; then echo "Y"; else echo "N"; fi
+  raw: manufacturer=$(/usr/sbin/dmidecode | grep -A4 'System Information' | grep 'Manufacturer' | sed -n -e 's/^.*Manufacturer:\s//p'); if [[ $manufacturer == *"VMware"* ]]; then echo "Y"; else echo "N"; fi
   register: sys_manu_vmware
+  become: yes
   ignore_errors: yes
   when: '"virt.virt" in facts_to_collect or "virt.type" in facts_to_collect'
 
 - name: check system manufacture for innotek GmbH
-  raw: manufacturer=$(sudo -n /usr/sbin/dmidecode | grep -A4 'System Information' | grep 'Manufacturer' | sed -n -e 's/^.*Manufacturer:\s//p'); if [[ $manufacturer == *"innotek GmbH"* ]]; then echo "Y"; else echo "N"; fi
+  raw: manufacturer=$(/usr/sbin/dmidecode | grep -A4 'System Information' | grep 'Manufacturer' | sed -n -e 's/^.*Manufacturer:\s//p'); if [[ $manufacturer == *"innotek GmbH"* ]]; then echo "Y"; else echo "N"; fi
   register: sys_manu_virtualbox
+  become: yes
   ignore_errors: yes
   when: '"virt.virt" in facts_to_collect or "virt.type" in facts_to_collect'
 
 - name: check system manufacture for Microsoft
-  raw: manufacturer=$(sudo -n /usr/sbin/dmidecode | grep -A4 'System Information' | grep 'Manufacturer' | sed -n -e 's/^.*Manufacturer:\s//p'); if [[ $manufacturer == *"Microsoft"* ]]; then echo "Y"; else echo "N"; fi
+  raw: manufacturer=$(/usr/sbin/dmidecode | grep -A4 'System Information' | grep 'Manufacturer' | sed -n -e 's/^.*Manufacturer:\s//p'); if [[ $manufacturer == *"Microsoft"* ]]; then echo "Y"; else echo "N"; fi
   register: sys_manu_virtualpc
+  become: yes
   ignore_errors: yes
   when: '"virt.virt" in facts_to_collect or "virt.type" in facts_to_collect'
 
 - name: check system manufacture for QEMU
-  raw: manufacturer=$(sudo -n /usr/sbin/dmidecode | grep -A4 'System Information' | grep 'Manufacturer' | sed -n -e 's/^.*Manufacturer:\s//p'); if [[ $manufacturer == *"QEMU"* ]]; then echo "Y"; else echo "N"; fi
+  raw: manufacturer=$(/usr/sbin/dmidecode | grep -A4 'System Information' | grep 'Manufacturer' | sed -n -e 's/^.*Manufacturer:\s//p'); if [[ $manufacturer == *"QEMU"* ]]; then echo "Y"; else echo "N"; fi
   register: sys_manu_kvm
+  become: yes
   ignore_errors: yes
   when: '"virt.virt" in facts_to_collect or "virt.type" in facts_to_collect'
 

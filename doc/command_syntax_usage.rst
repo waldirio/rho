@@ -182,8 +182,13 @@ scan does not have the appropriate permissions to execute the command used to
 gather the targeted facts. The following set of facts require *admin/root*
 permissions to collect the facts:
 
+- ``cpu.socket_count``
+- ``date.anaconda_log``
+- ``date.yum_history``
 - ``dmi.x``
 - ``subman.x``
+- ``virt.virt``
+- ``virt.type``
 - ``virt-what.x``
 
 The scan user can successful collect these values if the user is **root** or

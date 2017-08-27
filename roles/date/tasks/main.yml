@@ -20,12 +20,13 @@
 - name: gather date.anaconda_log fact
   raw: ls --full-time /root/anaconda-ks.cfg | grep -o '[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}'
   register: date_anaconda_log
+  become: yes
   ignore_errors: yes
   when: '"date.anaconda_log" in facts_to_collect'
 
 - name: add date.anaconda_log to dictionary
   set_fact:
-    date: "{{ date|default({}) | combine({ item: date_anaconda_log['stdout_lines'][0] | default('error') }) }}"
+    date: "{{ date|default({}) | combine({ item: date_anaconda_log['stdout'] | trim | default('error') }) }}"
   with_items:
   - 'date.anaconda_log'
   when: '"date.anaconda_log" in facts_to_collect'
@@ -59,12 +60,13 @@
 - name: gather date.yum_history fact
   raw: yum history | tail -n 4 | grep -o '[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}'
   register: date_yum_history
+  become: yes
   ignore_errors: yes
   when: '"date.yum_history" in facts_to_collect'
 
 - name: add date.yum_history to dictionary
   set_fact:
-    date: "{{ date|default({}) | combine({ item: date_yum_history['stdout_lines'][0] | default('error') }) }}"
+    date: "{{ date|default({}) | combine({ item: date_yum_history['stdout_lines'] | select | first | default('error') }) }}"
   with_items:
   - 'date.yum_history'
   when: '"date.yum_history" in facts_to_collect'
