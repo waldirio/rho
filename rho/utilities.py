@@ -245,7 +245,7 @@ def write_csv_data(keys, data, path):
     :param data: The dictionary of data to convert to csv
     :param path: The file path to write to
     """
-    with tempfile.NamedTemporaryFile(mode='wb', delete=False) as data_temp:
+    with tempfile.NamedTemporaryFile(mode='w', delete=False) as data_temp:
         # Construct the CSV writer
         writer = csv.DictWriter(
             data_temp, fieldnames=sorted(keys), delimiter=',')

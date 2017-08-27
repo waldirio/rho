@@ -81,7 +81,7 @@ class FactRedactCommand(CliCommand):
         data = []
         keys = None
         normalized_path = os.path.normpath(self.options.report_path)
-        with open(normalized_path, 'rb') as read_file:
+        with open(normalized_path, 'r') as read_file:
             reader = csv.DictReader(read_file, delimiter=',')
             for row in reader:
                 for fact in self.facts_to_redact:
@@ -100,7 +100,7 @@ class FactRedactCommand(CliCommand):
             print(_("Fact %s was not present in %s" %
                     (fact, self.options.report_path)))
 
-        with tempfile.NamedTemporaryFile(mode='wb', delete=False) as data_temp:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False) as data_temp:
             # Construct the CSV writer
             writer = csv.DictWriter(
                 data_temp, fieldnames=sorted(keys), delimiter=',')

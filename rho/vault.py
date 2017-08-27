@@ -127,6 +127,7 @@ class Vault(object):
         """ Convert object to json and encrypt the data.
         :param obj: Python object to convert to json
         :param stream: If not None the location to write the encrypted data to.
+          If this is a file in Python 3, it must be open in binary mode.
         :returns: If stream is None then the encrypted bytes otherwise None.
         """
         data = json.dumps(obj, separators=(',', ': '))
@@ -137,7 +138,7 @@ class Vault(object):
         :param obj: Python object to convert to json
         :param file_path: The file to write data to via temp file
         """
-        with tempfile.NamedTemporaryFile(mode='wb', delete=False) as data_temp:
+        with tempfile.NamedTemporaryFile(delete=False) as data_temp:
             self.dump_as_json(obj, data_temp)
         data_temp.close()
         move(data_temp.name, os.path.abspath(file_path))
@@ -156,7 +157,7 @@ class Vault(object):
         :param obj: Python object to convert to yaml
         :param file_path: The file to write data to via temp file
         """
-        with tempfile.NamedTemporaryFile(mode='wb', delete=False) as data_temp:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False) as data_temp:
             self.dump_as_yaml(obj, data_temp)
         data_temp.close()
         move(data_temp.name, os.path.abspath(file_path))

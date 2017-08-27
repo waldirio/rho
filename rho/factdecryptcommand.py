@@ -87,7 +87,7 @@ class FactDecryptCommand(CliCommand):
         data = []
         keys = None
 
-        with open(path, 'rb') as read_file:
+        with open(path, 'r') as read_file:
             reader = csv.DictReader(read_file, delimiter=',')
             for row in reader:
                 for fact in self.facts_to_decrypt:
