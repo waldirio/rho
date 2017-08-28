@@ -762,6 +762,48 @@ class CliCommandsTests(unittest.TestCase):
             with redirect_credentials([]):
                 ScanCommand().main()
 
+    def test_scan_facts_all(self):
+        """Test utilizing the scan command exercising the collection
+        the all facts with 100 ansible forks
+        """
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
+                        "--reportfile",
+                        TMP_TEST_REPORT, "--facts",
+                        "all", "ansible_forks",
+                        "100", "--vault", TMP_VAULT_PASS]
+            with redirect_credentials([]):
+                ScanCommand().main()
+
+    def test_scan_facts_rhel(self):
+        """Test utilizing the scan command exercising the collection
+        the rhel facts with 100 ansible forks
+        """
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
+                        "--reportfile",
+                        TMP_TEST_REPORT, "--facts",
+                        "rhel", "ansible_forks",
+                        "100", "--vault", TMP_VAULT_PASS]
+            with redirect_credentials([]):
+                ScanCommand().main()
+
+    def test_scan_facts_jboss(self):
+        """Test utilizing the scan command exercising the collection
+        the jboss facts with 100 ansible forks
+        """
+
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
+                        "--reportfile",
+                        TMP_TEST_REPORT, "--facts",
+                        "jboss", "ansible_forks",
+                        "100", "--vault", TMP_VAULT_PASS]
+            with redirect_credentials([]):
+                ScanCommand().main()
+
     def test_scan_facts_file(self):
         """Test utilizing the scan command exercising the collection
         the facts from an input facts file with 100 ansible forks

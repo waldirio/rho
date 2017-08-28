@@ -399,15 +399,21 @@ class ScanCommand(CliCommand):
 
         # perform fact validation
         facts = self.options.facts
-        if facts == [] or facts == ['default']:
-            self.facts_to_collect = list(utilities.DEFAULT_FACTS_TUPLE)
+        if facts == [] or facts == ['default'] or facts == ['all']:
+            self.facts_to_collect = list(utilities.DEFAULT_FACTS)
+        elif facts == ['jboss']:
+            self.facts_to_collect = list(utilities.JBOSS_FACTS +
+                                         utilities.CONNECTION_FACTS_TUPLE)
+        elif facts == ['rhel']:
+            self.facts_to_collect = list(utilities.RHEL_FACTS +
+                                         utilities.CONNECTION_FACTS_TUPLE)
         elif os.path.isfile(facts[0]):
             self.facts_to_collect = _read_in_file(facts[0])
         else:
             assert isinstance(facts, list)
             self.facts_to_collect = facts
-        # check facts_to_collect is subset of utilities.DEFAULT_FACTS_TUPLE
-        all_facts = utilities.DEFAULT_FACTS_TUPLE
+        # check facts_to_collect is subset of utilities.DEFAULT_FACTS
+        all_facts = utilities.DEFAULT_FACTS
         facts_to_collect_set = set(self.facts_to_collect)
         if not facts_to_collect_set.issubset(all_facts):
             invalid_facts = facts_to_collect_set.difference(all_facts)
