@@ -83,14 +83,15 @@
   when: '"cpu.count" in facts_to_collect'
 
 - name: gather cpu.socket_count fact
-  raw: sudo -n /usr/sbin/dmidecode -t 4 | grep 'Socket Designation'| wc -l
+  raw: /usr/sbin/dmidecode -t 4 | grep 'Socket Designation'| wc -l
   register: cpu_socket_count
+  become: yes
   ignore_errors: yes
   when: '"cpu.socket_count" in facts_to_collect'
 
 - name: add cpu.socket_count to dictionary
   set_fact:
-    cpu: "{{ cpu|default({}) | combine({ item: cpu_socket_count['stdout_lines'][0] | default('error') }) }}"
+    cpu: "{{ cpu|default({}) | combine({ item: cpu_socket_count['stdout'] | trim | default('error') }) }}"
   with_items:
   - 'cpu.socket_count'
   when: '"cpu.socket_count" in facts_to_collect'
