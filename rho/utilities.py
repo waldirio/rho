@@ -17,7 +17,14 @@ import re
 import csv
 import tempfile
 from shutil import move
+import sh
 from rho.translation import _
+
+if sys.version_info > (3,):
+    import _thread
+else:
+    import thread as _thread  # pylint: disable=import-error
+
 
 CREDENTIALS_PATH = 'data/credentials'
 PROFILES_PATH = 'data/profiles'
@@ -116,6 +123,50 @@ DEFAULT_FACTS_TUPLE = SUBMAN_FACTS_TUPLE + DATE_FACTS_TUPLE \
     + REDHAT_RELEASE_FACTS_TUPLE + UNAME_FACTS_TUPLE \
     + JBOSS_FACTS_TUPLE + BRMS_FACTS_TUPLE + FUSE_FACTS_TUPLE \
     + CONNECTION_FACTS_TUPLE
+
+
+def threaded_tailing(path, ansible_verbosity=0):
+    """Follow and provide output using a thread
+    :param path: path to file to follow
+    :param ansible_verbosity: the verbosity level
+    """
+
+    _thread.start_new_thread(tail_and_follow, (path, ansible_verbosity))
+
+
+def tail_and_follow(path, ansible_verbosity):
+    """Follow and provide output
+    :param path: tuple containing thepath to file to follow
+    :param ansible_verbosity: the verbosity level
+    """
+    if len(path) > 0:  # pylint: disable=len-as-condition
+        truncate = 1
+        if ansible_verbosity:
+            truncate = ansible_verbosity
+
+        print_line = truncate
+        plabook_started = False
+        truncated = False
+
+        # pylint: disable=no-member
+        for line in sh.tail('-f', '-n', '+0', path, _iter=True):
+            line = line.strip('\n')
+            if line.startswith('TASK') or line.startswith('PLAY'):
+                print(line)
+                print_line = truncate
+                plabook_started = True
+                truncated = False
+            elif print_line > 0:
+                line_len = len(line)
+                char_truncate = truncate * 100
+                if line_len > char_truncate:
+                    print(line[0:char_truncate] + '...')
+                else:
+                    print(line)
+                print_line = print_line - 1
+            elif print_line == 0 and not truncated and plabook_started:
+                print(_('-- output truncated --'))
+                truncated = True
 
 
 def ensure_config_dir_exists():

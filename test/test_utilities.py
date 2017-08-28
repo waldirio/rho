@@ -9,13 +9,37 @@
 
 """Unit tests for rho/utilities.py."""
 
+import contextlib
+import sys
+import os
+import time
 import unittest
+import six
 from rho import utilities
 
 # pylint: disable=missing-docstring
+TMP_FOLLOW = "/tmp/follow.txt"
+
+
+@contextlib.contextmanager
+def redirect_stdout(stream):
+    """Run a code block, capturing stdout to the given stream"""
+
+    old_stdout = sys.stdout
+    try:
+        sys.stdout = stream
+        yield
+    finally:
+        sys.stdout = old_stdout
 
 
 class TestValidatePort(unittest.TestCase):
+    def setUp(self):
+        if os.path.isfile(TMP_FOLLOW):
+            os.remove(TMP_FOLLOW)
+        with open(TMP_FOLLOW, 'w') as follow_file:
+            follow_file.write('follow\n')
+
     def test_wrong_type(self):
         with self.assertRaises(ValueError):
             utilities.validate_port([1, 2, 3])
@@ -37,3 +61,10 @@ class TestValidatePort(unittest.TestCase):
 
     def test_valid_int_port(self):
         self.assertEqual(utilities.validate_port(123), 123)
+
+    def test_threaded_tailing(self):
+        follow_list_out = six.StringIO()
+        with redirect_stdout(follow_list_out):
+            utilities.threaded_tailing(TMP_FOLLOW, 3)
+            time.sleep(2)
+            self.assertEqual(follow_list_out.getvalue(), 'follow\n')

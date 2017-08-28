@@ -1,6 +1,7 @@
 ansible
 pexpect
 future
+sh
 
 # These requirements are for DEVELOPMENT ONLY!
 -r dev-requirements.txt

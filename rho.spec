@@ -23,6 +23,7 @@ Requires: python-enum34
 Requires: python-yaml
 Requires: epel-release
 Requires: python2-future
+Requires: python2-sh
 
 %description
 Rho is a tool for scanning your network, logging into systems via SSH, and

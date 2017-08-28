@@ -19,7 +19,6 @@ import sys
 import re
 import time
 import json
-import subprocess
 from collections import defaultdict
 import pexpect
 import yaml
@@ -304,8 +303,7 @@ def run_ansible_with_vault(cmd_string, vault_pass, ssh_key_passphrase=None,
                                   env=env)
 
             if log_to_stdout:
-                tail = subprocess.Popen(['tail', '-f', '-n', '+0',
-                                         log_path])
+                utilities.threaded_tailing(log_path, ansible_verbosity)
 
             result = child.expect('Vault password:')
             child.sendline(vault_pass)
@@ -324,7 +322,6 @@ def run_ansible_with_vault(cmd_string, vault_pass, ssh_key_passphrase=None,
                 child.wait()
             if log_to_stdout:
                 time.sleep(2)
-                tail.terminate()
 
         return child
     except pexpect.EOF:
