@@ -213,12 +213,18 @@ def _read_in_file(filename):
 
 # Makes sure the hosts passed in are in a format Ansible
 # understands.
-def _check_range_validity(range_list):
+def check_range_validity(range_list):
+    """Checks the input range_list to see if it meets the Ansible
+    range criteria
+    :param range_list: list of hosts
+    """
     # pylint: disable=anomalous-backslash-in-string
-    regex_list = ['www\[[0-9]*:[0-9]*\].[a-z]*.[a-z]*',
-                  '[a-z]*-\[[a-z]*:[a-z]*\].[a-z]*.[a-z]*',
-                  '[0-9]*.[0-9]*.[0-9]'
-                  '*.\[[0-9]*:[0-9]*\]',
+    regex_list = ['[0-9]*.[0-9]*.[0-9]*.\[[0-9]*:[0-9]*\]',
+                  '[0-9]*.[0-9]*.\[[0-9]*:[0-9]*\].[0-9]*',
+                  '[0-9]*.[0-9]*.\[[0-9]*:[0-9]*\].\[[0-9]*:[0-9]*\]',
+                  '[a-zA-Z0-9-\.]+',
+                  '[a-zA-Z0-9-\.]*\[[0-9]*:[0-9]*\]*[a-zA-Z0-9-\.]*',
+                  '[a-zA-Z0-9-\.]*\[[a-zA-Z]*:[a-zA-Z]*\][a-zA-Z0-9-\.]*',
                   '^(([0-9]|[1-9][0-9]|1[0-9]'
                   '{2}|2[0-4][0-9]|25[0-5])\.)'
                   '{3}']
@@ -226,15 +232,16 @@ def _check_range_validity(range_list):
     for reg_item in range_list:
         match = False
         for reg in regex_list:
-            if re.match(reg, reg_item):
+            matches = re.findall(reg, reg_item)
+            if len(matches) == 1:
                 match = True
         if not match:
             if len(reg_item) <= 1:
-
                 print(_("No such hosts file."))
 
             print(_("Bad host name/range : '%s'") % reg_item)
             sys.exit(1)
+    return True
 
 
 def validate_port(arg):

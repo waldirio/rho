@@ -34,11 +34,6 @@ def redirect_stdout(stream):
 
 
 class TestValidatePort(unittest.TestCase):
-    def setUp(self):
-        if os.path.isfile(TMP_FOLLOW):
-            os.remove(TMP_FOLLOW)
-        with open(TMP_FOLLOW, 'w') as follow_file:
-            follow_file.write('follow\n')
 
     def test_wrong_type(self):
         with self.assertRaises(ValueError):
@@ -62,9 +57,41 @@ class TestValidatePort(unittest.TestCase):
     def test_valid_int_port(self):
         self.assertEqual(utilities.validate_port(123), 123)
 
+
+class TestTailing(unittest.TestCase):
+    def setUp(self):
+        if os.path.isfile(TMP_FOLLOW):
+            os.remove(TMP_FOLLOW)
+        with open(TMP_FOLLOW, 'w') as follow_file:
+            follow_file.write('follow\n')
+
     def test_threaded_tailing(self):
         follow_list_out = six.StringIO()
         with redirect_stdout(follow_list_out):
             utilities.threaded_tailing(TMP_FOLLOW, 3)
             time.sleep(2)
             self.assertEqual(follow_list_out.getvalue(), 'follow\n')
+
+
+class TestRangeValidity(unittest.TestCase):
+
+    def testcheck_range_validity(self):
+        valid_range_list = ['10.10.181.9',
+                            '10.10.128.[1:25]',
+                            '10.10.[1:20].25',
+                            '10.10.[1:20].[1:25]',
+                            'localhost',
+                            'mycentos.com',
+                            'my-rhel[a:d].company.com',
+                            'my-rhel[120:400].company.com']
+        result = utilities.check_range_validity(valid_range_list)
+        self.assertTrue(result)
+
+    def testcheck_range_validity_error(self):
+        valid_range_list = ['10.10.[181.9',
+                            '10.10.128.[a:25]',
+                            '10.10.[1-20].25',
+                            'my_rhel[a:d].company.com',
+                            'my-rhel[a:400].company.com']
+        with self.assertRaises(SystemExit):
+            utilities.check_range_validity(valid_range_list)

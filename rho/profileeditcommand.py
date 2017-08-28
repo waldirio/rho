@@ -20,7 +20,7 @@ import sys
 from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault
-from rho.utilities import multi_arg, _check_range_validity, _read_in_file
+from rho.utilities import multi_arg, check_range_validity, _read_in_file
 from rho.translation import _
 
 
@@ -111,7 +111,7 @@ class ProfileEditCommand(CliCommand):
 
             # makes sure the hosts passed in are in a format Ansible
             # understands.
-            _check_range_validity(range_list)
+            check_range_validity(range_list)
 
         for curr_profile in profiles_list:
             if curr_profile.get('name') == self.options.name:

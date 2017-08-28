@@ -21,7 +21,7 @@ from collections import OrderedDict
 from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault
-from rho.utilities import multi_arg, _check_range_validity, _read_in_file
+from rho.utilities import multi_arg, check_range_validity, _read_in_file
 from rho.translation import _
 
 
@@ -132,7 +132,7 @@ class ProfileAddCommand(CliCommand):
         if hosts_list and os.path.isfile(hosts_list[0]):
             range_list = _read_in_file(hosts_list[0])
 
-        _check_range_validity(range_list)
+        check_range_validity(range_list)
 
         if not os.path.isfile(utilities.CREDENTIALS_PATH):
             print(_('No credentials exist yet.'))
