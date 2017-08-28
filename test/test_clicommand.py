@@ -208,7 +208,7 @@ class CliCommandsTests(unittest.TestCase):
                        'date.machine_id': '2017-07-18',
                        'jboss.installed-versions': 'WildFly-10',
                        'uname.hardware_platform': 'x86_64'}]
-            with open(TMP_TEST_REPORT_SENSITIVE, 'wb') as data_temp:
+            with open(TMP_TEST_REPORT_SENSITIVE, 'w') as data_temp:
                 writer = csv.DictWriter(data_temp,
                                         fieldnames=sorted(report_keys),
                                         delimiter=',')
