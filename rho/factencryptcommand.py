@@ -66,8 +66,8 @@ class FactEncryptCommand(CliCommand):
         else:
             assert isinstance(facts, list)
             self.facts_to_encrypt = facts
-        # check facts_to_encrypt is subset of utilities.DEFAULT_FACTS_TUPLE
-        all_facts = utilities.DEFAULT_FACTS_TUPLE
+        # check facts_to_encrypt is subset of utilities.DEFAULT_FACTS
+        all_facts = utilities.DEFAULT_FACTS
         facts_to_encrypt_set = set(self.facts_to_encrypt)
         if not facts_to_encrypt_set.issubset(all_facts):
             invalid_facts = facts_to_encrypt_set.difference(all_facts)
