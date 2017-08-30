@@ -41,6 +41,11 @@ class FactRedactCommand(CliCommand):
         self.parser.add_option("--facts", dest="facts", metavar="FACTS",
                                action="callback", callback=multi_arg,
                                default=[], help=SUPPRESS_HELP)
+
+        self.parser.add_option("--outputfile", dest="redacted_path",
+                               metavar="REDACTEDPATH",
+                               help=_("Location for the redacted file"))
+
         self.facts_to_redact = None
 
     def _validate_options(self):
@@ -81,6 +86,9 @@ class FactRedactCommand(CliCommand):
         data = []
         keys = None
         normalized_path = os.path.normpath(self.options.report_path)
+        redacted_path = (self.options.redacted_path or
+                         normalized_path + '-redacted')
+
         with open(normalized_path, 'r') as read_file:
             reader = csv.DictReader(read_file, delimiter=',')
             for row in reader:
@@ -112,4 +120,4 @@ class FactRedactCommand(CliCommand):
             for row in data:
                 writer.writerow(row)
         data_temp.close()
-        move(data_temp.name, normalized_path)
+        move(data_temp.name, redacted_path)

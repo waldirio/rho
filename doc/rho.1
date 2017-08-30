@@ -337,10 +337,17 @@ and
 .B rho fact redact
 .B --reportfile=
 .I file
+.B [--outputfile=
+.I path
+.B ]
 .PP
 .TP
 --reportfile=file
-The path and filename of the comma-separated values (CSV) file to alter.
+The path and filename of the comma-separated values (CSV) file to read from.
+.PP
+.TP
+--outputfile=path
+The path and filename of the comma-separated values (CSV) file to be written.
 .PP
 .B
 Encrypting Facts
@@ -353,10 +360,17 @@ and
 .B rho fact encrypt
 .B --reportfile=
 .I file
+.B [--outputfile=
+.I path
+.B ]
 .PP
 .TP
 --reportfile=file
 The path and filename of the comma-separated values (CSV) file to alter.
+.PP
+.TP
+--outputfile=path
+The path and filename of the comma-separated values (CSV) file to be written.
 .PP
 .B
 Decrypting Facts
@@ -369,10 +383,17 @@ and
 .B rho fact decrypt
 .B --reportfile=
 .I file
+.B [--outputfile=
+.I path
+.B ]
 .PP
 .TP
 --reportfile=file
 The path and filename of the comma-separated values (CSV) file to alter.
+.PP
+.TP
+--outputfile=path
+The path and filename of the comma-separated values (CSV) file to be written.
 .PP
 .PP
 .SS SCANNING

@@ -42,6 +42,12 @@ class FactEncryptCommand(CliCommand):
         self.parser.add_option("--facts", dest="facts", metavar="FACTS",
                                action="callback", callback=multi_arg,
                                default=[], help=SUPPRESS_HELP)
+
+        self.parser.add_option("--outputfile", dest="encrypted_path",
+                               metavar="ENCRYPTEDPATH",
+                               help=_("Location for the encrypted file"),
+                               default=None)
+
         self.facts_to_encrypt = None
 
     def _validate_options(self):
@@ -111,5 +117,8 @@ class FactEncryptCommand(CliCommand):
     def _do_command(self):
         vault = get_vault(prompt=PROMPT)
         normalized_path = os.path.normpath(self.options.report_path)
+        encrypted_path = (self.options.encrypted_path or
+                          normalized_path + '-encrypted')
+
         keys, data = self.read_and_encrypt(normalized_path, vault)
-        write_csv_data(keys, data, normalized_path)
+        write_csv_data(keys, data, encrypted_path)

@@ -42,6 +42,11 @@ class FactDecryptCommand(CliCommand):
         self.parser.add_option("--facts", dest="facts", metavar="FACTS",
                                action="callback", callback=multi_arg,
                                default=[], help=SUPPRESS_HELP)
+
+        self.parser.add_option("--outputfile", dest="decrypted_path",
+                               metavar="DECRYPTEDPATH",
+                               help=_("Location for the decrypted file"))
+
         self.facts_to_decrypt = None
 
     def _validate_options(self):
@@ -111,5 +116,8 @@ class FactDecryptCommand(CliCommand):
     def _do_command(self):
         vault = get_vault(prompt=PROMPT)
         normalized_path = os.path.normpath(self.options.report_path)
+        decrypted_path = (self.options.decrypted_path or
+                          normalized_path + '-decrypted')
+
         keys, data = self.read_and_decrypt(normalized_path, vault)
-        write_csv_data(keys, data, normalized_path)
+        write_csv_data(keys, data, decrypted_path)
