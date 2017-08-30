@@ -68,7 +68,7 @@ lint-flake8-3:
 	python3 -m flake8 . --ignore D203 --exclude fact_docs.py
 
 lint-pylint-3:
-	python3 -m pylint --disable=duplicate-code,locally-disabled */*.py -rn
+	python3 -m pylint --disable=duplicate-code,locally-disabled,bad-option-value */*.py -rn
 
 lint-3: lint-flake8-3 lint-pylint-3
 

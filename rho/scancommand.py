@@ -20,9 +20,9 @@ import re
 import time
 import json
 from collections import defaultdict
+from getpass import getpass
 import pexpect
 import yaml
-from getpass import getpass
 from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault_and_password
