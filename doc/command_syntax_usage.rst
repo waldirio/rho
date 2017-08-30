@@ -42,10 +42,10 @@ over SSH. Each authentication identity requires its own auth entry.
 SSH Key with a Passphrase
 -------------------------
 
-There are two ways to handle password-protected ssh keys. If a
-password-protected ssh key is specified and the key is not present in
-the ssh agent, then Rho will prompt the user for the key password each
-time it needs to use the key.
+There are two ways to handle ssh keys with passphrases. If a
+passphrase-protected ssh key is specified in an auth and the key is
+not present in the ssh agent, then Rho will prompt the user for the
+passphrase each time it needs to use the key.
 
 To avoid repetitive prompts, users can add their keys to the local ssh
 agent (as documented at
