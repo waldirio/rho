@@ -20,6 +20,7 @@ import re
 import time
 import json
 from collections import defaultdict
+from getpass import getpass
 import pexpect
 import yaml
 from rho import utilities
@@ -270,9 +271,8 @@ def _create_main_inventory(vault, success_hosts, success_port_map,
     log_yaml_inventory('Main inventory', yml_dict)
 
 
-def run_ansible_with_vault(cmd_string, vault_pass, ssh_key_passphrase=None,
-                           env=None, log_path=None, log_to_stdout=True,
-                           ansible_verbosity=0):
+def run_ansible_with_vault(cmd_string, vault_pass, env=None, log_path=None,
+                           log_to_stdout=True, ansible_verbosity=0):
     """ Runs ansible command allowing for password to be provided after
     process triggered.
 
@@ -280,7 +280,6 @@ def run_ansible_with_vault(cmd_string, vault_pass, ssh_key_passphrase=None,
 
     :param cmd_string: the command to run.
     :param vault_pass: the password to the user's Ansible Vault.
-    :param ssh_key_passphrase: the password for the user's SSH key(s).
     :param env: the environment to run the subprocess in.
     :param log_path: a path to write the process's log to. Defaults to
         'XDG_DATA_HOME/rho/ansible_log'.
@@ -305,6 +304,7 @@ def run_ansible_with_vault(cmd_string, vault_pass, ssh_key_passphrase=None,
     try:
         utilities.ensure_data_dir_exists()
         with open(log_path, 'wb') as logfile:
+            logging.debug('Running Ansible: %s', cmd_string)
             child = pexpect.spawn(cmd_string, timeout=None,
                                   env=env)
 
@@ -318,11 +318,13 @@ def run_ansible_with_vault(cmd_string, vault_pass, ssh_key_passphrase=None,
             child.logfile = logfile
 
             i = child.expect([pexpect.EOF, 'Enter passphrase for key .*:'])
-            if i == 1:
+            while i:
                 child.logfile = None
-                child.sendline(ssh_key_passphrase)
+                # Ansible has already printed a prompt; it would be
+                # confusing if getpass printed another one.
+                child.sendline(getpass(''))
                 child.logfile = logfile
-                child.expect(pexpect.EOF)
+                i = child.expect([pexpect.EOF, 'Enter passphrase for key .*:'])
 
             if child.isalive():
                 child.wait()
