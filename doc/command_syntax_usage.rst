@@ -38,9 +38,9 @@ over SSH. Each authentication identity requires its own auth entry.
 
 *Note:* --password not being passed or passed as empty are considered the same thing.
 
----------------------------
-Password-protected SSH key
----------------------------
+-------------------------
+SSH Key with a Passphrase
+-------------------------
 
 There are two ways to handle password-protected ssh keys. If a
 password-protected ssh key is specified and the key is not present in
