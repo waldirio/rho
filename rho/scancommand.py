@@ -119,11 +119,38 @@ def log_yaml_inventory(label, inventory):
     return inventory
 
 
+def process_ping_output(out_lines):
+    """Find successful hosts from the output of a ping command.
+
+    Use this function by using ansible to run echo "Hello" on remote
+    hosts, then sending the output to this function.
+
+    :param out_lines: an iterator returning lines of Ansible output.
+    :returns: the hosts that pinged successfully, as a set.
+    """
+
+    success_hosts = set()
+
+    # Ansible output has the format
+    #   hostname | SUCCESS | rc=0 >>
+    #   Hello
+    # with the above two lines repeated for each host
+    for line in out_lines:
+        pieces = line.split('|')
+        if len(pieces) == 3 and pieces[1].strip() == 'SUCCESS':
+            success_hosts.add(pieces[0].strip())
+
+    logging.debug('Ping log reached hosts: %s', success_hosts)
+
+    return success_hosts
+
+
 # Creates the inventory for pinging all hosts and records
 # successful auths and the hosts they worked on
 # pylint: disable=too-many-statements, too-many-arguments, unused-argument
 def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
                            profile_auth_list, forks, ansible_verbosity):
+
     """Find which auths work with which hosts.
 
     :param vault: a Vault object
@@ -164,9 +191,10 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
         vault.dump_as_yaml_to_file(yml_dict, PING_INVENTORY_PATH)
         log_yaml_inventory('Ping inventory', yml_dict)
 
-        cmd_string = 'ansible alpha -m' \
-                     ' ping  -i ' + PING_INVENTORY_PATH \
-                     + ' --ask-vault-pass -f ' + forks
+        cmd_string = 'ansible alpha ' \
+                     '-i ' + PING_INVENTORY_PATH \
+                     + ' --ask-vault-pass -f ' + forks \
+                     + ' -a \'echo "Hello"\''
 
         my_env = os.environ.copy()
         my_env["ANSIBLE_HOST_KEY_CHECKING"] = "False"
@@ -181,16 +209,11 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
                                ansible_verbosity=0)
 
         with open(PING_LOG_PATH, 'r') as ping_log:
-            out = ping_log.readlines()
+            success_hosts = process_ping_output(ping_log)
 
-        # pylint: disable=unused-variable
-        for linenum, line in enumerate(out):
-            if 'pong' in out[linenum]:
-                host_line = out[linenum - 2].replace('\x1b[0;32m', '')
-                host_ip = host_line.split('|')[0].strip()
-                success_hosts.add(host_ip)
-                success_auth_map[host_ip].append(cred_item)
-                success_port_map[host_ip] = profile_port
+        for host in success_hosts:
+            success_auth_map[host].append(cred_item)
+            success_port_map[host] = profile_port
 
     return list(success_hosts), success_port_map, success_auth_map
 
