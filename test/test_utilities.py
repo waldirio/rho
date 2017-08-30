@@ -95,3 +95,8 @@ class TestRangeValidity(unittest.TestCase):
                             'my-rhel[a:400].company.com']
         with self.assertRaises(SystemExit):
             utilities.check_range_validity(valid_range_list)
+
+    def testcheck_range_cidr_error(self):
+        valid_range_list = ['192.168.124.0/25']
+        with self.assertRaises(SystemExit):
+            utilities.check_range_validity(valid_range_list)
