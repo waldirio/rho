@@ -145,8 +145,8 @@ class CliCommandsTests(unittest.TestCase):
         # nosetests command.
         self.orig_stderr = sys.stderr
         sys.stderr = HushUpStderr()
-        if os.path.isfile('data'):
-            os.remove('data')
+        if os.path.isfile(utilities.CONFIG_DIR):
+            os.remove(utilities.CONFIG_DIR)
 
         if os.path.isfile(TMP_VAULT_PASS):
             os.remove(TMP_VAULT_PASS)
@@ -223,8 +223,8 @@ class CliCommandsTests(unittest.TestCase):
     def tearDown(self):
         # Restore stderr
         sys.stderr = self.orig_stderr
-        if os.path.isfile('data'):
-            os.remove('data')
+        if os.path.isfile(utilities.CONFIG_DIR):
+            os.remove(utilities.CONFIG_DIR)
 
         if os.path.isfile(TMP_VAULT_PASS):
             os.remove(TMP_VAULT_PASS)

@@ -62,12 +62,13 @@ a CLI prompt.
 (The different rho commands are covered more in the `Command Syntax & Usage`_
 section.)
 
-All the information that rho needs is stored in the data folder in
-the installed directory. All the auths are stored in the ``credentials``
-file. All the profiles are stored in the ``profiles`` file. The Ansible
-playbook is called ``rho_playbook.yml`` stored in the installed directory.
-The roles created during the scan are stored in the ``roles`` folder. These
-roles are used by ``rho_playbook.yml`` to perform the fact collection.
+All the information that rho needs is stored in the $XDG_CONFIG_HOME/rho and
+$XDG_DATA_HOME/rho folders in the installed directory. All the auths are stored
+in the ``credentials`` file. All the profiles are stored in the ``profiles``
+file. The Ansible playbook is called ``rho_playbook.yml`` stored in the
+installed directory.The roles created during the scan are stored in the
+``roles`` folder. These roles are used by ``rho_playbook.yml`` to perform the
+fact collection.
 
 Running the scan is simple. Just point the rho tool to the profile
 to use, the facts to collect and print the results to a CSV output file.
@@ -78,7 +79,7 @@ create an Ansible inventory called ``<profile name>_hosts.yml`` that includes th
 working hosts matched with an auth each (the auths are chosen in the order
 passed in to the profile add or edit command as will be explained later).
 
-``rho scan --profile big_test --facts data/facts_eg --ansible_forks 100 --reportfile rep.csv``
+``rho scan --profile big_test --facts facts_file --ansible_forks 100 --reportfile rep.csv``
 
 The output is simple CSV format. If 'default' is the argument for ``--facts``,
 the csv output contains the following information:

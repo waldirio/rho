@@ -24,6 +24,7 @@ Requires: python-yaml
 Requires: epel-release
 Requires: python2-future
 Requires: python2-sh
+Requires: python2-pyxdg
 
 %description
 Rho is a tool for scanning your network, logging into systems via SSH, and

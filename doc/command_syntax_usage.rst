@@ -84,7 +84,7 @@ to pass in auths as per the priority they deem fit for a profile. If a non root
 auth is better tried first and then the root auth then the user has to pass in the
 auths in the order as ``--auth <nonroot_1> <nonroot_2> <root_1> <root_2>`` etc.
 
-The output of the Ansible process is saved to `data/scan_log` by
+The output of the Ansible process is saved to `$XDG_DATA_HOME/rho/scan_log` by
 default, for debugging. This location can be changed with the
 `--logfile` flag.
 

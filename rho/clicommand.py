@@ -16,7 +16,8 @@ from __future__ import print_function
 import logging
 import sys
 from optparse import OptionParser  # pylint: disable=deprecated-module
-from rho.utilities import ensure_config_dir_exists
+from rho.utilities import ensure_config_dir_exists, \
+    ensure_data_dir_exists, RHO_LOG
 from rho.translation import _
 
 
@@ -80,7 +81,8 @@ class CliCommand(object):
             log_level = logging.DEBUG
 
         ensure_config_dir_exists()
-        logging.basicConfig(filename='data/rho_log', level=log_level)
+        ensure_data_dir_exists()
+        logging.basicConfig(filename=RHO_LOG, level=log_level)
 
         self._validate_options()
 

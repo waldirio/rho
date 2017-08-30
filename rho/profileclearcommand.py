@@ -21,6 +21,7 @@ import glob
 from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault
+from rho.utilities import get_config_path
 from rho.translation import _
 
 
@@ -60,7 +61,7 @@ class ProfileClearCommand(CliCommand):
             self.parser.print_help()
             sys.exit(1)
 
-    # pylint: disable=too-many-branches
+    # pylint: disable=too-many-branches,too-many-locals
     def _do_command(self):
         profiles_list = []
 
@@ -86,10 +87,13 @@ class ProfileClearCommand(CliCommand):
                                            utilities.PROFILES_PATH)
 
                 # removes inventory associated with the profile
-                if os.path.isfile('data/' + profile + "_hosts"):
-                    os.remove('data/' + profile + "_hosts")
+                profile_hosts = profile + '_hosts'
+                profile_hosts_path = get_config_path(profile_hosts)
+                if os.path.isfile(profile_hosts_path):
+                    os.remove(profile_hosts_path)
 
-                profile_mapping = 'data/' + profile + '_host_auth_mapping'
+                host_auth_mapping = profile + '_host_auth_mapping'
+                profile_mapping = get_config_path(host_auth_mapping)
 
                 # when a profile is removed, it 'archives' the host auth
                 # mapping by renaming it
@@ -98,9 +102,12 @@ class ProfileClearCommand(CliCommand):
                 # mapping files help in identifying the various forms and
                 # times in which the said profile existed.
                 if os.path.isfile(profile_mapping):
+                    del_host_auth_mapping = '(DELETED PROFILE)' + profile \
+                        + '_host_auth_mapping'
+                    del_host_auth_mapping_path = \
+                        get_config_path(del_host_auth_mapping)
                     os.rename(profile_mapping,
-                              'data/(DELETED PROFILE)' +
-                              profile + '_host_auth_mapping')
+                              del_host_auth_mapping_path)
             else:
                 print(_("All network profiles removed"))
 
@@ -110,13 +117,19 @@ class ProfileClearCommand(CliCommand):
                 print(_("All network profiles removed"))
             else:
                 os.remove(utilities.PROFILES_PATH)
-                for file_list in glob.glob("data/*_hosts"):
+                wildcard_hosts = '*_hosts'
+                wildcard_hosts_path = get_config_path(wildcard_hosts)
+                for file_list in glob.glob(wildcard_hosts_path):
                     os.remove(file_list)
                     profile = file_list.strip('_hosts')
-                    profile_mapping = 'data/' + profile + '_host_auth_mapping'
+                    host_auth_mapping = profile + '_host_auth_mapping'
+                    profile_mapping = get_config_path(host_auth_mapping)
                     if os.path.isfile(profile_mapping):
+                        del_host_auth_mapping = '(DELETED PROFILE)' \
+                            + profile + '_host_auth_mapping'
+                        del_host_auth_mapping_path = \
+                            get_config_path(del_host_auth_mapping)
                         os.rename(profile_mapping,
-                                  'data/(DELETED PROFILE)' +
-                                  profile + '_host_auth_mapping')
+                                  del_host_auth_mapping)
 
                 print(_("All network profiles removed"))

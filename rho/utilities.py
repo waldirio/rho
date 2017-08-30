@@ -18,6 +18,7 @@ import csv
 import tempfile
 from shutil import move
 import sh
+from xdg.BaseDirectory import xdg_data_home, xdg_config_home
 from rho.translation import _
 
 if sys.version_info > (3,):
@@ -25,9 +26,16 @@ if sys.version_info > (3,):
 else:
     import thread as _thread  # pylint: disable=import-error
 
-
-CREDENTIALS_PATH = 'data/credentials'
-PROFILES_PATH = 'data/profiles'
+RHO_PATH = 'rho'
+CONFIG_DIR = os.path.join(xdg_config_home, RHO_PATH)
+DATA_DIR = os.path.join(xdg_data_home, RHO_PATH)
+CREDENTIALS_PATH = os.path.join(CONFIG_DIR, 'credentials')
+PROFILES_PATH = os.path.join(CONFIG_DIR, 'profiles')
+PING_INVENTORY_PATH = os.path.join(CONFIG_DIR, 'ping-inventory.yml')
+RHO_LOG = os.path.join(DATA_DIR, 'rho_log')
+PING_LOG_PATH = os.path.join(DATA_DIR, 'ping_log')
+ANSIBLE_LOG_PATH = os.path.join(DATA_DIR, 'ansible_log')
+SCAN_LOG_PATH = os.path.join(DATA_DIR, 'scan_log')
 
 PLAYBOOK_DEV_PATH = 'rho_playbook.yml'
 PLAYBOOK_RPM_PATH = '/usr/share/ansible/rho/rho_playbook.yml'
@@ -173,9 +181,14 @@ def tail_and_follow(path, ansible_verbosity):
 
 def ensure_config_dir_exists():
     """Ensure the Rho configuration directory exists."""
+    if not os.path.exists(CONFIG_DIR):
+        os.makedirs(CONFIG_DIR)
 
-    if not os.path.exists('data'):
-        os.makedirs('data')
+
+def ensure_data_dir_exists():
+    """Ensure the Rho data directory exists."""
+    if not os.path.exists(DATA_DIR):
+        os.makedirs(DATA_DIR)
 
 
 # pylint: disable=unused-argument
@@ -318,3 +331,11 @@ def write_csv_data(keys, data, path):
             writer.writerow(row)
     data_temp.close()
     move(data_temp.name, path)
+
+
+def get_config_path(filename):
+    """ Provides the path for a configuration filename
+    :param filename: The filename to return the config path for
+    :returns path to for filename in XDG_CONFIG_HOME associated with rho
+    """
+    return os.path.join(xdg_config_home, RHO_PATH, filename)

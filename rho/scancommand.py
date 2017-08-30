@@ -25,7 +25,8 @@ import yaml
 from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault_and_password
-from rho.utilities import multi_arg, _read_in_file, str_to_ascii, iteritems
+from rho.utilities import multi_arg, _read_in_file, str_to_ascii, iteritems,\
+    PING_LOG_PATH, ANSIBLE_LOG_PATH, SCAN_LOG_PATH, PING_INVENTORY_PATH
 from rho.translation import _
 
 
@@ -159,12 +160,12 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
         vars_dict = auth_as_ansible_host_vars(cred_item)
 
         yml_dict = {'alpha': {'hosts': hosts_dict, 'vars': vars_dict}}
-        vault.dump_as_yaml_to_file(yml_dict, 'data/ping-inventory.yml')
+        vault.dump_as_yaml_to_file(yml_dict, PING_INVENTORY_PATH)
         log_yaml_inventory('Ping inventory', yml_dict)
 
         cmd_string = 'ansible alpha -m' \
-                     ' ping  -i data/ping-inventory.yml --ask-vault-pass -f ' \
-                     + forks
+                     ' ping  -i ' + PING_INVENTORY_PATH \
+                     + ' --ask-vault-pass -f ' + forks
 
         my_env = os.environ.copy()
         my_env["ANSIBLE_HOST_KEY_CHECKING"] = "False"
@@ -173,12 +174,12 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
         # a temporary fix - a better solution would be less-fragile
         # output parsing.
         run_ansible_with_vault(cmd_string, vault_pass,
-                               log_path='data/ping_log',
+                               log_path=PING_LOG_PATH,
                                env=my_env,
                                log_to_stdout=True,
                                ansible_verbosity=0)
 
-        with open('data/ping_log', 'r') as ping_log:
+        with open(PING_LOG_PATH, 'r') as ping_log:
             out = ping_log.readlines()
 
         # pylint: disable=unused-variable
@@ -197,7 +198,9 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
 # between hosts and ALL the auths that were ever succesful
 # with them arranged according to profile and date of scan.
 def _create_hosts_auths_file(success_auth_map, profile):
-    with open('data/' + profile + '_host_auth_mapping', 'a') as host_auth_file:
+    host_auth_mapping = profile + '_host_auth_mapping'
+    host_auth_mapping_path = utilities.get_config_path(host_auth_mapping)
+    with open(host_auth_mapping_path, 'a') as host_auth_file:
         string_to_write = time.strftime("%c") + '\n-' \
                                                 '---' \
                                                 '---' \
@@ -261,7 +264,9 @@ def make_inventory_dict(success_hosts, success_port_map, auth_map):
 def _create_main_inventory(vault, success_hosts, success_port_map,
                            auth_map, profile):
     yml_dict = make_inventory_dict(success_hosts, success_port_map, auth_map)
-    vault.dump_as_yaml_to_file(yml_dict, 'data/' + profile + '_hosts.yml')
+    hosts_yml = profile + '_hosts.yml'
+    hosts_yml_path = utilities.get_config_path(hosts_yml)
+    vault.dump_as_yaml_to_file(yml_dict, hosts_yml_path)
     log_yaml_inventory('Main inventory', yml_dict)
 
 
@@ -278,7 +283,7 @@ def run_ansible_with_vault(cmd_string, vault_pass, ssh_key_passphrase=None,
     :param ssh_key_passphrase: the password for the user's SSH key(s).
     :param env: the environment to run the subprocess in.
     :param log_path: a path to write the process's log to. Defaults to
-        'data/ansible_log'.
+        'XDG_DATA_HOME/rho/ansible_log'.
     :param log_to_stdout: if True, write Ansible's log to stdout. Defaults to
         True.
     :param ansible_verbosity: the number of v's of Ansible verbosity.
@@ -291,13 +296,14 @@ def run_ansible_with_vault(cmd_string, vault_pass, ssh_key_passphrase=None,
     # file and then use 'tail -f' to copy that to stdout.
 
     if not log_path:
-        log_path = 'data/ansible_log'
+        log_path = ANSIBLE_LOG_PATH
 
     if ansible_verbosity:
         cmd_string = cmd_string + ' -' + 'v' * ansible_verbosity
 
     result = None
     try:
+        utilities.ensure_data_dir_exists()
         with open(log_path, 'wb') as logfile:
             child = pexpect.spawn(cmd_string, timeout=None,
                                   env=env)
@@ -435,6 +441,8 @@ class ScanCommand(CliCommand):
             if self.options.ansible_forks else '50'
         report_path = os.path.abspath(os.path.normpath(
             self.options.report_path))
+        hosts_yml = profile + '_hosts.yml'
+        hosts_yml_path = utilities.get_config_path(hosts_yml)
 
         # Checks if profile exists and stores information
         # about that profile for later use.
@@ -484,7 +492,7 @@ class ScanCommand(CliCommand):
             _create_main_inventory(vault, success_hosts, success_port_map,
                                    auth_map, profile)
 
-        elif os.path.isfile('data/' + profile + '_hosts'):
+        elif os.path.isfile(hosts_yml_path):
             print("Profile '" + profile + "' has not been processed. " +
                   "Please run without using --cache with the profile first.")
             sys.exit(1)
@@ -506,11 +514,11 @@ class ScanCommand(CliCommand):
                 sys.exit(1)
 
         cmd_string = ('ansible-playbook {playbook} '
-                      '-i data/{profile}_hosts.yml -f {forks} '
+                      '-i {inventory} -f {forks} '
                       '--ask-vault-pass '
                       '--extra-vars \'{vars}\'').format(
                           playbook=playbook,
-                          profile=profile,
+                          inventory=hosts_yml_path,
                           forks=forks,
                           vars=json.dumps(ansible_vars))
 
@@ -519,16 +527,19 @@ class ScanCommand(CliCommand):
         if self.options.logfile:
             log_path = self.options.logfile
         else:
-            log_path = 'data/scan_log'
+            log_path = SCAN_LOG_PATH
         print('Running:', cmd_string)
         process = run_ansible_with_vault(cmd_string, vault_pass,
                                          log_path=log_path,
                                          log_to_stdout=True,
                                          ansible_verbosity=self.verbosity)
         if process.exitstatus == 0 and process.signalstatus is None:
+            host_auth_mapping = self.options.profile + '_host_auth_mapping'
+            host_auth_mapping_path = \
+                utilities.get_config_path(host_auth_mapping)
             print(_("Scanning has completed. The mapping has been"
-                    " stored in file 'data/" + self.options.profile +
-                    "_host_auth_mapping'. The facts have been stored in '" +
+                    " stored in file '" + host_auth_mapping_path +
+                    "'. The facts have been stored in '" +
                     report_path + "'"))
         else:
             print(_("An error has occurred during the scan. Please review" +

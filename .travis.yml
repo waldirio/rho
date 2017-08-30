@@ -11,10 +11,10 @@ install:
 # command to run tests
 script:
   - make all
+after_success:
   - pip install -r doc-requirements.txt
   - make docs
-after_success:
-  coveralls
+  - coveralls
 deploy:
   provider: pages
   skip_cleanup: true

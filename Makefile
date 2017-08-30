@@ -42,10 +42,10 @@ install: build
 	$(PYTHON) setup.py install -f
 
 tests:
-	-py.test -v
+	py.test -v
 
 tests-coverage:
-	-py.test -v --cov=rho --cov=library
+	py.test -v --cov=rho --cov=library
 
 lint-flake8:
 	flake8 . --ignore D203 --exclude fact_docs.py
