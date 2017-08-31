@@ -30,9 +30,7 @@ from rho.autheditcommand import AuthEditCommand
 from rho.authshowcommand import AuthShowCommand
 from rho.clicommand import CliCommand
 from rho.factlistcommand import FactListCommand
-from rho.factredactcommand import FactRedactCommand
-from rho.factencryptcommand import FactEncryptCommand
-from rho.factdecryptcommand import FactDecryptCommand
+from rho.facthashcommand import FactHashCommand
 from rho.profileaddcommand import ProfileAddCommand
 from rho.profileclearcommand import ProfileClearCommand
 from rho.profileeditcommand import ProfileEditCommand
@@ -371,96 +369,33 @@ class CliCommandsTests(unittest.TestCase):
         sys.argv = ['/bin/rho', 'fact', 'list', '--filter', 'uname.*']
         FactListCommand().main()
 
-    def test_redact_no_report_specified(self):
-        """Test that the 'fact redact' command fails as expected
+    def test_hash_no_report(self):
+        """Test that the 'fact hash' command fails as expected
          if the reportfile is missing"""
 
         with self.assertRaises(SystemExit):
-            sys.argv = ['/bin/rho', 'fact', 'redact']
-            FactRedactCommand().main()
+            sys.argv = ['/bin/rho', 'fact', 'hash']
+            FactHashCommand().main()
 
-    def test_redact_no_report_found(self):
-        """Test that the 'fact redact' command fails as expected
+    def test_hash_no_report_found(self):
+        """Test that the 'fact hash' command fails as expected
          if the reportfile is doesn't exist"""
 
         with self.assertRaises(SystemExit):
-            sys.argv = ['/bin/rho', 'fact', 'redact',
+            sys.argv = ['/bin/rho', 'fact', 'hash',
                         '--reportfile', 'no_report.csv']
-            FactRedactCommand().main()
+            FactHashCommand().main()
 
-    def test_fact_redact(self):
-        """Test that the 'fact redact' command runs successfully"""
-
-        sys.argv = ['/bin/rho', 'fact', 'redact',
-                    '--reportfile', TMP_TEST_REPORT_SENSITIVE]
-        FactRedactCommand().main()
-
-    def test_fact_redact_bad_facts(self):
-        """Test that the 'fact redact' command fails as expected
-         if the facts to redact are invalid
+    def test_fact_hash_bad_facts(self):
+        """Test that the 'fact hash' command fails as expected
+         if the facts to hash are invalid
         """
 
         with self.assertRaises(SystemExit):
-            sys.argv = ['/bin/rho', 'fact', 'redact',
+            sys.argv = ['/bin/rho', 'fact', 'hash',
                         '--reportfile', TMP_TEST_REPORT_SENSITIVE,
                         '--facts', 'foo']
-            FactRedactCommand().main()
-
-    def test_encrypt_no_report(self):
-        """Test that the 'fact encrypt' command fails as expected
-         if the reportfile is missing"""
-
-        with self.assertRaises(SystemExit):
-            sys.argv = ['/bin/rho', 'fact', 'encrypt']
-            FactEncryptCommand().main()
-
-    def test_encrypt_no_report_found(self):
-        """Test that the 'fact encrypt' command fails as expected
-         if the reportfile is doesn't exist"""
-
-        with self.assertRaises(SystemExit):
-            sys.argv = ['/bin/rho', 'fact', 'encrypt',
-                        '--reportfile', 'no_report.csv']
-            FactEncryptCommand().main()
-
-    def test_fact_encrypt_bad_facts(self):
-        """Test that the 'fact encrypt' command fails as expected
-         if the facts to encrypt are invalid
-        """
-
-        with self.assertRaises(SystemExit):
-            sys.argv = ['/bin/rho', 'fact', 'encrypt',
-                        '--reportfile', TMP_TEST_REPORT_SENSITIVE,
-                        '--facts', 'foo']
-            FactEncryptCommand().main()
-
-    def test_decrypt_no_report(self):
-        """Test that the 'fact decrypt' command fails as expected
-         if the reportfile is missing"""
-
-        with self.assertRaises(SystemExit):
-            sys.argv = ['/bin/rho', 'fact', 'decrypt']
-            FactDecryptCommand().main()
-
-    def test_decrypt_no_report_found(self):
-        """Test that the 'fact decrypt' command fails as expected
-         if the reportfile is doesn't exist"""
-
-        with self.assertRaises(SystemExit):
-            sys.argv = ['/bin/rho', 'fact', 'decrypt',
-                        '--reportfile', 'no_report.csv']
-            FactDecryptCommand().main()
-
-    def test_fact_decrypt_bad_facts(self):
-        """Test that the 'fact decrypt' command fails as expected
-         if the facts to decrypt are invalid
-        """
-
-        with self.assertRaises(SystemExit):
-            sys.argv = ['/bin/rho', 'fact', 'decrypt',
-                        '--reportfile', TMP_TEST_REPORT_SENSITIVE,
-                        '--facts', 'foo']
-            FactDecryptCommand().main()
+            FactHashCommand().main()
 
     def test_profile_add_hosts_list(self):
         """Test the profile command adding a profile with a list and

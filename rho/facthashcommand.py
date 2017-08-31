@@ -7,7 +7,7 @@
 # along with this software; if not, see
 # http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
 
-"""Encrypt sensitive facts."""
+"""Hash sensitive facts."""
 
 from __future__ import print_function
 
@@ -15,25 +15,33 @@ import csv
 import sys
 import os
 from optparse import SUPPRESS_HELP  # pylint: disable=deprecated-module
+import hashlib
 from rho import utilities
 from rho.clicommand import CliCommand
 from rho.translation import _
 from rho.utilities import multi_arg, _read_in_file, write_csv_data
-from rho.vault import get_vault
 
-PROMPT = "Please enter your encryption password: "
+
+def compute_sha256_hash(input_string):
+    """ Computes the sha256 hash for a string
+    :param input_string: The string to hash
+    :returns: The hex hash value
+    """
+    hasher = hashlib.sha256()
+    hasher.update(input_string.encode('utf-8'))
+    return hasher.hexdigest()
 
 
 # pylint: disable=too-few-public-methods
-class FactEncryptCommand(CliCommand):
-    """Encrypt sensitive facts."""
+class FactHashCommand(CliCommand):
+    """Hash sensitive facts."""
 
     def __init__(self):
-        usage = _('usage: %prog fact encrypt')
-        shortdesc = _('encrypt facts within a report created by rho')
-        desc = _('encrypt sensitive facts within a report created by rho.')
+        usage = _('usage: %prog fact hash')
+        shortdesc = _('hash facts within a report created by rho')
+        desc = _('hash sensitive facts within a report created by rho.')
 
-        CliCommand.__init__(self, 'fact encrypt', usage, shortdesc, desc)
+        CliCommand.__init__(self, 'fact hash', usage, shortdesc, desc)
 
         self.parser.add_option("--reportfile", dest="report_path",
                                metavar="REPORTFILE",
@@ -43,12 +51,12 @@ class FactEncryptCommand(CliCommand):
                                action="callback", callback=multi_arg,
                                default=[], help=SUPPRESS_HELP)
 
-        self.parser.add_option("--outputfile", dest="encrypted_path",
-                               metavar="ENCRYPTEDPATH",
-                               help=_("Location for the encrypted file"),
+        self.parser.add_option("--outputfile", dest="hashed_path",
+                               metavar="HASHEDPATH",
+                               help=_("Location for the hashed file"),
                                default=None)
 
-        self.facts_to_encrypt = None
+        self.facts_to_hash = None
 
     def _validate_options(self):
         CliCommand._validate_options(self)
@@ -66,48 +74,47 @@ class FactEncryptCommand(CliCommand):
         # perform fact validation
         facts = self.options.facts
         if facts == [] or facts == ['default']:
-            self.facts_to_encrypt = list(utilities.SENSITIVE_FACTS_TUPLE)
+            self.facts_to_hash = list(utilities.SENSITIVE_FACTS_TUPLE)
         elif os.path.isfile(facts[0]):
-            self.facts_to_encrypt = _read_in_file(facts[0])
+            self.facts_to_hash = _read_in_file(facts[0])
         else:
             assert isinstance(facts, list)
-            self.facts_to_encrypt = facts
-        # check facts_to_encrypt is subset of utilities.DEFAULT_FACTS
+            self.facts_to_hash = facts
+        # check facts_to_hash is subset of utilities.DEFAULT_FACTS
         all_facts = utilities.DEFAULT_FACTS
-        facts_to_encrypt_set = set(self.facts_to_encrypt)
-        if not facts_to_encrypt_set.issubset(all_facts):
-            invalid_facts = facts_to_encrypt_set.difference(all_facts)
+        facts_to_hash_set = set(self.facts_to_hash)
+        if not facts_to_hash_set.issubset(all_facts):
+            invalid_facts = facts_to_hash_set.difference(all_facts)
             print(_("Invalid facts were supplied to the command: " +
                     ",".join(invalid_facts)))
             self.parser.print_help()
             sys.exit(1)
 
-    def read_and_encrypt(self, path, vault):
-        """ Read the given CSV file and encrypt the prescribed facts
-        utilizing the given password.
+    def read_and_hash(self, path):
+        """ Read the given CSV file and hash the prescribed facts
         :param path: The csv file to read
         :returns: The keys (set) and data (dict) composing the csv file
         """
         facts_not_found = set()
-        facts_encrypted = set()
+        facts_hashed = set()
         data = []
         keys = None
 
         with open(path, 'r') as read_file:
             reader = csv.DictReader(read_file, delimiter=',')
             for row in reader:
-                for fact in self.facts_to_encrypt:
+                for fact in self.facts_to_hash:
                     if fact in row:
-                        row[fact] = vault.dump(row[fact])
-                        facts_encrypted.add(fact)
+                        row[fact] = compute_sha256_hash(row[fact])
+                        facts_hashed.add(fact)
                     else:
                         facts_not_found.add(fact)
                 if keys is None:
                     keys = set(row.keys())
                 data.append(row)
 
-                for fact in facts_encrypted:
-                    print(_("Fact %s encrypted" % fact))
+                for fact in facts_hashed:
+                    print(_("Fact %s hashed" % fact))
                 for fact in facts_not_found:
                     print(_("Fact %s was not present in %s" %
                             (fact, self.options.report_path)))
@@ -115,10 +122,8 @@ class FactEncryptCommand(CliCommand):
         return keys, data
 
     def _do_command(self):
-        vault = get_vault(prompt=PROMPT)
         normalized_path = os.path.normpath(self.options.report_path)
-        encrypted_path = (self.options.encrypted_path or
-                          normalized_path + '-encrypted')
+        hashed_path = (self.options.hashed_path or normalized_path + '-hashed')
 
-        keys, data = self.read_and_encrypt(normalized_path, vault)
-        write_csv_data(keys, data, encrypted_path)
+        keys, data = self.read_and_hash(normalized_path)
+        write_csv_data(keys, data, hashed_path)

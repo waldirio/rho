@@ -327,14 +327,14 @@ A list of facts that can be gathered during the scanning process can be obtained
 Optionally, provide a filter view of the list of facts with a regular expression -- e.g 'uname.*'.
 .PP
 .B
-Redacting Facts
+Hashing Facts
 .PP
-Sensitive facts can be removed from a report CSV file using the 'redact' command. The facts that are removed with this command are:
+Sensitive facts can be encrypted within a report CSV file using the 'hash' command. The facts that are hashed with this command are:
 .I connection.host, connection.port, uname.all,
 and
 .I uname.hostname.
 .PP
-.B rho fact redact
+.B rho fact hash
 .B --reportfile=
 .I file
 .B [--outputfile=
@@ -343,53 +343,7 @@ and
 .PP
 .TP
 --reportfile=file
-The path and filename of the comma-separated values (CSV) file to read from.
-.PP
-.TP
---outputfile=path
-The path and filename of the comma-separated values (CSV) file to be written.
-.PP
-.B
-Encrypting Facts
-.PP
-Sensitive facts can be encrypted within a report CSV file using the 'encrypt' command. The command will prompt for a password to encrypt values and should be used when decrypting these values. The password does not have to be the same as the rho vault password. The facts that are encrypted with this command are:
-.I connection.host, connection.port, uname.all,
-and
-.I uname.hostname.
-.PP
-.B rho fact encrypt
-.B --reportfile=
-.I file
-.B [--outputfile=
-.I path
-.B ]
-.PP
-.TP
---reportfile=file
-The path and filename of the comma-separated values (CSV) file to alter.
-.PP
-.TP
---outputfile=path
-The path and filename of the comma-separated values (CSV) file to be written.
-.PP
-.B
-Decrypting Facts
-.PP
-Sensitive facts can be decrypted within a report CSV file using the 'decrypt' command. The command will prompt for a password to decrypt values and should be the same that was used when encrypting these values. The facts that are decrypted with this command are:
-.I connection.host, connection.port, uname.all,
-and
-.I uname.hostname.
-.PP
-.B rho fact decrypt
-.B --reportfile=
-.I file
-.B [--outputfile=
-.I path
-.B ]
-.PP
-.TP
---reportfile=file
-The path and filename of the comma-separated values (CSV) file to alter.
+The path and filename of the comma-separated values (CSV) file to read.
 .PP
 .TP
 --outputfile=path

@@ -115,7 +115,11 @@ These python packages are required for the rho install machine to run rho:
  * json
  * subprocess
  * xmlrpclib
- * ansible.module_utils.basic
+ * ansible
+ * pexpect
+ * future
+ * sh
+ * pyxdg
 
 The following python packages are required to build & test rho from source:
  * python-devel
@@ -126,6 +130,10 @@ The following python packages are required to build & test rho from source:
  * flake8
  * pylint
  * Coverage
+ * enum34
+ * configparser
+ * six
+ * docutils
 
 -------------
 Installation
@@ -140,8 +148,7 @@ You can find the appropriate architecture and version on the `EPEL wiki <https:/
 2. Next, add the COPR repo to your server.
 You can find the appropriate architecture and version on the `COPR rho page <https://copr.fedorainfracloud.org/coprs/chambridge/rho/>`_::
 
-  cd /etc/yum.repos.d/
-  wget https://copr.fedorainfracloud.org/coprs/chambridge/rho/repo/epel-7/chambridge-rho-epel-7.repo
+  wget -O /etc/yum.repos.d/chambridge-rho-epel-7.repo https://copr.fedorainfracloud.org/coprs/chambridge/rho/repo/epel-7/chambridge-rho-epel-7.repo
 
 3. Then, install the rho package:
 
@@ -167,11 +174,9 @@ There are four rho commands:
  * ``show`` - to display a specific entry
  * ``list`` - to display one or more entries
 
- ``fact`` has four subcommands:
+ ``fact`` has two subcommands:
    * ``list`` - to display the list of facts that can be scanned
-   * ``redact`` - to remove sensitive facts from a scanned report
-   * ``encrypt`` - to encrypt sensitive facts within report
-   * ``decrypt`` - to decrypt sensitive facts within report
+   * ``hash`` - to hash sensitive facts within report
 
 The complete list of options for each command and subcommand are listed in the
 rho manpage with other usage examples. The common options are listed with the
