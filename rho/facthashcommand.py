@@ -101,23 +101,28 @@ class FactHashCommand(CliCommand):
         keys = None
 
         with open(path, 'r') as read_file:
-            reader = csv.DictReader(read_file, delimiter=',')
-            for row in reader:
-                for fact in self.facts_to_hash:
-                    if fact in row:
-                        row[fact] = compute_sha256_hash(row[fact])
-                        facts_hashed.add(fact)
-                    else:
-                        facts_not_found.add(fact)
-                if keys is None:
-                    keys = set(row.keys())
-                data.append(row)
+            try:
+                reader = csv.DictReader(read_file, delimiter=',')
+                for row in reader:
+                    for fact in self.facts_to_hash:
+                        if fact in row:
+                            row[fact] = compute_sha256_hash(row[fact])
+                            facts_hashed.add(fact)
+                        else:
+                            facts_not_found.add(fact)
+                    if keys is None:
+                        keys = set(row.keys())
+                    data.append(row)
 
-                for fact in facts_hashed:
-                    print(_("Fact %s hashed" % fact))
-                for fact in facts_not_found:
-                    print(_("Fact %s was not present in %s" %
-                            (fact, self.options.report_path)))
+                    for fact in facts_hashed:
+                        print(_("Fact %s hashed" % fact))
+                    for fact in facts_not_found:
+                        print(_("Fact %s was not present in %s" %
+                                (fact, self.options.report_path)))
+            except csv.Error:
+                print(_("An error occurred while attempting"
+                        " to read CSV file %s." % (self.options.report_path)))
+                sys.exit(1)
 
         return keys, data
 
