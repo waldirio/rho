@@ -79,7 +79,7 @@ create an Ansible inventory called ``<profile name>_hosts.yml`` that includes th
 working hosts matched with an auth each (the auths are chosen in the order
 passed in to the profile add or edit command as will be explained later).
 
-``rho scan --profile big_test --facts facts_file --ansible_forks 100 --reportfile rep.csv``
+``rho scan --profile big_test --facts facts_file --ansible-forks 100 --reportfile rep.csv``
 
 The output is simple CSV format. If 'default' is the argument for ``--facts``,
 the csv output contains the following information:

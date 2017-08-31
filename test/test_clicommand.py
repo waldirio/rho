@@ -630,7 +630,7 @@ class CliCommandsTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             sys.argv = ['/bin/rho', "scan", "--reportfile",
                         TMP_TEST_REPORT, "--facts",
-                        "default", "ansible_forks",
+                        "default", "--ansible-forks",
                         "100", "--vault", TMP_VAULT_PASS]
             with redirect_credentials([]):
                 ScanCommand().main()
@@ -642,7 +642,7 @@ class CliCommandsTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
                         "--cache", "--reportfile",
-                        TMP_TEST_REPORT, "ansible_forks",
+                        TMP_TEST_REPORT, "--ansible-forks",
                         "100", "--vault", TMP_VAULT_PASS]
             with redirect_credentials([]):
                 ScanCommand().main()
@@ -653,7 +653,7 @@ class CliCommandsTests(unittest.TestCase):
 
         with self.assertRaises(SystemExit):
             sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
-                        "--facts", "default", "ansible_forks",
+                        "--facts", "default", "--ansible-forks",
                         "100", "--vault", TMP_VAULT_PASS]
             with redirect_credentials([]):
                 ScanCommand().main()
@@ -665,7 +665,7 @@ class CliCommandsTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
                         "--reportfile", TMP_TEST_REPORT,
-                        "--facts", "default", "ansible_forks",
+                        "--facts", "default", "--ansible-forks",
                         "a", "--vault", TMP_VAULT_PASS]
             with redirect_credentials([]):
                 ScanCommand().main()
@@ -678,7 +678,7 @@ class CliCommandsTests(unittest.TestCase):
             sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
                         "--reportfile",
                         TMP_TEST_REPORT, "--facts",
-                        "default", "ansible_forks",
+                        "default", "--ansible-forks",
                         "-4", "--vault", TMP_VAULT_PASS]
             with redirect_credentials([]):
                 ScanCommand().main()
@@ -692,7 +692,7 @@ class CliCommandsTests(unittest.TestCase):
             sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
                         "--reportfile",
                         TMP_TEST_REPORT, "--facts",
-                        "default", "ansible_forks",
+                        "default", "--ansible-forks",
                         "100", "--vault", TMP_VAULT_PASS]
             with redirect_credentials([]):
                 ScanCommand().main()
@@ -706,7 +706,7 @@ class CliCommandsTests(unittest.TestCase):
             sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
                         "--reportfile",
                         TMP_TEST_REPORT, "--facts",
-                        "all", "ansible_forks",
+                        "all", "--ansible-forks",
                         "100", "--vault", TMP_VAULT_PASS]
             with redirect_credentials([]):
                 ScanCommand().main()
@@ -720,7 +720,7 @@ class CliCommandsTests(unittest.TestCase):
             sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
                         "--reportfile",
                         TMP_TEST_REPORT, "--facts",
-                        "rhel", "ansible_forks",
+                        "rhel", "--ansible-forks",
                         "100", "--vault", TMP_VAULT_PASS]
             with redirect_credentials([]):
                 ScanCommand().main()
@@ -734,7 +734,7 @@ class CliCommandsTests(unittest.TestCase):
             sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
                         "--reportfile",
                         TMP_TEST_REPORT, "--facts",
-                        "jboss", "ansible_forks",
+                        "jboss", "--ansible-forks",
                         "100", "--vault", TMP_VAULT_PASS]
             with redirect_credentials([]):
                 ScanCommand().main()
@@ -748,7 +748,7 @@ class CliCommandsTests(unittest.TestCase):
             sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
                         "--reportfile",
                         TMP_TEST_REPORT, "--facts",
-                        TMP_FACTS, "ansible_forks",
+                        TMP_FACTS, "--ansible-forks",
                         "100", "--vault", TMP_VAULT_PASS]
             ScanCommand().main()
 
@@ -763,7 +763,7 @@ class CliCommandsTests(unittest.TestCase):
                         TMP_TEST_REPORT, "--facts",
                         "uname.all",
                         "cpu.bogomips",
-                        "--ansible_forks",
+                        "--ansible-forks",
                         "100", "--vault", TMP_VAULT_PASS]
             with redirect_credentials([]):
                 ScanCommand().main()
@@ -777,8 +777,28 @@ class CliCommandsTests(unittest.TestCase):
             sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
                         "--reportfile",
                         TMP_TEST_REPORT, "--facts",
-                        "bad.fact1", "bad.fact2", "ansible_forks",
+                        "bad.fact1", "bad.fact2", "--ansible-forks",
                         "100", "--vault", TMP_VAULT_PASS]
+            ScanCommand().main()
+
+    def test_scan_scan_dirs(self):
+        """Test utilizing the scan command exercising the
+        scan-dirs flag to scope a scan
+        """
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
+                        "--reportfile", TMP_TEST_REPORT, "--scan-dirs",
+                        "/opt", "--vault", TMP_VAULT_PASS]
+            ScanCommand().main()
+
+    def test_scan_scan_dirs_file(self):
+        """Test utilizing the scan command exercising the
+        scan-dirs flag to scope a scan using a file for input
+        """
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
+                        "--reportfile", TMP_TEST_REPORT, "--scan-dirs",
+                        TMP_FACTS, "--vault", TMP_VAULT_PASS]
             ScanCommand().main()
 
     def test_verbosity(self):
