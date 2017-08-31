@@ -136,6 +136,8 @@ def process_ping_output(out_lines):
     #   Hello
     # with the above two lines repeated for each host
     for line in out_lines:
+        ansi_escape = re.compile(r'\x1b[^m]*m')
+        line = ansi_escape.sub('', line)
         pieces = line.split('|')
         if len(pieces) == 3 and pieces[1].strip() == 'SUCCESS':
             success_hosts.add(pieces[0].strip())
