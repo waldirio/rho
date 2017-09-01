@@ -26,8 +26,11 @@ import yaml
 from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault_and_password
-from rho.utilities import multi_arg, _read_in_file, str_to_ascii, iteritems,\
-    PING_LOG_PATH, ANSIBLE_LOG_PATH, SCAN_LOG_PATH, PING_INVENTORY_PATH
+from rho.utilities import (
+    multi_arg, _read_in_file, str_to_ascii, iteritems, PING_LOG_PATH,
+    ANSIBLE_LOG_PATH, SCAN_LOG_PATH, PING_INVENTORY_PATH, PROFILE_HOSTS_SUFIX,
+    PROFILE_HOST_AUTH_MAPPING_SUFFIX,
+)
 from rho.translation import _
 
 
@@ -224,7 +227,7 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
 # between hosts and ALL the auths that were ever succesful
 # with them arranged according to profile and date of scan.
 def _create_hosts_auths_file(success_auth_map, profile):
-    host_auth_mapping = profile + '_host_auth_mapping'
+    host_auth_mapping = profile + PROFILE_HOST_AUTH_MAPPING_SUFFIX
     host_auth_mapping_path = utilities.get_config_path(host_auth_mapping)
     with open(host_auth_mapping_path, 'a') as host_auth_file:
         string_to_write = time.strftime("%c") + '\n-' \
@@ -290,7 +293,7 @@ def make_inventory_dict(success_hosts, success_port_map, auth_map):
 def _create_main_inventory(vault, success_hosts, success_port_map,
                            auth_map, profile):
     yml_dict = make_inventory_dict(success_hosts, success_port_map, auth_map)
-    hosts_yml = profile + '_hosts.yml'
+    hosts_yml = profile + PROFILE_HOSTS_SUFIX
     hosts_yml_path = utilities.get_config_path(hosts_yml)
     vault.dump_as_yaml_to_file(yml_dict, hosts_yml_path)
     log_yaml_inventory('Main inventory', yml_dict)
@@ -491,7 +494,7 @@ class ScanCommand(CliCommand):
             if self.options.ansible_forks else '50'
         report_path = os.path.abspath(os.path.normpath(
             self.options.report_path))
-        hosts_yml = profile + '_hosts.yml'
+        hosts_yml = profile + PROFILE_HOSTS_SUFIX
         hosts_yml_path = utilities.get_config_path(hosts_yml)
 
         # Checks if profile exists and stores information
@@ -586,7 +589,8 @@ class ScanCommand(CliCommand):
                                          log_to_stdout=True,
                                          ansible_verbosity=self.verbosity)
         if process.exitstatus == 0 and process.signalstatus is None:
-            host_auth_mapping = self.options.profile + '_host_auth_mapping'
+            host_auth_mapping = \
+                self.options.profile + PROFILE_HOST_AUTH_MAPPING_SUFFIX
             host_auth_mapping_path = \
                 utilities.get_config_path(host_auth_mapping)
             print(_("Scanning has completed. The mapping has been"
