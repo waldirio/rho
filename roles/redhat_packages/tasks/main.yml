@@ -68,11 +68,11 @@
   raw: rpm -qa --qf "%{NAME}|%{VERSION}|%{RELEASE}|%{INSTALLTIME}|%{VENDOR}|%{BUILDTIME}|%{BUILDHOST}|%{SOURCERPM}|%{LICENSE}|%{PACKAGER}|%{INSTALLTIME:date}|%{BUILDTIME:date}\n"
   register: redhat_packages_results
   ignore_errors: yes
-  when: gather_redhat_packages
+  when: have_rpm and gather_redhat_packages
 
 - name: add redhat-packages.results to dictionary
   set_fact:
-    redhat_packages: "{{ redhat_packages|default({}) | combine({ item: redhat_packages_results['stdout_lines'] | default([]) }) }}"
+    redhat_packages: "{{ redhat_packages|default({}) | combine({ item: redhat_packages_results['stdout_lines'] | default([]) if have_rpm else 'N/A (rpm not found)' }) }}"
   with_items:
   - 'redhat-packages.results'
   when: gather_redhat_packages

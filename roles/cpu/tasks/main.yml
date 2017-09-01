@@ -87,11 +87,11 @@
   register: cpu_socket_count
   become: yes
   ignore_errors: yes
-  when: '"cpu.socket_count" in facts_to_collect'
+  when: 'have_dmidecode and "cpu.socket_count" in facts_to_collect'
 
 - name: add cpu.socket_count to dictionary
   set_fact:
-    cpu: "{{ cpu|default({}) | combine({ item: cpu_socket_count['stdout'] | trim | default('error') }) }}"
+    cpu: "{{ cpu|default({}) | combine({ item: cpu_socket_count['stdout'] | trim | default('error') if have_dmidecode else 'N/A (dmidecode not found)' }) }}"
   with_items:
   - 'cpu.socket_count'
   when: '"cpu.socket_count" in facts_to_collect'

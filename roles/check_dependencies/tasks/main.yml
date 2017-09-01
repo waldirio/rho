@@ -1,0 +1,73 @@
+---
+
+- name: gather have_dmidecode_raw
+  raw: command -v /usr/sbin/dmidecode
+  register: have_dmidecode_raw
+  ignore_errors: yes
+
+- name: set have_dmidecode
+  set_fact:
+    have_dmidecode: "{{ have_dmidecode_raw.rc == 0 }}"
+
+- name: gather have_tune2fs_raw
+  raw: command -v tune2fs
+  register: have_tune2fs_raw
+  ignore_errors: yes
+
+- name: set have_tune2fs
+  set_fact:
+    have_tune2fs: "{{ have_tune2fs_raw.rc == 0 }}"
+
+- name: gather have_yum_raw
+  raw: command -v yum
+  register: have_yum_raw
+  ignore_errors: yes
+
+- name: set have_yum
+  set_fact:
+    have_yum: "{{ have_yum_raw.rc == 0 }}"
+
+- name: gather have_java_raw
+  raw: command -v java
+  register: have_java_raw
+  ignore_errors: yes
+
+- name: set have_java
+  set_fact:
+    have_java: "{{ have_java_raw.rc == 0 }}"
+
+- name: gather have_rpm_raw
+  raw: command -v rpm
+  register: have_rpm_raw
+  ignore_errors: yes
+
+- name: set have_rpm
+  set_fact:
+    have_rpm: "{{ have_rpm_raw.rc == 0 }}"
+
+- name: gather have_subscription_manager_raw
+  raw: command -v subscription-manager
+  register: have_subscription_manager_raw
+  ignore_errors: yes
+
+- name: set have_subscription_manager
+  set_fact:
+    have_subscription_manager: "{{ have_subscription_manager_raw.rc == 0 }}"
+
+- name: gather have_virsh_raw
+  raw: command -v virsh
+  register: have_virsh_raw
+  ignore_errors: yes
+
+- name: set have_virsh
+  set_fact:
+    have_virsh: "{{ have_virsh_raw.rc == 0 }}"
+
+- name: gather have_virt_what_raw
+  raw: command -v virt-what
+  register: have_virt_what_raw
+  ignore_errors: yes
+
+- name: set have_virt_what
+  set_fact:
+    have_virt_what: "{{ have_virt_what_raw.rc == 0 }}"
