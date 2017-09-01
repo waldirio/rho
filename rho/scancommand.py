@@ -329,6 +329,8 @@ def run_ansible_with_vault(cmd_string, vault_pass, env=None, log_path=None,
     try:
         utilities.ensure_data_dir_exists()
         with open(log_path, 'wb') as logfile:
+            pass
+        with open(log_path, 'r+b') as logfile:
             logging.debug('Running Ansible: %s', cmd_string)
             child = pexpect.spawn(cmd_string, timeout=None,
                                   env=env)
@@ -341,9 +343,16 @@ def run_ansible_with_vault(cmd_string, vault_pass, env=None, log_path=None,
             # Set the log file *after* we send the user's Vault
             # password to Ansible, so we don't log the password.
             child.logfile = logfile
+            first_passphrase = True
+            last_pos = logfile.tell()
 
             i = child.expect([pexpect.EOF, 'Enter passphrase for key .*:'])
             while i:
+                if first_passphrase:
+                    logfile.seek(last_pos)
+                    logfile_lines = ''.join(logfile.readlines())
+                    print(logfile_lines.replace('\r\n', ''))
+                    first_passphrase = False
                 child.logfile = None
                 # Ansible has already printed a prompt; it would be
                 # confusing if getpass printed another one.
