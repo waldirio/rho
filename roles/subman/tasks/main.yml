@@ -9,11 +9,11 @@
   register: subman_cpu_cpu
   ignore_errors: yes
   become: yes
-  when: '"subman.cpu.cpu(s)" in facts_to_collect'
+  when: 'have_subscription_manager and "subman.cpu.cpu(s)" in facts_to_collect'
 
 - name: add subman.cpu.cpu(s) to dictionary
   set_fact:
-    subman: "{{ subman|default({}) | combine({ item: subman_cpu_cpu['stdout'] | trim | default('error') }) }}"
+    subman: "{{ subman|default({}) | combine({ item: subman_cpu_cpu['stdout'] | trim | default('error') if have_subscription_manager else 'N/A (subscription-manager not found)' }) }}"
   with_items:
   - 'subman.cpu.cpu(s)'
   when: '"subman.cpu.cpu(s)" in facts_to_collect'
@@ -23,11 +23,11 @@
   register: subman_cpu_core_per_socket
   ignore_errors: yes
   become: yes
-  when: '"subman.cpu.core(s)_per_socket" in facts_to_collect'
+  when: 'have_subscription_manager and "subman.cpu.core(s)_per_socket" in facts_to_collect'
 
 - name: add subman.cpu.core(s)_per_socket to dictionary
   set_fact:
-    subman: "{{ subman|default({}) | combine({ item: subman_cpu_core_per_socket['stdout'] | trim | default('error') }) }}"
+    subman: "{{ subman|default({}) | combine({ item: subman_cpu_core_per_socket['stdout'] | trim | default('error') if have_subscription_manager else 'N/A (subscription-manager not found)' }) }}"
   with_items:
   - 'subman.cpu.core(s)_per_socket'
   when: '"subman.cpu.core(s)_per_socket" in facts_to_collect'
@@ -37,11 +37,11 @@
   register: subman_cpu_cpu_socket
   ignore_errors: yes
   become: yes
-  when: '"subman.cpu.cpu_socket(s)" in facts_to_collect'
+  when: 'have_subscription_manager and "subman.cpu.cpu_socket(s)" in facts_to_collect'
 
 - name: add subman.cpu.cpu_socket(s) to dictionary
   set_fact:
-    subman: "{{ subman|default({}) | combine({ item: subman_cpu_cpu_socket['stdout'] | trim | default('error') }) }}"
+    subman: "{{ subman|default({}) | combine({ item: subman_cpu_cpu_socket['stdout'] | trim | default('error') if have_subscription_manager else 'N/A (subscription-manager not found)' }) }}"
   with_items:
   - 'subman.cpu.cpu_socket(s)'
   when: '"subman.cpu.cpu_socket(s)" in facts_to_collect'
@@ -51,11 +51,11 @@
   register: subman_virt_host_type
   ignore_errors: yes
   become: yes
-  when: '"subman.virt.host_type" in facts_to_collect'
+  when: 'have_subscription_manager and "subman.virt.host_type" in facts_to_collect'
 
 - name: add subman.virt.host_type to dictionary
   set_fact:
-    subman: "{{ subman|default({}) | combine({ item: subman_virt_host_type['stdout'] | trim | default('error') }) }}"
+    subman: "{{ subman|default({}) | combine({ item: subman_virt_host_type['stdout'] | trim | default('error') if have_subscription_manager else 'N/A (subscription-manager not found)' }) }}"
   with_items:
   - 'subman.virt.host_type'
   when: '"subman.virt.host_type" in facts_to_collect'
@@ -65,11 +65,11 @@
   register: subman_virt_is_guest
   ignore_errors: yes
   become: yes
-  when: '"subman.virt.is_guest" in facts_to_collect'
+  when: 'have_subscription_manager and "subman.virt.is_guest" in facts_to_collect'
 
 - name: add subman.virt.is_guest to dictionary
   set_fact:
-    subman: "{{ subman|default({}) | combine({ item: subman_virt_is_guest['stdout'] | trim | default('error') }) }}"
+    subman: "{{ subman|default({}) | combine({ item: subman_virt_is_guest['stdout'] | trim | default('error') if have_subscription_manager else 'N/A (subscription-manager not found)' }) }}"
   with_items:
   - 'subman.virt.is_guest'
   when: '"subman.virt.is_guest" in facts_to_collect'
@@ -79,11 +79,11 @@
   register: subman_virt_uuid
   ignore_errors: yes
   become: yes
-  when: '"subman.virt.uuid" in facts_to_collect'
+  when: 'have_subscription_manager and "subman.virt.uuid" in facts_to_collect'
 
 - name: add subman.virt.uuid to dictionary
   set_fact:
-    subman: "{{ subman|default({}) | combine({ item: subman_virt_uuid['stdout'] | trim | default('error') }) }}"
+    subman: "{{ subman|default({}) | combine({ item: subman_virt_uuid['stdout'] | trim | default('error') if have_subscription_manager else 'N/A (subscription-manager not found)' }) }}"
   with_items:
   - 'subman.virt.uuid'
   when: '"subman.virt.uuid" in facts_to_collect'
@@ -92,11 +92,11 @@
   raw: fact_count=$(ls /etc/rhsm/facts | grep .facts | wc -l); if [[ $fact_count > 0 ]]; then echo "Y"; else echo "N"; fi
   register: subman_has_facts_file
   ignore_errors: yes
-  when: '"subman.has_facts_file" in facts_to_collect'
+  when: 'have_subscription_manager and "subman.has_facts_file" in facts_to_collect'
 
 - name: add subman.has_facts_file to dictionary
   set_fact:
-    subman: "{{ subman|default({}) | combine({ item: subman_has_facts_file['stdout'] | trim | default('error') }) }}"
+    subman: "{{ subman|default({}) | combine({ item: subman_has_facts_file['stdout'] | trim | default('error') if have_subscription_manager else 'N/A (subscription-manager not found)' }) }}"
   with_items:
   - 'subman.has_facts_file'
   when: '"subman.has_facts_file" in facts_to_collect'

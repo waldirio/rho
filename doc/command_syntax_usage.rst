@@ -217,3 +217,13 @@ If the scan user uses a password to sudo, one can be given with the
 `--sudo-password` option to the `auth add` and `auth edit`
 commands. The sudo-with-password fundtionality can be tested by using
 the 'askpass' box in the Vagrantfile.
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Programs on Remote Machines
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Besides standard Unix utilities, some Rho fact collectors depend on
+specific programs being installed on the machines being scanned. THe
+complete list is at `remote programs
+<github.com/quipucords/rho/doc/remote_programs.rst>`.
+

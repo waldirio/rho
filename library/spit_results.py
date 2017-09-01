@@ -144,6 +144,8 @@ def safe_next(iterator):
 def process_jboss_versions(host_vars):
     """Get JBoss version information from the host_vars."""
 
+    running_ver = 'jboss.running-versions'
+
     lines = []
     val = {}
 
@@ -156,7 +158,6 @@ def process_jboss_versions(host_vars):
     if 'jboss.run-jar-ver' in host_vars:
         lines.extend(host_vars['jboss.run-jar-ver']['stdout_lines'])
     if 'jboss.running-versions' in host_vars:
-        running_ver = 'jboss.running-versions'
         val[running_ver] = host_vars[running_ver]['stdout']
 
     jboss_releases = []
@@ -172,11 +173,16 @@ def process_jboss_versions(host_vars):
             elif version.strip():
                 jboss_releases.append('Unknown-Release: ' + version)
 
-    if not jboss_releases:
-        return val
+    if jboss_releases:
+        val['jboss.installed-versions'] = '; '.join(jboss_releases)
+        val['jboss.deploy-dates'] = '; '.join(deploy_dates)
 
-    val['jboss.installed-versions'] = '; '.join(jboss_releases)
-    val['jboss.deploy-dates'] = '; '.join(deploy_dates)
+    # The jboss role will not run if 'have_java' is false.
+    if not host_vars['have_java']:
+        val['jboss.installed-versions'] = 'N/A (java not found)'
+        val['jboss.deploy-dates'] = 'N/A (java not found)'
+        val[running_ver] = 'N/A (java not found)'
+
     return val
 
 

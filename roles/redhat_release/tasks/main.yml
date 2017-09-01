@@ -8,11 +8,11 @@
   raw: rpm -q --queryformat "%{NAME}\n" --whatprovides redhat-release
   register: redhat_release_name
   ignore_errors: yes
-  when: '"redhat-release.name" in facts_to_collect'
+  when: 'have_rpm and "redhat-release.name" in facts_to_collect'
 
 - name: add redhat-release.name to dictionary
   set_fact:
-    redhat_release: "{{ redhat_release|default({}) | combine({ item: redhat_release_name['stdout_lines'][0] | default('error') }) }}"
+    redhat_release: "{{ redhat_release|default({}) | combine({ item: redhat_release_name['stdout_lines'][0] | default('error') if have_rpm else 'N/A (rpm not found)' }) }}"
   with_items:
   - 'redhat-release.name'
   when: '"redhat-release.name" in facts_to_collect'
@@ -25,7 +25,7 @@
 
 - name: add redhat-release.version to dictionary
   set_fact:
-    redhat_release: "{{ redhat_release|default({}) | combine({ item: redhat_release_version['stdout_lines'][0] | default('error') }) }}"
+    redhat_release: "{{ redhat_release|default({}) | combine({ item: redhat_release_version['stdout_lines'][0] | default('error') if have_rpm else 'N/A (rpm not found)' }) }}"
   with_items:
   - 'redhat-release.version'
   when: '"redhat-release.version" in facts_to_collect'
@@ -38,7 +38,7 @@
 
 - name: add redhat-release.release to dictionary
   set_fact:
-    redhat_release: "{{ redhat_release|default({}) | combine({ item: redhat_release_release['stdout_lines'][0] | default('error') }) }}"
+    redhat_release: "{{ redhat_release|default({}) | combine({ item: redhat_release_release['stdout_lines'][0] | default('error') if have_rpm else 'N/A (rpm not found)' }) }}"
   with_items:
   - 'redhat-release.release'
   when: '"redhat-release.release" in facts_to_collect'

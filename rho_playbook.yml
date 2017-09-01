@@ -8,6 +8,7 @@
   hosts: all
   gather_facts: no
   roles:
+    - check_dependencies
     - connection
     - cpu
     - date

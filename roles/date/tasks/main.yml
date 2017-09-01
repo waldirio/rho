@@ -48,11 +48,11 @@
   raw: fs_date=$(tune2fs -l $(mount | egrep '/ type' | grep -o '/dev.* on' | sed -e 's/\on//g') | grep 'Filesystem created' | sed 's/Filesystem created:\s*//g'); if [[ $fs_date ]]; then date +'%F' -d \"$fs_date\"; else echo "" ; fi
   register: date_filesystem_create
   ignore_errors: yes
-  when: '"date.filesystem_create" in facts_to_collect'
+  when: 'have_tune2fs and "date.filesystem_create" in facts_to_collect'
 
 - name: add date.filesystem_create to dictionary
   set_fact:
-    date: "{{ date|default({}) | combine({ item: date_filesystem_create['stdout_lines'][0] | default('error') }) }}"
+    date: "{{ date|default({}) | combine({ item: date_filesystem_create['stdout_lines'][0] | default('error') if have_tune2fs else 'N/A (tune2fs not found)' }) }}"
   with_items:
   - 'date.filesystem_create'
   when: '"date.filesystem_create" in facts_to_collect'
@@ -62,11 +62,11 @@
   register: date_yum_history
   become: yes
   ignore_errors: yes
-  when: '"date.yum_history" in facts_to_collect'
+  when: 'have_yum and "date.yum_history" in facts_to_collect'
 
 - name: add date.yum_history to dictionary
   set_fact:
-    date: "{{ date|default({}) | combine({ item: date_yum_history['stdout_lines'] | select | first | default('error') }) }}"
+    date: "{{ date|default({}) | combine({ item: date_yum_history['stdout_lines'] | select | first | default('error') if have_yum else 'N/A (yum not found)' }) }}"
   with_items:
   - 'date.yum_history'
   when: '"date.yum_history" in facts_to_collect'
