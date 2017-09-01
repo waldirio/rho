@@ -222,7 +222,7 @@ the 'askpass' box in the Vagrantfile.
 Programs on Remote Machines
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Besides standard Unix utilities, some Rho fact collectors depend on
+Besides standard Unix utilities, some rho fact collectors depend on
 specific programs being installed on the machines being scanned. THe
 complete list is at `remote programs
 <github.com/quipucords/rho/doc/remote_programs.rst>`.
