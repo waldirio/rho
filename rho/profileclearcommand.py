@@ -21,8 +21,29 @@ import glob
 from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault
-from rho.utilities import get_config_path
+from rho.utilities import (
+    PROFILE_HOSTS_SUFIX,
+    PROFILE_HOST_AUTH_MAPPING_SUFFIX,
+    get_config_path,
+)
 from rho.translation import _
+
+
+def _backup_host_auth_mapping(profile):
+    """Backup the ``profile`` host auth mapping file.
+
+    When a profile is removed, it 'archives' the host auth mapping by
+    renaming it to '(DELETED PROFILE)<profile_name>_host_auth_mapping
+    for identification by the user. The time stamps in mapping files
+    help in identifying the various forms and times in which the said
+    profile existed.
+    """
+    mapping_name = profile + PROFILE_HOST_AUTH_MAPPING_SUFFIX
+    mapping_path = get_config_path(mapping_name)
+    if os.path.isfile(mapping_path):
+        renamed_mapping_name = '(DELETED PROFILE)' + mapping_name
+        renamed_mapping_path = get_config_path(renamed_mapping_name)
+        os.rename(mapping_path, renamed_mapping_path)
 
 
 class ProfileClearCommand(CliCommand):
@@ -61,75 +82,43 @@ class ProfileClearCommand(CliCommand):
             self.parser.print_help()
             sys.exit(1)
 
-    # pylint: disable=too-many-branches,too-many-locals
     def _do_command(self):
-        profiles_list = []
+        if not os.path.isfile(utilities.PROFILES_PATH):
+            print(_("All network profiles removed"))
+            return
 
         if self.options.name:
-            if os.path.isfile(utilities.PROFILES_PATH):
-                vault = get_vault(self.options.vaultfile)
-                profile = self.options.name
-                profiles_list = vault.load_as_json(utilities.PROFILES_PATH)
-                profile_found = False
+            vault = get_vault(self.options.vaultfile)
+            profile = self.options.name
+            profiles_list = vault.load_as_json(utilities.PROFILES_PATH)
+            profile_found = False
 
-                for index, curr_profile in enumerate(profiles_list):
-                    if curr_profile.get('name') == profile:
-                        del profiles_list[index]
-                        print(_('Profile "%s" was removed' % profile))
-                        profile_found = True
-                        break
+            for index, curr_profile in enumerate(profiles_list):
+                if curr_profile.get('name') == profile:
+                    del profiles_list[index]
+                    print(_('Profile "%s" was removed' % profile))
+                    profile_found = True
+                    break
 
-                if not profile_found:
-                    print(_("No such profile: '%s'") % profile)
-                    sys.exit(1)
+            if not profile_found:
+                print(_("No such profile: '%s'") % profile)
+                sys.exit(1)
 
-                vault.dump_as_json_to_file(profiles_list,
-                                           utilities.PROFILES_PATH)
+            vault.dump_as_json_to_file(profiles_list, utilities.PROFILES_PATH)
 
-                # removes inventory associated with the profile
-                profile_hosts = profile + '_hosts'
-                profile_hosts_path = get_config_path(profile_hosts)
-                if os.path.isfile(profile_hosts_path):
-                    os.remove(profile_hosts_path)
-
-                host_auth_mapping = profile + '_host_auth_mapping'
-                profile_mapping = get_config_path(host_auth_mapping)
-
-                # when a profile is removed, it 'archives' the host auth
-                # mapping by renaming it
-                # '(DELETED PROFILE)<profile_name>_host_auth_mapping
-                # for identification by the user. The time stamps in
-                # mapping files help in identifying the various forms and
-                # times in which the said profile existed.
-                if os.path.isfile(profile_mapping):
-                    del_host_auth_mapping = '(DELETED PROFILE)' + profile \
-                        + '_host_auth_mapping'
-                    del_host_auth_mapping_path = \
-                        get_config_path(del_host_auth_mapping)
-                    os.rename(profile_mapping,
-                              del_host_auth_mapping_path)
-            else:
-                print(_("All network profiles removed"))
+            # removes inventory associated with the profile
+            profile_hosts_path = get_config_path(profile + PROFILE_HOSTS_SUFIX)
+            if os.path.isfile(profile_hosts_path):
+                os.remove(profile_hosts_path)
+            _backup_host_auth_mapping(profile)
 
         # removes all inventories ever.
         elif self.options.all:
-            if not os.path.isfile(utilities.PROFILES_PATH):
-                print(_("All network profiles removed"))
-            else:
-                os.remove(utilities.PROFILES_PATH)
-                wildcard_hosts = '*_hosts'
-                wildcard_hosts_path = get_config_path(wildcard_hosts)
-                for file_list in glob.glob(wildcard_hosts_path):
-                    os.remove(file_list)
-                    profile = file_list.strip('_hosts')
-                    host_auth_mapping = profile + '_host_auth_mapping'
-                    profile_mapping = get_config_path(host_auth_mapping)
-                    if os.path.isfile(profile_mapping):
-                        del_host_auth_mapping = '(DELETED PROFILE)' \
-                            + profile + '_host_auth_mapping'
-                        del_host_auth_mapping_path = \
-                            get_config_path(del_host_auth_mapping)
-                        os.rename(profile_mapping,
-                                  del_host_auth_mapping)
-
-                print(_("All network profiles removed"))
+            os.remove(utilities.PROFILES_PATH)
+            wildcard_hosts_path = get_config_path('*' + PROFILE_HOSTS_SUFIX)
+            for file_list in glob.glob(wildcard_hosts_path):
+                os.remove(file_list)
+                file_list = os.path.basename(file_list)
+                profile = file_list[:file_list.rfind(PROFILE_HOSTS_SUFIX)]
+                _backup_host_auth_mapping(profile)
+            print(_("All network profiles removed"))

@@ -37,6 +37,9 @@ PING_LOG_PATH = os.path.join(DATA_DIR, 'ping_log')
 ANSIBLE_LOG_PATH = os.path.join(DATA_DIR, 'ansible_log')
 SCAN_LOG_PATH = os.path.join(DATA_DIR, 'scan_log')
 
+PROFILE_HOSTS_SUFIX = '_hosts.yml'
+PROFILE_HOST_AUTH_MAPPING_SUFFIX = '_host_auth_mapping'
+
 PLAYBOOK_DEV_PATH = 'rho_playbook.yml'
 PLAYBOOK_RPM_PATH = '/usr/share/ansible/rho/rho_playbook.yml'
 
