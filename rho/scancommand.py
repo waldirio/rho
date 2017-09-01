@@ -393,7 +393,12 @@ class ScanCommand(CliCommand):
                                action="callback", callback=multi_arg,
                                default=[], help=_("'default', list or file"))
 
-        self.parser.add_option("--ansible_forks", dest="ansible_forks",
+        self.parser.add_option("--scan-dirs", dest="scan_dirs",
+                               metavar="SCANDIRS", action="callback",
+                               callback=multi_arg, default=[],
+                               help=_("list of remote directories to scan"))
+
+        self.parser.add_option("--ansible-forks", dest="ansible_forks",
                                metavar="FORKS",
                                help=_("number of ansible forks"))
 
@@ -406,6 +411,7 @@ class ScanCommand(CliCommand):
 
         self.facts_to_collect = None
 
+    # pylint: disable=too-many-branches
     def _validate_options(self):
         CliCommand._validate_options(self)
 
@@ -422,11 +428,11 @@ class ScanCommand(CliCommand):
         if self.options.ansible_forks:
             try:
                 if int(self.options.ansible_forks) <= 0:
-                    print(_("ansible_forks can only be a positive integer."))
+                    print(_("--ansible-forks can only be a positive integer."))
                     self.parser.print_help()
                     sys.exit(1)
             except ValueError:
-                print(_("ansible_forks can only be a positive integer."))
+                print(_("--ansible-forks can only be a positive integer."))
                 self.parser.print_help()
                 sys.exit(1)
 
@@ -454,6 +460,14 @@ class ScanCommand(CliCommand):
                     ",".join(invalid_facts)))
             self.parser.print_help()
             sys.exit(1)
+
+        if self.options.scan_dirs == []:
+            self.options.scan_dirs = ['/']
+        elif os.path.isfile(self.options.scan_dirs[0]):
+            self.options.scan_dirs = \
+                _read_in_file(self.options.scan_dirs[0])
+        else:
+            assert isinstance(self.options.scan_dirs, list)
 
     def _do_command(self):
         # pylint: disable=too-many-locals
@@ -529,8 +543,10 @@ class ScanCommand(CliCommand):
             if key not in self.facts_to_collect:
                 self.facts_to_collect.append(key)
 
+        scan_dirs = ' '.join(self.options.scan_dirs)
         ansible_vars = {'facts_to_collect': self.facts_to_collect,
-                        'report_path': report_path}
+                        'report_path': report_path,
+                        'scan_dirs': scan_dirs}
 
         playbook = utilities.PLAYBOOK_DEV_PATH
         if not os.path.isfile(playbook):

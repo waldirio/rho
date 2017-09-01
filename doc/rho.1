@@ -198,7 +198,7 @@ This required argument sets the name of the new profile. This name is used to id
 .PP
 .TP
 --hosts ip_address
-This sets the IP address, hostname, or IP address range to use when running discovery. There are several different formats that are allowed for the
+This sets the IP address, hostname, or IP address range to use when running discovery. You may provide a list of hosts or a file where each item is on a separate line. There are several different formats that are allowed for the
 .I ip_address
 value.
 .IP
@@ -362,6 +362,9 @@ A scan can be run by specifying the profile to use and where to write the CSV fi
 .B [--facts
 .I file or list of facts
 .B ]
+.B [--scan-dirs=
+.I file or list of remote directories
+.B ]
 .B [--cache]
 .B [--vault=
 .I vault_file
@@ -369,7 +372,7 @@ A scan can be run by specifying the profile to use and where to write the CSV fi
 .B [--logfile=
 .I log_file
 .B ]
-.B [--ansible_forks=
+.B [--ansible-forks=
 .I num_forks
 .B ]
 .PP
@@ -383,7 +386,7 @@ Writes the output to a comma-separated values (CSV) file.
 .PP
 .TP
 --facts fact1 fact2
-The list of facts that are returned in the scan output. The list below is included as an example and is not exhaustive. Please use the ’rho fact list’ command to get the full list of available facts.
+The list of facts that are returned in the scan output. You may provide a list of facts or a file where each item is on a separate line. The list below is included as an example and is not exhaustive. Please use the ’rho fact list’ command to get the full list of available facts.
 .nf
 cpu.count:number of processors
 cpu.cpu_family:cpu family
@@ -411,6 +414,10 @@ uname.processor:uname -p (processor)
 .fi
 .PP
 .TP
+--scan-dirs dir1 dir2
+The list of directories on remote systems to scan for products. This option is intended to help scope a scan for systems with very large file system under the root directory. You may provide a list of directories or a file where each item is on a separate line.
+.PP
+.TP
 --cache
 This argument can be used if a profile has previously been used for a discovery and nothing new needs to be found during the scan
 .PP
@@ -423,7 +430,7 @@ This contains the path and filename of the file containing the vault password. I
 This contains the path and filename of the file for writing the scan log.
 .PP
 .TP
---ansible_forks=num_forks
+--ansible-forks=num_forks
 This value is used to determine the number of systems to scan in parallel. The current default is 50 concurrent connections.
 .PP
 
