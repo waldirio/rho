@@ -11,20 +11,17 @@
 """ A set of reusable methods common to many of the commands """
 
 from __future__ import print_function
-import os
-import sys
-import re
 import csv
+import os
+import re
+import sys
 import tempfile
+import threading
 from shutil import move
 import sh
 from xdg.BaseDirectory import xdg_data_home, xdg_config_home
 from rho.translation import _
 
-if sys.version_info > (3,):
-    import _thread
-else:
-    import thread as _thread  # pylint: disable=import-error
 
 RHO_PATH = 'rho'
 CONFIG_DIR = os.path.join(xdg_config_home, RHO_PATH)
@@ -143,8 +140,10 @@ def threaded_tailing(path, ansible_verbosity=0):
     :param path: path to file to follow
     :param ansible_verbosity: the verbosity level
     """
-
-    _thread.start_new_thread(tail_and_follow, (path, ansible_verbosity))
+    thread = threading.Thread(
+        target=tail_and_follow, args=(path, ansible_verbosity))
+    thread.daemon = True
+    thread.start()
 
 
 def tail_and_follow(path, ansible_verbosity):
