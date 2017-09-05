@@ -223,7 +223,6 @@ Programs on Remote Machines
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Besides standard Unix utilities, some rho fact collectors depend on
-specific programs being installed on the machines being scanned. THe
+specific programs being installed on the machines being scanned. The
 complete list is at `remote programs
-<github.com/quipucords/rho/doc/remote_programs.rst>`.
-
+<github.com/quipucords/rho/doc/remote_programs.rst>`_.
