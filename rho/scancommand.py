@@ -346,16 +346,17 @@ def run_ansible_with_vault(cmd_string, vault_pass, env=None, log_path=None,
             # Set the log file *after* we send the user's Vault
             # password to Ansible, so we don't log the password.
             child.logfile = logfile
-            first_passphrase = True
             last_pos = logfile.tell()
 
             i = child.expect([pexpect.EOF, 'Enter passphrase for key .*:'])
             while i:
-                if first_passphrase:
-                    logfile.seek(last_pos)
-                    logfile_lines = ''.join(logfile.readlines())
-                    print(logfile_lines.replace('\r\n', ''))
-                    first_passphrase = False
+                new_pos = logfile.tell()
+                logfile.seek(last_pos)
+                logfile_lines = logfile.readlines()
+                logging.info(logfile_lines)
+                print(logfile_lines[-1].replace('\r\n', ''))
+                logfile.seek(new_pos)
+                last_pos = new_pos
                 child.logfile = None
                 # Ansible has already printed a prompt; it would be
                 # confusing if getpass printed another one.

@@ -162,11 +162,7 @@ def tail_and_follow(path, ansible_verbosity):
 
         # pylint: disable=no-member
         for line in sh.tail('-f', '-n', '+0', path, _iter=True):
-            ansi_escape = re.compile(r'\x1b[^m]*m')
-            logline = ansi_escape.sub('', line)
             line = line.strip('\n')
-            if logline.startswith('Enter passphrase'):
-                print(line)
             if line.startswith('TASK') or line.startswith('PLAY'):
                 print(line)
                 print_line = truncate
