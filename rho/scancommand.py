@@ -481,6 +481,13 @@ class ScanCommand(CliCommand):
                 _read_in_file(self.options.scan_dirs[0])
         else:
             assert isinstance(self.options.scan_dirs, list)
+        # check that all values in scan_dirs are valid abs paths
+        invalid_paths = utilities.check_path_validity(self.options.scan_dirs)
+        if invalid_paths != []:
+            print(_("Invalid paths wer supplied to the --scan-dirs option:" +
+                    ",".join(invalid_paths)))
+            self.parser.print_help()
+            sys.exit(1)
 
     def _do_command(self):
         # pylint: disable=too-many-locals

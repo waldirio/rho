@@ -338,3 +338,17 @@ def get_config_path(filename):
     :returns path to for filename in XDG_CONFIG_HOME associated with rho
     """
     return os.path.join(xdg_config_home, RHO_PATH, filename)
+
+
+def check_path_validity(path_list):
+    """ Given a list of paths it verifies that all paths are valid
+    absolute path inputs for a scoped scan. If not it return a list of
+    invalid paths.
+    :param path_list: list of paths to validate
+    :return: empty list or list of invalid paths
+    """
+    invalid_paths = []
+    for a_path in path_list:
+        if not os.path.isabs(a_path):
+            invalid_paths.append(a_path)
+    return invalid_paths
