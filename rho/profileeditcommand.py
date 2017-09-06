@@ -20,7 +20,7 @@ import sys
 from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault
-from rho.utilities import multi_arg, check_range_validity, _read_in_file
+from rho.utilities import multi_arg, read_ranges
 from rho.translation import _
 
 
@@ -104,14 +104,7 @@ class ProfileEditCommand(CliCommand):
         profiles_list = vault.load_as_json(utilities.PROFILES_PATH)
 
         if self.options.hosts:
-            hosts_list = self.options.hosts
-            range_list = hosts_list
-            if os.path.isfile(hosts_list[0]):
-                range_list = _read_in_file(hosts_list[0])
-
-            # makes sure the hosts passed in are in a format Ansible
-            # understands.
-            check_range_validity(range_list)
+            range_list = read_ranges(self.options.hosts)
 
         for curr_profile in profiles_list:
             if curr_profile.get('name') == self.options.name:
