@@ -270,10 +270,18 @@ def _read_in_file(filename):
 
 # Makes sure the hosts passed in are in a format Ansible
 # understands.
-def check_range_validity(range_list):
-    """Checks the input range_list to see if it meets the Ansible
-    range criteria
-    :param range_list: list of hosts
+def read_ranges(ranges_or_path):
+    """Process a range list from the user.
+
+    This function reads a hosts file if necessary, validates that all
+    IP ranges are in Ansible format, and rewrites CIDR address ranges
+    to Ansible format if necessary.
+
+    :param ranges_or_path: either a list of IP address ranges or a
+      one-element list where the one element is the path of a file
+      with ranges.
+    :returns: list of IP address ranges in Ansible format
+
     """
     # pylint: disable=anomalous-backslash-in-string
     regex_list = ['[0-9]*.[0-9]*.[0-9]*.\[[0-9]*:[0-9]*\]',
@@ -283,19 +291,120 @@ def check_range_validity(range_list):
                   '[a-zA-Z0-9-\.]*\[[0-9]*:[0-9]*\]*[a-zA-Z0-9-\.]*',
                   '[a-zA-Z0-9-\.]*\[[a-zA-Z]*:[a-zA-Z]*\][a-zA-Z0-9-\.]*']
 
-    for reg_item in range_list:
-        match = False
-        for reg in regex_list:
-            matches = re.findall(reg, reg_item)
-            if len(matches) == 1:
-                match = True
-        if not match:
-            if len(reg_item) <= 1:
-                print(_("No such hosts file."))
+    if ranges_or_path and os.path.isfile(ranges_or_path[0]):
+        range_list = _read_in_file(ranges_or_path[0])
+    else:
+        range_list = ranges_or_path
 
-            print(_("Bad host name/range : '%s'") % reg_item)
+    normalized = []
+
+    for reg_item in range_list:
+        match_found = False
+        for reg in regex_list:
+            match = re.match(reg, reg_item)
+            if match and match.end() == len(reg_item):
+                normalized.append(reg_item)
+                match_found = True
+                break
+
+        if not match_found:
+            try:
+                normalized.append(cidr_to_ansible(reg_item))
+                match_found = True
+            except NotCIDRException:
+                pass
+
+        if not match_found:
+            logging.error(_("Bad host name/range : '%s'"), reg_item)
+            if len(range_list) <= 1:
+                logging.error(_("Couldn't interpret %s as host file because "
+                                "no such file", reg_item))
+
             sys.exit(1)
-    return True
+
+    return normalized
+
+
+class NotCIDRException(Exception):
+    """Exception for when a string does not look like a CIDR range."""
+
+    pass
+
+
+def cidr_to_ansible(ip_range):
+    """Convert an IP address range from CIDR to Ansible notation.
+
+    :param ip_range: the IP range, as a string
+    :returns: the IP range, as an Ansible-formatted string
+
+    Raises NotCIDRException if ip_range doesn't look similar to CIDR
+    notation. If it does look like CIDR but isn't quite right, print
+    out error messages and exit.
+    """
+
+    # In the case of an input error, we want to distinguish between
+    # strings that are "CIDR-like", so the user probably intended to
+    # use CIDR and we should give them a CIDR error message, and not
+    # at all CIDR-like, in which case we tell the caller to parse it a
+    # different way.
+    cidr_like = r'[0-9.]*/[0-9]*'
+
+    if not re.match(cidr_like, ip_range):
+        raise NotCIDRException
+
+    base_address, prefix_bits = ip_range.split('/')
+    prefix_bits = int(prefix_bits)
+
+    if prefix_bits < 0 or prefix_bits > 32:
+        logging.error('Bit mask length %s of IP range %s is not in the valid '
+                      'range [0,32].', prefix_bits, ip_range)
+        sys.exit(1)
+
+    octet_strings = base_address.split('.')
+    if len(octet_strings) != 4:
+        logging.error('IP address %s (part of IP range %s) '
+                      'does not have exactly 4 octets', base_address, ip_range)
+        sys.exit(1)
+
+    octets = [None] * 4
+    for i in range(4):
+        if not octet_strings[i]:
+            logging.error('Empty octet in IP range %s', ip_range)
+            sys.exit(1)
+
+        val = int(octet_strings[i])
+        if val < 0 or val > 255:
+            logging.error('IP octet %s (part of IP range %s) '
+                          'is not in the valid range [0,255]', val, ip_range)
+            sys.exit(1)
+        octets[i] = val
+
+    ansible_out = [None] * 4
+    for i in range(4):
+        # "prefix_bits" is the number of high-order bits we want to
+        # keep for the whole CIDR range. "mask" is the number of
+        # low-order bits we want to mask off. Here prefix_bits is for
+        # the whole IP address, but mask_bits is just for this octet.
+
+        if prefix_bits <= i * 8:
+            ansible_out[i] = '[0:255]'
+        elif prefix_bits >= (i + 1) * 8:
+            ansible_out[i] = str(octets[i])
+        else:
+            # The number of bits of this octet that we want to
+            # preserve
+            this_octet_bits = prefix_bits - 8 * i
+            assert 0 < this_octet_bits < 8
+            # mask is this_octet_bits 1's followed by (8 -
+            # this_octet_bits) 0's.
+            mask = -1 << (8 - this_octet_bits)
+
+            lower_bound = octets[i] & mask
+            upper_bound = lower_bound + ~mask
+            ansible_out[i] = '[{0}:{1}]'.format(
+                lower_bound, upper_bound)
+
+    return '.'.join(ansible_out)
 
 
 def validate_port(arg):

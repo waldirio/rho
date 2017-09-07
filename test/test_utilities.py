@@ -74,33 +74,87 @@ class TestTailing(unittest.TestCase):
             self.assertEqual(follow_list_out.getvalue(), 'follow\n')
 
 
-class TestRangeValidity(unittest.TestCase):
+class TestReadRanges(unittest.TestCase):
 
-    def testcheck_range_validity(self):
-        valid_range_list = ['10.10.181.9',
-                            '10.10.128.[1:25]',
-                            '10.10.[1:20].25',
-                            '10.10.[1:20].[1:25]',
-                            'localhost',
-                            'mycentos.com',
-                            'my-rhel[a:d].company.com',
-                            'my-rhel[120:400].company.com']
-        result = utilities.check_range_validity(valid_range_list)
-        self.assertTrue(result)
+    def test_valid_ranges(self):
+        range_list = ['10.10.181.9',
+                      '10.10.128.[1:25]',
+                      '10.10.[1:20].25',
+                      '10.10.[1:20].[1:25]',
+                      'localhost',
+                      'mycentos.com',
+                      'my-rhel[a:d].company.com',
+                      'my-rhel[120:400].company.com']
+        result = utilities.read_ranges(range_list)
+        self.assertEqual(range_list, result)
 
-    def testcheck_range_validity_error(self):
-        valid_range_list = ['10.10.[181.9',
-                            '10.10.128.[a:25]',
-                            '10.10.[1-20].25',
-                            'my_rhel[a:d].company.com',
-                            'my-rhel[a:400].company.com']
+    def test_invalid_ranges(self):
+        range_list = ['10.10.[181.9',
+                      '10.10.128.[a:25]',
+                      '10.10.[1-20].25',
+                      'my_rhel[a:d].company.com',
+                      'my-rhel[a:400].company.com']
         with self.assertRaises(SystemExit):
-            utilities.check_range_validity(valid_range_list)
+            utilities.read_ranges(range_list)
 
-    def testcheck_range_cidr_error(self):
-        valid_range_list = ['192.168.124.0/25']
+    def test_cidr_range(self):
+        range_list = ['192.168.124.0/25']
+        self.assertEqual(
+            utilities.read_ranges(range_list),
+            ['192.168.124.[0:127]'])
+
+
+class TestCIDRToAnsible(unittest.TestCase):
+    def test_wrong_format(self):
+        with self.assertRaises(utilities.NotCIDRException):
+            utilities.cidr_to_ansible('www.redhat.com')
+
+    def test_extra_dots(self):
         with self.assertRaises(SystemExit):
-            utilities.check_range_validity(valid_range_list)
+            utilities.cidr_to_ansible('1.2..3.4/26')
+
+    def test_octet_out_of_range(self):
+        with self.assertRaises(SystemExit):
+            utilities.cidr_to_ansible('1.2.3.256/12')
+
+    def test_prefix_out_of_range(self):
+        with self.assertRaises(SystemExit):
+            utilities.cidr_to_ansible('1.2.3.4/33')
+
+    def test_no_prefix(self):
+        self.assertEqual(
+            utilities.cidr_to_ansible('1.2.3.4/0'),
+            '[0:255].[0:255].[0:255].[0:255]')
+
+    def test_exact_ip(self):
+        self.assertEqual(
+            utilities.cidr_to_ansible('1.2.3.4/32'),
+            '1.2.3.4')
+
+    def test_first_octet(self):
+        self.assertEqual(
+            utilities.cidr_to_ansible('15.2.3.4/6'),
+            '[12:15].[0:255].[0:255].[0:255]')
+
+    def test_last_octet(self):
+        self.assertEqual(
+            utilities.cidr_to_ansible('1.2.3.4/30'),
+            '1.2.3.[4:7]')
+
+    def test_octet_boundary(self):
+        self.assertEqual(
+            utilities.cidr_to_ansible('1.2.3.4/16'),
+            '1.2.[0:255].[0:255]')
+
+    def test_beginning_of_octet(self):
+        self.assertEqual(
+            utilities.cidr_to_ansible('192.168.1.1/17'),
+            '192.168.[0:127].[0:255]')
+
+    def test_end_of_octet(self):
+        self.assertEqual(
+            utilities.cidr_to_ansible('192.168.1.1/23'),
+            '192.168.[0:1].[0:255]')
 
 
 class TestSetupLogging(unittest.TestCase):
