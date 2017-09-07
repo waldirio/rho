@@ -129,12 +129,19 @@ def process_ping_output(out_lines):
     hosts, then sending the output to this function.
 
     :param out_lines: an iterator returning lines of Ansible output.
-    :returns: the hosts that pinged successfully, as a set.
+    :returns: the hosts that pinged successfully, as a set and those
+    that failed, as a set.
     """
 
     success_hosts = set()
+    failed_hosts = set()
 
     # Ansible output has the format
+    # host | UNREACHABLE! => {
+    #     "changed": false,
+    #     "msg": "Failed to connect to the host via ssh ...",
+    #     "unreachable": true
+    #    }
     #   hostname | SUCCESS | rc=0 >>
     #   Hello
     # with the above two lines repeated for each host
@@ -144,17 +151,20 @@ def process_ping_output(out_lines):
         pieces = line.split('|')
         if len(pieces) == 3 and pieces[1].strip() == 'SUCCESS':
             success_hosts.add(pieces[0].strip())
+        elif len(pieces) == 2 and pieces[1].strip().startswith('UNREACHABLE'):
+            failed_hosts.add(pieces[0].strip())
 
     logging.debug('Ping log reached hosts: %s', success_hosts)
+    logging.debug('Ping log did not reached hosts: %s', failed_hosts)
 
-    return success_hosts
+    return success_hosts, failed_hosts
 
 
 # Creates the inventory for pinging all hosts and records
 # successful auths and the hosts they worked on
 # pylint: disable=too-many-statements, too-many-arguments, unused-argument
 def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
-                           profile_auth_list, forks, ansible_verbosity):
+                           credential, forks, ansible_verbosity):
 
     """Find which auths work with which hosts.
 
@@ -162,7 +172,7 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
     :param vault_pass: password for the Vault?
     :param profile_ranges: hosts for the profile
     :param profile_port: the SSH port to use
-    :param profile_auth_list: auths to use
+    :param credential: auth to use
     :param forks: the number of Ansible forks to use
 
     :returns: a tuple of
@@ -174,6 +184,7 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
 
     # pylint: disable=too-many-locals
     success_hosts = set()
+    failed_hosts = set()
     success_port_map = defaultdict()
     success_auth_map = defaultdict(list)
     hosts_dict = {}
@@ -189,8 +200,7 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
         else:
             hosts_dict[hostname] = None
 
-    for cred_item in profile_auth_list:
-        vars_dict = auth_as_ansible_host_vars(cred_item)
+        vars_dict = auth_as_ansible_host_vars(credential)
 
         yml_dict = {'alpha': {'hosts': hosts_dict, 'vars': vars_dict}}
         vault.dump_as_yaml_to_file(yml_dict, PING_INVENTORY_PATH)
@@ -214,13 +224,14 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
                                ansible_verbosity=0)
 
         with open(PING_LOG_PATH, 'r') as ping_log:
-            success_hosts = process_ping_output(ping_log)
+            success_hosts, failed_hosts = process_ping_output(ping_log)
 
         for host in success_hosts:
-            success_auth_map[host].append(cred_item)
+            success_auth_map[host].append(credential)
             success_port_map[host] = profile_port
 
-    return list(success_hosts), success_port_map, success_auth_map
+    return list(success_hosts), success_port_map, success_auth_map, \
+        list(failed_hosts)
 
 
 # Helper function to create a file to store the mapping
@@ -536,14 +547,22 @@ class ScanCommand(CliCommand):
         # cache is used when the profile/auth mapping has been previously
         # used and does not need to be rerun.
         if not self.options.cache:
-            success_hosts, success_port_map, auth_map = _create_ping_inventory(
-                vault, vault_pass,
-                profile_ranges,
-                profile_port,
-                profile_auth_list,
-                forks,
-                self.verbosity)
-
+            success_hosts = []
+            success_port_map = {}
+            auth_map = {}
+            remaining_hosts = profile_ranges
+            for cred_item in profile_auth_list:
+                success_hosts_, success_port_map_, \
+                    auth_map_, remaining_hosts_ = \
+                    _create_ping_inventory(vault, vault_pass,
+                                           remaining_hosts,
+                                           profile_port,
+                                           cred_item, forks,
+                                           self.verbosity)
+                success_hosts = success_hosts + success_hosts_
+                remaining_hosts = remaining_hosts_
+                success_port_map.update(success_port_map_)
+                auth_map.update(auth_map_)
             if not success_hosts:
                 print(_('All auths are invalid for this profile'))
                 sys.exit(1)
