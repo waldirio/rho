@@ -10,6 +10,7 @@
 """Unit tests for rho/utilities.py."""
 
 import contextlib
+import logging
 import sys
 import os
 import time
@@ -100,3 +101,19 @@ class TestRangeValidity(unittest.TestCase):
         valid_range_list = ['192.168.124.0/25']
         with self.assertRaises(SystemExit):
             utilities.check_range_validity(valid_range_list)
+
+
+class TestSetupLogging(unittest.TestCase):
+    def test_default_level(self):
+        utilities.setup_logging(None)
+        self.assertEqual(utilities.log.getEffectiveLevel(),
+                         logging.WARNING)
+        self.assertEqual(logging.getLogger().getEffectiveLevel(),
+                         logging.WARNING)
+
+    def test_verbose_level(self):
+        utilities.setup_logging(2)
+        self.assertEqual(utilities.log.getEffectiveLevel(),
+                         logging.DEBUG)
+        self.assertEqual(logging.getLogger().getEffectiveLevel(),
+                         logging.WARNING)

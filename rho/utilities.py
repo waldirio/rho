@@ -12,6 +12,7 @@
 
 from __future__ import print_function
 import csv
+import logging
 import os
 import re
 import sys
@@ -133,6 +134,45 @@ RHEL_FACTS = SUBMAN_FACTS_TUPLE + DATE_FACTS_TUPLE \
 JBOSS_FACTS = JBOSS_FACTS_TUPLE + BRMS_FACTS_TUPLE + FUSE_FACTS_TUPLE
 
 DEFAULT_FACTS = RHEL_FACTS + JBOSS_FACTS + CONNECTION_FACTS_TUPLE
+
+# 'log' is a convenience for getting the appropriate logger from the
+# logging module. Use it like this:
+#
+#   from rho.utilities import log
+#   ...
+#   log.error('Too many Tribbles!')
+
+# pylint: disable=invalid-name
+log = logging.getLogger('rho')
+
+
+def setup_logging(verbosity):
+    """Set up Python logging for Rho.
+
+    Must be run after ensure_data_dir_exists().
+
+    :param verbosity: verbosity level, as measured in -v's on the
+    command line. Can be None for default.
+    """
+
+    if verbosity is None:
+        log_level = logging.WARNING
+    elif verbosity == 1:
+        log_level = logging.INFO
+    else:
+        log_level = logging.DEBUG
+
+    # Using basicConfig here means that all log messages, even
+    # those not coming from rho, will go to the log file
+    logging.basicConfig(filename=RHO_LOG)
+    # but we only adjust the log level for the 'rho' logger.
+    log.setLevel(log_level)
+    # the StreamHandler sends warnings and above to stdout, but
+    # only for messages going to the 'rho' logger, i.e. Rho
+    # output.
+    stderr_handler = logging.StreamHandler()
+    stderr_handler.setLevel(logging.WARNING)
+    log.addHandler(stderr_handler)
 
 
 def threaded_tailing(path, ansible_verbosity=0):

@@ -29,7 +29,7 @@ from rho.vault import get_vault_and_password
 from rho.utilities import (
     multi_arg, _read_in_file, str_to_ascii, iteritems, PING_LOG_PATH,
     ANSIBLE_LOG_PATH, SCAN_LOG_PATH, PING_INVENTORY_PATH, PROFILE_HOSTS_SUFIX,
-    PROFILE_HOST_AUTH_MAPPING_SUFFIX,
+    PROFILE_HOST_AUTH_MAPPING_SUFFIX, log
 )
 from rho.translation import _
 
@@ -118,7 +118,7 @@ def log_yaml_inventory(label, inventory):
 
     vars_dict = redact_dict(redact_key_list, vars_dict)
 
-    logging.debug('%s:\n%s', label, yaml.dump(inventory))
+    log.debug('%s:\n%s', label, yaml.dump(inventory))
     return inventory
 
 
@@ -154,8 +154,8 @@ def process_ping_output(out_lines):
         elif len(pieces) == 2 and pieces[1].strip().startswith('UNREACHABLE'):
             failed_hosts.add(pieces[0].strip())
 
-    logging.debug('Ping log reached hosts: %s', success_hosts)
-    logging.debug('Ping log did not reached hosts: %s', failed_hosts)
+    log.debug('Ping log reached hosts: %s', success_hosts)
+    log.debug('Ping log did not reached hosts: %s', failed_hosts)
 
     return success_hosts, failed_hosts
 
@@ -345,7 +345,7 @@ def run_ansible_with_vault(cmd_string, vault_pass, env=None, log_path=None,
         with open(log_path, 'wb') as logfile:
             pass
         with open(log_path, 'r+b') as logfile:
-            logging.debug('Running Ansible: %s', cmd_string)
+            log.debug('Running Ansible: %s', cmd_string)
             child = pexpect.spawn(cmd_string, timeout=None,
                                   env=env)
 
