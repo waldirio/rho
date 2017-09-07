@@ -116,7 +116,6 @@ class ProfileAddCommand(CliCommand):
     # pylint: disable=too-many-locals
     def _do_command(self):
         vault = get_vault(self.options.vaultfile)
-        hosts_list = self.options.hosts
         profiles_list = []
         ssh_port = self.options.sshport
 
@@ -127,7 +126,7 @@ class ProfileAddCommand(CliCommand):
                 print(_("Profile '%s' already exists.") % self.options.name)
                 sys.exit(1)
 
-        range_list = read_ranges(hosts_list)
+        range_list = read_ranges(self.options.hosts)
 
         if not os.path.isfile(utilities.CREDENTIALS_PATH):
             print(_('No credentials exist yet.'))

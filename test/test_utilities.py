@@ -103,7 +103,7 @@ class TestReadRanges(unittest.TestCase):
             ['192.168.124.[0:127]'])
 
 
-class TestCidrToAnsible(unittest.TestCase):
+class TestCIDRToAnsible(unittest.TestCase):
     def test_wrong_format(self):
         with self.assertRaises(utilities.NotCIDRException):
             utilities.cidr_to_ansible('www.redhat.com')
