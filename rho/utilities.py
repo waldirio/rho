@@ -135,6 +135,45 @@ JBOSS_FACTS = JBOSS_FACTS_TUPLE + BRMS_FACTS_TUPLE + FUSE_FACTS_TUPLE
 
 DEFAULT_FACTS = RHEL_FACTS + JBOSS_FACTS + CONNECTION_FACTS_TUPLE
 
+# 'log' is a convenience for getting the appropriate logger from the
+# logging module. Use it like this:
+#
+#   from rho.utilities import log
+#   ...
+#   log.error('Too many Tribbles!')
+
+# pylint: disable=invalid-name
+log = logging.getLogger('rho')
+
+
+def setup_logging(verbosity):
+    """Set up Python logging for Rho.
+
+    Must be run after ensure_data_dir_exists().
+
+    :param verbosity: verbosity level, as measured in -v's on the
+    command line. Can be None for default.
+    """
+
+    if verbosity is None:
+        log_level = logging.WARNING
+    elif verbosity == 1:
+        log_level = logging.INFO
+    else:
+        log_level = logging.DEBUG
+
+    # Using basicConfig here means that all log messages, even
+    # those not coming from rho, will go to the log file
+    logging.basicConfig(filename=RHO_LOG)
+    # but we only adjust the log level for the 'rho' logger.
+    log.setLevel(log_level)
+    # the StreamHandler sends warnings and above to stdout, but
+    # only for messages going to the 'rho' logger, i.e. Rho
+    # output.
+    stderr_handler = logging.StreamHandler()
+    stderr_handler.setLevel(logging.WARNING)
+    log.addHandler(stderr_handler)
+
 
 def threaded_tailing(path, ansible_verbosity=0):
     """Follow and provide output using a thread
@@ -448,3 +487,17 @@ def get_config_path(filename):
     :returns path to for filename in XDG_CONFIG_HOME associated with rho
     """
     return os.path.join(xdg_config_home, RHO_PATH, filename)
+
+
+def check_path_validity(path_list):
+    """ Given a list of paths it verifies that all paths are valid
+    absolute path inputs for a scoped scan. If not it return a list of
+    invalid paths.
+    :param path_list: list of paths to validate
+    :return: empty list or list of invalid paths
+    """
+    invalid_paths = []
+    for a_path in path_list:
+        if not os.path.isabs(a_path):
+            invalid_paths.append(a_path)
+    return invalid_paths

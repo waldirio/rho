@@ -791,6 +791,16 @@ class CliCommandsTests(unittest.TestCase):
                         "/opt", "--vault", TMP_VAULT_PASS]
             ScanCommand().main()
 
+    def test_scan_scan_dirs_invalid(self):
+        """Test utilizing the scan command exercising the
+        scan-dirs flag to scope a scan using a invalid path values
+        """
+        with self.assertRaises(SystemExit):
+            sys.argv = ['/bin/rho', "scan", "--profile", "profilename",
+                        "--reportfile", TMP_TEST_REPORT, "--scan-dirs",
+                        'rm -fr /foobar', "--vault", TMP_VAULT_PASS]
+            ScanCommand().main()
+
     def test_scan_scan_dirs_file(self):
         """Test utilizing the scan command exercising the
         scan-dirs flag to scope a scan using a file for input

@@ -48,13 +48,33 @@ class TestScanCommand(unittest.TestCase):
 
     def test_process_ping_output(self):
         """The output of a three-host scan"""
+        success, failed = scancommand.process_ping_output([
+            '192.168.50.11 | SUCCESS | rc=0 >>',
+            'Hello',
+            '192.168.50.12 | SUCCESS | rc=0 >>',
+            'Hello',
+            '192.168.50.10 | SUCCESS | rc=0 >>',
+            'Hello'])
+        self.assertEqual(success,
+                         set(['192.168.50.10',
+                              '192.168.50.11',
+                              '192.168.50.12']))
+        self.assertEqual(failed, set())
 
-        self.assertEqual(
-            scancommand.process_ping_output([
-                '192.168.50.11 | SUCCESS | rc=0 >>',
-                'Hello',
-                '192.168.50.12 | SUCCESS | rc=0 >>',
-                'Hello',
-                '192.168.50.10 | SUCCESS | rc=0 >>',
-                'Hello']),
-            set(['192.168.50.10', '192.168.50.11', '192.168.50.12']))
+    def test_process_ping_output_fail(self):
+        """The output of a three-host scan"""
+        success, failed = scancommand.process_ping_output([
+            '192.168.50.11 | UNREACHABLE! => {',
+            '     "changed": false,',
+            '     "msg": "Failed to connect to the host via ssh ...",',
+            '     "unreachable": true',
+            '    }',
+            'Hello',
+            '192.168.50.12 | SUCCESS | rc=0 >>',
+            'Hello',
+            '192.168.50.10 | SUCCESS | rc=0 >>',
+            'Hello'])
+        self.assertEqual(success,
+                         set(['192.168.50.10',
+                              '192.168.50.12']))
+        self.assertEqual(failed, set(['192.168.50.11']))

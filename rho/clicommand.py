@@ -13,11 +13,10 @@
 """ Base CLI Command Class """
 
 from __future__ import print_function
-import logging
 import sys
 from optparse import OptionParser  # pylint: disable=deprecated-module
 from rho.utilities import ensure_config_dir_exists, \
-    ensure_data_dir_exists, RHO_LOG
+    ensure_data_dir_exists, setup_logging
 from rho.translation import _
 
 
@@ -68,21 +67,14 @@ class CliCommand(object):
         self.args = self.args[1:]
 
         # Verbosity propagates in two ways to the individual commands:
-        # first, as self.verbosity, and second, through the default
-        # log level for the logging module. This means that other
-        # modules can just use Python logging and it will work with
-        # the verbosity by default.
+        # first, as self.verbosity, and second, through the log level
+        # for the 'rho' logger.
         self.verbosity = self.options.verbosity
-        if self.verbosity is None:
-            log_level = logging.WARNING
-        elif self.verbosity == 1:
-            log_level = logging.INFO
-        else:
-            log_level = logging.DEBUG
 
         ensure_config_dir_exists()
         ensure_data_dir_exists()
-        logging.basicConfig(filename=RHO_LOG, level=log_level)
+
+        setup_logging(self.verbosity)
 
         self._validate_options()
 
