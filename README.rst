@@ -236,6 +236,11 @@ Functional Testing
 To run end-to-end functional tests against local virtual machines follow the
 information in `functional test document <doc/source/functional_test.rst>`_.
 
+Frequently Asked Questions
+--------------------------
+
+For expanded troubleshooting information read the
+`FAQ document <doc/source/faq.rst>`_.
 
 Issues
 ------

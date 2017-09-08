@@ -14,6 +14,7 @@ Welcome to rho's documentation!
    command_example
    remote_programs
    functional_test
+   faq
 
 Indices and tables
 ==================
