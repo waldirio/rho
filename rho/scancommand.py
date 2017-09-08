@@ -493,7 +493,7 @@ class ScanCommand(CliCommand):
             sys.exit(1)
 
         if self.options.scan_dirs == []:
-            self.options.scan_dirs = ['/']
+            self.options.scan_dirs = ['/', '/opt', '/app', '/home', '/usr']
         elif os.path.isfile(self.options.scan_dirs[0]):
             self.options.scan_dirs = \
                 _read_in_file(self.options.scan_dirs[0])
