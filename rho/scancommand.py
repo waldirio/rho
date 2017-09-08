@@ -495,7 +495,7 @@ class ScanCommand(CliCommand):
         # check that all values in scan_dirs are valid abs paths
         invalid_paths = utilities.check_path_validity(self.options.scan_dirs)
         if invalid_paths != []:
-            print(_("Invalid paths wer supplied to the --scan-dirs option:" +
+            print(_("Invalid paths were supplied to the --scan-dirs option: " +
                     ",".join(invalid_paths)))
             self.parser.print_help()
             sys.exit(1)
