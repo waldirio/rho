@@ -1,6 +1,6 @@
------------------------
 Command Syntax & Usage
------------------------
+======================
+
 The basic syntax is:
 
 ``rho command subcommand [options]``
@@ -26,9 +26,9 @@ The complete list of options for each command and subcommand are listed in the
 rho manpage with other usage examples. The common options are listed with the
 examples in this document.
 
-^^^^^^^^^^^^^
 Auth Entries
-^^^^^^^^^^^^^
+------------
+
 The first step to configuring rho is adding auth credentials to use to connect
 over SSH. Each authentication identity requires its own auth entry.
 
@@ -36,9 +36,8 @@ over SSH. Each authentication identity requires its own auth entry.
 
 *Note:* --password not being passed or passed as empty are considered the same thing.
 
--------------------------
 SSH Key with a Passphrase
--------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 There are two ways to handle ssh keys with passphrases. If a
 passphrase-protected ssh key is specified in an auth and the key is
@@ -50,9 +49,9 @@ agent (as documented at
 http://docs.ansible.com/ansible/latest/intro_getting_started.html),
 which will decrypt them once and make them available to Rho.
 
-^^^^^^^^^
 Profiles
-^^^^^^^^^
+---------
+
 Then, create the profile to use for the scan. This should include a list of IP
 addresses or ranges, and the auth identity to use.
 
@@ -68,9 +67,9 @@ where ``hosts_file`` contains the ip address or ranges separated by newlines::
   1.2.3.14
   1.2.4.34
 
-^^^^^^^^^
 Scanning
-^^^^^^^^^
+--------
+
 The options required for a scan are the profile to use and the file path for
 the report. Optionally we can pass the number of Ansible forks and the facts to
 be collected. Finally the ``cache`` option tells rho that the profile you are
@@ -100,18 +99,17 @@ The output of the Ansible process is saved to `$XDG_DATA_HOME/rho/scan_log` by
 default, for debugging. This location can be changed with the
 `--logfile` flag.
 
-^^^^^^^^^^^^
 Common Flags
-^^^^^^^^^^^^
+------------
 
 All rho commands accept the `-v` flag, which increases the verbosity
 of rho's output. It comes in four varieties: `-v`, `-vv`, `-vvv`, and
 `-vvvv`, with more `v`'s indicating more verbose output. The verbose
 output can be useful in debugging.
 
-^^^^^^^
 Output
-^^^^^^^
+------
+
 The important part about a scan is the results report. By default,
 this contains a large amount of information about the operating system, hardware, and platform.
 
@@ -186,9 +184,9 @@ of 'default' will get all the information listed above.
 For further details of the command usage view the following
 `example <command_example.rst>`_.
 
-^^^^^^^^^^^^^^^^^^^^^
 Scan User Permissions
-^^^^^^^^^^^^^^^^^^^^^
+---------------------
+
 Some of the output facts will report an error if the user used to perform the
 scan does not have the appropriate permissions to execute the command used to
 gather the targeted facts. The following set of facts require *admin/root*
@@ -218,11 +216,10 @@ If the scan user uses a password to sudo, one can be given with the
 commands. The sudo-with-password fundtionality can be tested by using
 the 'askpass' box in the Vagrantfile.
 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Programs on Remote Machines
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------
 
 Besides standard Unix utilities, some rho fact collectors depend on
 specific programs being installed on the machines being scanned. The
 complete list is at `remote programs
-<github.com/quipucords/rho/doc/remote_programs.rst>`_.
+<github.com/quipucords/rho/doc/source/remote_programs.rst>`_.

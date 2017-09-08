@@ -1,6 +1,5 @@
-^^^^^^^^^^^^^^^^^
 Example rho Scan
-^^^^^^^^^^^^^^^^^
+=================
 
 Following is the results of an example rho scan. This is the example of the
 profile called 'big_test' and it's host auth mapping utilizing the cached
@@ -19,7 +18,7 @@ The following files are created but are encrypted using the rho vault password p
 
 
 Example Host Auth Mapping
-""""""""""""""""""""""""""
+-------------------------
 
 ::
 
@@ -56,7 +55,7 @@ Example Host Auth Mapping
 
 
 Facts
-"""""""
+-----
 The facts collected were:
 
 - uname.hostname
@@ -68,7 +67,7 @@ The facts collected were:
 - redhat-packages.num_installed_packages
 
 Example Output
-""""""""""""""""
+--------------
 
 ::
 

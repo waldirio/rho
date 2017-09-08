@@ -151,8 +151,8 @@ def setup_logging(verbosity):
 
     Must be run after ensure_data_dir_exists().
 
-    :param verbosity: verbosity level, as measured in -v's on the
-    command line. Can be None for default.
+    :param verbosity: verbosity level, as measured in -v's on the command line.
+        Can be None for default.
     """
 
     if verbosity is None:
@@ -177,6 +177,7 @@ def setup_logging(verbosity):
 
 def threaded_tailing(path, ansible_verbosity=0):
     """Follow and provide output using a thread
+
     :param path: path to file to follow
     :param ansible_verbosity: the verbosity level
     """
@@ -188,6 +189,7 @@ def threaded_tailing(path, ansible_verbosity=0):
 
 def tail_and_follow(path, ansible_verbosity):
     """Follow and provide output
+
     :param path: tuple containing thepath to file to follow
     :param ansible_verbosity: the verbosity level
     """
@@ -235,8 +237,8 @@ def ensure_data_dir_exists():
 
 # pylint: disable=unused-argument
 def multi_arg(option, opt_str, value, parser):
-    """Call back function for arg-parse
-    for when arguments are multiple
+    """Call back function for arg-parse for when arguments are multiple
+
     :param option: The option
     :param opt_str: The option string
     :param value: The value
@@ -277,9 +279,8 @@ def read_ranges(ranges_or_path):
     IP ranges are in Ansible format, and rewrites CIDR address ranges
     to Ansible format if necessary.
 
-    :param ranges_or_path: either a list of IP address ranges or a
-      one-element list where the one element is the path of a file
-      with ranges.
+    :param ranges_or_path: either a list of IP address ranges or a one-element
+        list where the one element is the path of a file with ranges.
     :returns: list of IP address ranges in Ansible format
 
     """
@@ -336,10 +337,9 @@ def cidr_to_ansible(ip_range):
 
     :param ip_range: the IP range, as a string
     :returns: the IP range, as an Ansible-formatted string
-
-    Raises NotCIDRException if ip_range doesn't look similar to CIDR
-    notation. If it does look like CIDR but isn't quite right, print
-    out error messages and exit.
+    :raises NotCIDRException: if ip_range doesn't look similar to CIDR
+        notation. If it does look like CIDR but isn't quite right, print out
+        error messages and exit.
     """
 
     # In the case of an input error, we want to distinguish between
@@ -438,6 +438,7 @@ def validate_port(arg):
 
 def str_to_ascii(in_string):
     """ Coverts unicode string to ascii string
+
     :param in_string: input string to convert to ascii
     :returns: ASCII encoded string
     """
@@ -460,8 +461,9 @@ def iteritems(dictionary):
 
 
 def write_csv_data(keys, data, path):
-    """ Write csv data with input fieldnames a dictionary of data and
-    the file path to write to.
+    """ Write csv data with input fieldnames a dictionary of data and the file
+    path to write to.
+
     :param keys: The field names and keys of the dictionary
     :param data: The dictionary of data to convert to csv
     :param path: The file path to write to
@@ -482,17 +484,18 @@ def write_csv_data(keys, data, path):
 
 
 def get_config_path(filename):
-    """ Provides the path for a configuration filename
+    """Provides the path for a configuration filename
+
     :param filename: The filename to return the config path for
-    :returns path to for filename in XDG_CONFIG_HOME associated with rho
+    :returns: path to for filename in XDG_CONFIG_HOME associated with rho
     """
     return os.path.join(xdg_config_home, RHO_PATH, filename)
 
 
 def check_path_validity(path_list):
-    """ Given a list of paths it verifies that all paths are valid
-    absolute path inputs for a scoped scan. If not it return a list of
-    invalid paths.
+    """Given a list of paths it verifies that all paths are valid absolute
+    path inputs for a scoped scan. If not it return a list of invalid paths.
+
     :param path_list: list of paths to validate
     :return: empty list or list of invalid paths
     """

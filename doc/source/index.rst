@@ -10,7 +10,10 @@ Welcome to rho's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
+   command_syntax_usage
+   command_example
+   remote_programs
+   functional_test
 
 Indices and tables
 ==================

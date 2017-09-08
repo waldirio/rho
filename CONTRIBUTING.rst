@@ -76,7 +76,7 @@ Adding Facts
 If you want to make a change that affects the documentation of
 particular facts,
 
-1. Make the change in `doc/command_syntax_usage.rst`
+1. Make the change in `doc/source/command_syntax_usage.rst`
 2. Run `make gen-python-docs` to update `rho/fact_docs.py`
 3. Check in the new version of `rho/fact_docs.py` with your change
 

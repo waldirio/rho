@@ -27,6 +27,7 @@ from rho.translation import _
 
 def profile_exists(profile_list, profile_name):
     """ Checks whether a network profile already exists
+
     :param profile_list: A list of profile dictionaries
     :param profile_name: Name of a network profile to check for existence
     :returns: True if profile_name exists, False otherwise
@@ -41,10 +42,11 @@ def profile_exists(profile_list, profile_name):
 
 def _save_profile(vault, new_profile, profiles_list):
     """ Write new profile in the related file
+
     :param vault: Vault object for writing encrypted data
     :param new_profile: New profile to be added to the profiles file
     :param profiles_list: A list of existing profiles dictionaries from the
-    profiles file
+        profiles file
     """
 
     utilities.ensure_config_dir_exists()

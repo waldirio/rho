@@ -34,7 +34,8 @@ yaml.add_representer(type(None), represent_none)
 
 
 def read_vault_password(vault_password_file):
-    """ Reads vault password from file for scripting
+    """Reads vault password from file for scripting
+
     :param vault_password_file: Path to vault password file
     :returns: vault password string
     """
@@ -50,13 +51,14 @@ def read_vault_password(vault_password_file):
 
 
 def get_vault_password(prompt=PROMPT):
-    """ Requests the users password from the command line """
+    """Requests the users password from the command line """
     return getpass("\033[01;36m" + prompt + "\033[0m")
 
 
 def get_vault_and_password(vaultfile=None, prompt=PROMPT):
-    """ Helper method that will get the vault password via input file or from
+    """Helper method that will get the vault password via input file or from
     standard input and then initialize a vault for users
+
     :param vaultfile: The location of a file with the vault password
     :returns: An initialized vault and the password
     """
@@ -69,8 +71,9 @@ def get_vault_and_password(vaultfile=None, prompt=PROMPT):
 
 
 def get_vault(vaultfile=None, prompt=PROMPT):
-    """ Helper method that will get the vault password via input file or from
+    """Helper method that will get the vault password via input file or from
     standard input and then initialize a vault for users
+
     :param vaultfile: The location of a file with the vault password
     :returns: An initialized vault
     """
@@ -88,6 +91,7 @@ class Vault(object):
 
     def load(self, stream):
         """ Read vault steam and return python object
+
         :param stream: The stream to read data from
         :returns: The decrypted data
         """
@@ -99,6 +103,7 @@ class Vault(object):
 
     def load_secure_file(self, secure_file):
         """ Read vault secured file and return python object
+
         :param secure_file: The file to read data from
         :returns: The decrpted data
         """
@@ -106,6 +111,7 @@ class Vault(object):
 
     def load_as_json(self, secure_file):
         """ Read vault secured file and return json decoded object
+
         :param secure_file: The file to read data from as json
         :returns: The JSON data
         """
@@ -113,6 +119,7 @@ class Vault(object):
 
     def dump(self, data, stream=None):
         """ Encrypt data and print stdout or write to stream
+
         :param data: The information to be encrypted
         :param stream: If not None the location to write the encrypted data to.
         :returns: If stream is None then the encrypted bytes otherwise None.
@@ -125,9 +132,10 @@ class Vault(object):
 
     def dump_as_json(self, obj, stream=None):
         """ Convert object to json and encrypt the data.
+
         :param obj: Python object to convert to json
         :param stream: If not None the location to write the encrypted data to.
-          If this is a file in Python 3, it must be open in binary mode.
+            If this is a file in Python 3, it must be open in binary mode.
         :returns: If stream is None then the encrypted bytes otherwise None.
         """
         data = json.dumps(obj, separators=(',', ': '))
@@ -135,6 +143,7 @@ class Vault(object):
 
     def dump_as_json_to_file(self, obj, file_path):
         """ Convert object to json and encrypt the data.
+
         :param obj: Python object to convert to json
         :param file_path: The file to write data to via temp file
         """
@@ -145,6 +154,7 @@ class Vault(object):
 
     def dump_as_yaml(self, obj, stream=None):
         """ Convert object to yaml and encrypt the data.
+
         :param obj: Python object to convert to yaml
         :param stream: If not None the location to write the encrypted data to.
         :returns: If stream is None then the encrypted bytes otherwise None.
@@ -154,6 +164,7 @@ class Vault(object):
 
     def dump_as_yaml_to_file(self, obj, file_path):
         """ Convert object to yaml and encrypt the data.
+
         :param obj: Python object to convert to yaml
         :param file_path: The file to write data to via temp file
         """

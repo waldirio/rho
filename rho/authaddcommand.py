@@ -26,7 +26,8 @@ from rho.translation import _
 
 
 def auth_exists(cred_list, auth_name):
-    """ Checks whether authentication credential already exists
+    """Checks whether authentication credential already exists
+
     :param cred_list: A list of credential dictionaries
     :param auth_name: Name of credential to check for existence
     :returns: True if auth_name exists, False otherwise
@@ -41,10 +42,11 @@ def auth_exists(cred_list, auth_name):
 
 def _save_cred(vault, new_cred, cred_list):
     """ Write new credentials in the related file
+
     :param vault: Vault object for writing encrypted data
     :param new_cred: New credential to be added to the credentials file
     :param cred_list: A list of existing credential dictionaries from the
-    credential file
+        credential file
     """
 
     utilities.ensure_config_dir_exists()
@@ -84,9 +86,8 @@ def make_auth_for_options(options):
 
 class AuthAddCommand(CliCommand):
     """
-    This command is for creating new auths
-    which can be later associated with profiles
-    to gather facts.
+    This command is for creating new auths which can be later associated with
+    profiles to gather facts.
     """
 
     def __init__(self):

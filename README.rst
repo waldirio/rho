@@ -3,10 +3,8 @@
 .. image:: https://coveralls.io/repos/github/quipucords/rho/badge.svg
     :target: https://coveralls.io/github/quipucords/rho
 
-
-====================================================================
-   rho - Tool for discovering RHEL, Linux, and Unix Servers
-====================================================================
+rho - Tool for discovering RHEL, Linux, and Unix Servers
+========================================================
 
 rho is a tool for scanning a network, logging into systems using SSH, and
 retrieving information about available Unix and Linux servers.
@@ -26,9 +24,9 @@ command and command options with rho, see the *manpage*.
 - `Contributing`_
 - `Copyright & License`_
 
--------------
 Intro to rho
--------------
+------------
+
 rho is an Ansible-based network inventory tool. rho scans a user-defined range
 of machines and then reports basic information about the operating system and
 hardware for each server. rho simplifies some basic sysadmin tasks, like
@@ -99,9 +97,9 @@ virtual hosts, and virtual guests, and identifies several major virtual types
 and maintaining software licenses to separate virtual hosts from guests; rho
 returns that information with every scan, by default.
 
---------------------------
 Requirements & Assumptions
 --------------------------
+
 Before installing rho, there are some guidelines about which machine it should be installed on:
  * rho is written to run on RHEL or Fedora servers.
  * The machine that rho is installed on must be able to access the machines to be scanned, so it must be on the network and the machines must be running.
@@ -135,9 +133,9 @@ The following python packages are required to build & test rho from source:
  * six
  * docutils
 
--------------
 Installation
--------------
+------------
+
 rho is available for `download <https://copr.fedorainfracloud.org/coprs/chambridge/rho/>`_ from fedora COPR.
 
 1. First, make sure that the EPEL repo is enabled for the server.
@@ -154,9 +152,9 @@ You can find the appropriate architecture and version on the `COPR rho page <htt
 
 ``yum install rho``
 
------------------------
 Command Syntax & Usage
------------------------
+----------------------
+
 The basic syntax is:
 
 ``rho command subcommand [options]``
@@ -183,11 +181,11 @@ rho manpage with other usage examples. The common options are listed with the
 examples in this document.
 
 For expanded information on auth entries, profiles, scanning, and output read
-the `syntax and usage document <doc/command_syntax_usage.rst>`_.
+the `syntax and usage document <doc/source/command_syntax_usage.rst>`_.
 
------------------------
 Development
------------------------
+-----------
+
 Begin by cloning the repository::
 
     git clone git@github.com:quipucords/rho.git
@@ -197,34 +195,32 @@ system follow these `instructions <https://www.python.org/downloads/>`_. Based
 on your system you may be using either `pip` or `pip3` to install modules, for
 simplicity the instructions below will specify `pip`.
 
-^^^^^^^^^^^^^^^^^^^^^^^^
 Installing Dependencies
-^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
 From within the local clone root directory run the following command to install
 dependencies needed for development and testing purposes::
 
     pip install -r requirements.txt
 
-^^^^^^
 Build
-^^^^^^
+^^^^^
+
 In order to build rho run the following command::
 
     make build
 
-^^^^^^^
 Linting
 ^^^^^^^
+
 In order to lint changes made to the source code execute the following command::
 
     make lint
 
-^^^^^^^^^^^^^^^^^^^^^^^^
 Testing
-^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^
 
 Unit Testing
-""""""""""""""
+""""""""""""
 
 To run the unit tests with the interpreter available as ``python``, use::
 
@@ -235,37 +231,37 @@ Continuous testing runs on travis:
 
 
 Functional Testing
-"""""""""""""""""""
+""""""""""""""""""
 
 To run end-to-end functional tests against local virtual machines follow the
-information in `functional test document <doc/functional_test.rst>`_.
+information in `functional test document <doc/source/functional_test.rst>`_.
 
 
--------------
 Issues
--------------
+------
+
 To report bugs for rho `open issues <https://github.com/quipucords/rho/issues>`_
 against this repository in Github. Please complete the issue template when
 opening a new bug to improve investigation and resolution time.
 
-----------------
 Changes
-----------------
+-------
+
 Track & find changes to the tool in `CHANGES <CHANGES.rst>`_.
 
---------
 Authors
---------
+-------
+
 Authorship and current maintainer information can be found in `AUTHORS <AUTHORS.rst>`_.
 
-----------------
 Contributing
-----------------
+------------
+
 Reference the `CONTRIBUTING <CONTRIBUTING.rst>`_ guide for information to the project.
 
---------------------
 Copyright & License
---------------------
+-------------------
+
 Copyright 2009-2017, Red Hat, Inc.
 
 rho is released under the `GNU Public License version 2 <LICENSE>`_.

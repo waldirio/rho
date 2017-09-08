@@ -10,7 +10,7 @@
 
 # pylint: disable=too-few-public-methods
 
-""" AuthEditCommand is used to edit existing authentication credentials
+"""AuthEditCommand is used to edit existing authentication credentials
 for system access
 """
 
@@ -25,14 +25,15 @@ from rho.translation import _
 
 
 def optional_arg(arg_default):
-    """Call back function for arg-parse
-    for when arguments are optional
+    """Call back function for arg-parse for when arguments are optional
+
     :param arg_default: The default for the argument
     :returns: Function for handling the argument
     """
     # pylint: disable=unused-argument
     def func(option, opt_str, value, parser):
         """Function for handling CLI option
+
         :param option: The option
         :param opt_str: The option string
         :param value: The value

@@ -1,6 +1,5 @@
----------------
 Remote Programs
----------------
+===============
 
 This file documents which programs on the remote host are used to
 collect different groups of facts. **bold** is used for executables

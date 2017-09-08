@@ -91,10 +91,11 @@ def redacted_auth_string(auth):
 
 
 def redact_dict(redact_key_list, a_dict):
-    """redact_values in a dictionary
+    """Redact_values in a dictionary
+
     :param redact_key_list: keys in dictionary that value should be redacted
     :param a_dict: A dictionary to redact
-    :return dictionary
+    :returns: the redacted dictionary
     """
     for key in redact_key_list:
         if a_dict is not None and key in a_dict:
@@ -129,8 +130,8 @@ def process_ping_output(out_lines):
     hosts, then sending the output to this function.
 
     :param out_lines: an iterator returning lines of Ansible output.
-    :returns: the hosts that pinged successfully, as a set and those
-    that failed, as a set.
+    :returns: the hosts that pinged successfully, as a set and those that
+        failed, as a set.
     """
 
     success_hosts = set()
@@ -276,12 +277,18 @@ def make_inventory_dict(success_hosts, success_port_map, auth_map):
     :param success_port_map: mapping from hosts to SSH ports
     :param auth_map: map from host IP to a list of auths it works with
 
-    :returns: a dict with the structure
-    {'alpha':
-      {'hosts'
-        {'IP address 1': {host-vars-1},
-         'IP address 2': {host-vars-2},
-         ...}}}
+    :returns: a dict with the structure:
+
+        .. code-block:: python
+
+            {'alpha':
+                {'hosts':
+                    {'IP address 1': {'host-vars-1'},
+                     'IP address 2': {'host-vars-2'},
+                     # ...
+                    }
+                }
+            }
     """
 
     yml_dict = {}
