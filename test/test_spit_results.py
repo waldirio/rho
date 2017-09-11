@@ -65,3 +65,32 @@ class TestSpitResults(unittest.TestCase):
 
         assert(mock.call(argument_spec=expected_arguments_spec) ==
                ansible_mod_cls.call_args)
+
+
+class TestSafeAnsibleProperty(unittest.TestCase):
+    def test_missing_fact(self):
+        self.assertEqual(
+            spit_results.safe_ansible_property(
+                {'foo': 'bar'}, 'baz', 'property'),
+            None)
+
+    def test_skipped_fact(self):
+        self.assertEqual(
+            spit_results.safe_ansible_property(
+                {'foo': {'skipped': True}}, 'foo', 'property'),
+            None)
+
+    def test_not_skipped_fact(self):
+        fact = {'skipped': False,
+                'property': 'value'}
+        self.assertEqual(
+            spit_results.safe_ansible_property(
+                {'foo': fact}, 'foo', 'property'),
+            'value')
+
+    def test_skipped_not_present(self):
+        fact = {'property': 'value'}
+        self.assertEqual(
+            spit_results.safe_ansible_property(
+                {'foo': fact}, 'foo', 'property'),
+            'value')

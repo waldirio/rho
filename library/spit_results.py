@@ -138,27 +138,61 @@ def safe_next(iterator):
     return next(iterator)
 
 
+def safe_ansible_property(ansible_vars, fact_name, prop):
+    """Get a property of the JSON output of an Ansible raw task.
+
+    Handles missing and skipped tasks safely.
+
+    Usage:
+      output = safe_ansible_property(ansible_vars, 'jboss.jar-ver', 'stdout')
+      if output:
+        further_processing(output)
+
+    :param ansible_vars: the raw vars dictionary from Ansible.
+    :param fact_name: the fact to retrieve.
+    :param prop: the property to return.
+    :returns: the property, or None if not available.
+    """
+
+    if fact_name not in ansible_vars:
+        return None
+
+    output = ansible_vars[fact_name]
+    if 'skipped' in output and output['skipped'] is True:
+        return None
+
+    return output[prop]
+
+
+JBOSS_INSTALLED_VERSIONS = 'jboss.installed-versions'
+JBOSS_DEPLOY_DATES = 'jboss.deploy-dates'
+JBOSS_RUNNING_VERSIONS = 'jboss.running-versions'
+
+
 # JBoss versions are processed separately from other *-ver data
 # because they merge data from two input facts and include deploy
 # dates as well as version strings.
-def process_jboss_versions(host_vars):
-    """Get JBoss version information from the host_vars."""
+def process_jboss_versions(fact_names, host_vars):
+    """Get JBoss version information from the host_vars.
 
-    running_ver = 'jboss.running-versions'
+    :param fact_names: the set of fact names the user requested.
+    :param host_vars: the host vars from Ansible.
+    :returns: a dict of key-value pairs to output.
+    """
 
     lines = []
     val = {}
 
     # host_vars is not used after this function (data that we return
-    # is copied to host_vals instead), so by not returning
-    # jboss.jar_ver and jboss.run_jar_ver, we are implicitly removing
-    # them from the output.
-    if 'jboss.jar-ver' in host_vars:
-        lines.extend(host_vars['jboss.jar-ver']['stdout_lines'])
-    if 'jboss.run-jar-ver' in host_vars:
-        lines.extend(host_vars['jboss.run-jar-ver']['stdout_lines'])
-    if 'jboss.running-versions' in host_vars:
-        val[running_ver] = host_vars[running_ver]['stdout']
+    # is copied to host_vals instead), so by not adding jboss.jar_ver
+    # and jboss.run_jar_ver to val, we are implicitly removing them
+    # from the output.
+    lines.extend(safe_ansible_property(host_vars,
+                                       'jboss.jar-ver',
+                                       'stdout_lines') or [])
+    lines.extend(safe_ansible_property(host_vars,
+                                       'jboss.run-jar-ver',
+                                       'stdout_lines') or [])
 
     jboss_releases = []
     deploy_dates = []
@@ -173,15 +207,35 @@ def process_jboss_versions(host_vars):
             elif version.strip():
                 jboss_releases.append('Unknown-Release: ' + version)
 
-    if jboss_releases:
-        val['jboss.installed-versions'] = '; '.join(jboss_releases)
-        val['jboss.deploy-dates'] = '; '.join(deploy_dates)
+    running_versions = safe_ansible_property(host_vars,
+                                             JBOSS_RUNNING_VERSIONS,
+                                             'stdout')
 
-    # The jboss role will not run if 'have_java' is false.
-    if not host_vars['have_java']:
-        val['jboss.installed-versions'] = 'N/A (java not found)'
-        val['jboss.deploy-dates'] = 'N/A (java not found)'
-        val[running_ver] = 'N/A (java not found)'
+    def empty_output_message(val, name):
+        """Give the right error message for missing data.
+
+        For data that depends on having Java.
+
+        :param val: a value. Considered missing if falsey.
+        :param name: the thing we were searching for.
+        :returns: the val if true, otherwise a useful error message.
+        """
+
+        if val:
+            return val
+        if not host_vars['have_java']:
+            return 'N/A (java not found)'
+        return '({0} not found)'.format(name)
+
+    if JBOSS_INSTALLED_VERSIONS in fact_names:
+        val[JBOSS_INSTALLED_VERSIONS] = (
+            empty_output_message('; '.join(jboss_releases), 'jboss'))
+    if JBOSS_DEPLOY_DATES in fact_names:
+        val[JBOSS_DEPLOY_DATES] = (
+            empty_output_message('; '.join(deploy_dates), 'jboss'))
+    if JBOSS_RUNNING_VERSIONS in fact_names:
+        val[JBOSS_RUNNING_VERSIONS] = (
+            empty_output_message(running_versions, 'running jboss'))
 
     return val
 
@@ -200,26 +254,34 @@ def classify_releases(lines, classifications):
     return '; '.join(releases)
 
 
-def process_addon_versions(host_vars):
-    """Classify release strings for JBoss BRMS and FUSE."""
+def process_addon_versions(fact_names, host_vars):
+    """Classify release strings for JBoss BRMS and FUSE.
+
+    :param fact_names: the set of fact names that the user requested.
+    :param host_vars: the host vars from Ansible.
+    :returns: a dict of key-value pairs to output.
+    """
 
     result = {}
 
-    def classify(key, classifications):
+    def classify(key, fact_names, classifications):
         """Classify a particular key."""
 
-        if key in host_vars:
-            result[key] = classify_releases(
-                host_vars[key]['stdout_lines'],
-                classifications)
+        if key in fact_names:
+            lines = safe_ansible_property(host_vars, key, 'stdout_lines') or []
+            classes = classify_releases(lines, classifications)
+            if classes:
+                result[key] = classes
+            else:
+                result[key] = '({0} not found)'.format(key)
 
-    classify('jboss.brms.kie-api-ver', BRMS_CLASSIFICATIONS)
-    classify('jboss.brms.drools-core-ver', BRMS_CLASSIFICATIONS)
-    classify('jboss.brms.kie-war-ver', BRMS_CLASSIFICATIONS)
+    classify('jboss.brms.kie-api-ver', fact_names, BRMS_CLASSIFICATIONS)
+    classify('jboss.brms.drools-core-ver', fact_names, BRMS_CLASSIFICATIONS)
+    classify('jboss.brms.kie-war-ver', fact_names, BRMS_CLASSIFICATIONS)
 
-    classify('jboss.fuse.activemq-ver', FUSE_CLASSIFICATIONS)
-    classify('jboss.fuse.camel-ver', FUSE_CLASSIFICATIONS)
-    classify('jboss.fuse.cxf-ver', FUSE_CLASSIFICATIONS)
+    classify('jboss.fuse.activemq-ver', fact_names, FUSE_CLASSIFICATIONS)
+    classify('jboss.fuse.camel-ver', fact_names, FUSE_CLASSIFICATIONS)
+    classify('jboss.fuse.cxf-ver', fact_names, FUSE_CLASSIFICATIONS)
 
     return result
 
@@ -404,18 +466,15 @@ class Results(object):
 
         keys = set(self.fact_names)
 
-        try:
-            # Special processing for JBoss facts.
-            for _, host_vars in iteritems(self.all_vars):
-                uuid = host_vars['connection']['connection.uuid']
-                host_vals = safe_next((vals
-                                       for vals in self.vals
-                                       if vals['connection.uuid'] == uuid))
+        # Special processing for JBoss facts.
+        for _, host_vars in iteritems(self.all_vars):
+            uuid = host_vars['connection']['connection.uuid']
+            host_vals = safe_next((vals
+                                   for vals in self.vals
+                                   if vals['connection.uuid'] == uuid))
 
-                host_vals.update(process_jboss_versions(host_vars))
-                host_vals.update(process_addon_versions(host_vars))
-        except KeyError:
-            pass
+            host_vals.update(process_jboss_versions(keys, host_vars))
+            host_vals.update(process_addon_versions(keys, host_vars))
 
         # Process System ID.
         for data in self.vals:
