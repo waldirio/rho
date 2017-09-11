@@ -86,8 +86,10 @@ copied to these machines enabling you to ssh to them locally using the
 Once you have confirmed connection to your test bed you can run the following
 commands to execute a scan using `rho`::
 
-  rho auth add --name=test --username=vagrant --sshkeyfile=~/.ssh/id_rsa.pub
+  rho auth add --name=test --username=vagrant --sshkeyfile=~/.ssh/id_rsa
   rho profile add --name=all_test --hosts 192.168.50.[10:12] --auth test
   rho scan --profile=all_test --reportfile=out.csv
 
+Note you create the auth with your private key that matches the public key on
+the test machine.
 You should be able to view the output of the scan in your local directory.

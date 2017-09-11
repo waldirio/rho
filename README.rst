@@ -23,6 +23,7 @@ command and command options with rho, see the *manpage*.
 - `Authors`_
 - `Contributing`_
 - `Copyright & License`_
+- `Documentation <https://quipucords.github.io/rho/>`_
 
 Intro to rho
 ------------
@@ -96,6 +97,8 @@ virtual hosts, and virtual guests, and identifies several major virtual types
 (Xen, Qemu, KVM, and VMWare). It can be very important for inventorying machines
 and maintaining software licenses to separate virtual hosts from guests; rho
 returns that information with every scan, by default.
+
+`More information can be found in rho's documentation. <https://quipucords.github.io/rho/>`_
 
 Requirements & Assumptions
 --------------------------
