@@ -207,10 +207,6 @@ def process_jboss_versions(fact_names, host_vars):
             elif version.strip():
                 jboss_releases.append('Unknown-Release: ' + version)
 
-    running_versions = safe_ansible_property(host_vars,
-                                             JBOSS_RUNNING_VERSIONS,
-                                             'stdout')
-
     def empty_output_message(val, name):
         """Give the right error message for missing data.
 
@@ -235,7 +231,11 @@ def process_jboss_versions(fact_names, host_vars):
             empty_output_message('; '.join(deploy_dates), 'jboss'))
     if JBOSS_RUNNING_VERSIONS in fact_names:
         val[JBOSS_RUNNING_VERSIONS] = (
-            empty_output_message(running_versions, 'running jboss'))
+            empty_output_message(
+                safe_ansible_property(host_vars,
+                                      JBOSS_RUNNING_VERSIONS,
+                                      'stdout'),
+                'running jboss'))
 
     return val
 
