@@ -136,6 +136,8 @@ The following python packages are required to build & test rho from source:
  * six
  * docutils
 
+Building the man page from source requires ``pandoc`` to be installed.
+
 Installation
 ------------
 
