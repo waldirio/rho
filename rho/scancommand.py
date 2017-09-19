@@ -13,7 +13,6 @@
 """ Rho CLI Commands """
 
 from __future__ import print_function
-import logging
 import os
 import sys
 import re
@@ -371,7 +370,7 @@ def run_ansible_with_vault(cmd_string, vault_pass, env=None, log_path=None,
                 new_pos = logfile.tell()
                 logfile.seek(last_pos)
                 logfile_lines = logfile.readlines()
-                logging.info(logfile_lines)
+                log.info(logfile_lines)
                 print(logfile_lines[-1].replace('\r\n', ''))
                 logfile.seek(new_pos)
                 last_pos = new_pos

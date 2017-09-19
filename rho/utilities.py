@@ -292,8 +292,13 @@ def read_ranges(ranges_or_path):
                   '[a-zA-Z0-9-\.]*\[[0-9]*:[0-9]*\]*[a-zA-Z0-9-\.]*',
                   '[a-zA-Z0-9-\.]*\[[a-zA-Z]*:[a-zA-Z]*\][a-zA-Z0-9-\.]*']
 
+    invalid_path = check_path_validity([ranges_or_path[0]])
     if ranges_or_path and os.path.isfile(ranges_or_path[0]):
         range_list = _read_in_file(ranges_or_path[0])
+    elif invalid_path == [] and len(ranges_or_path) == 1:
+        log.error(_("Couldn't interpret %s as host file because "
+                    "no such file exists."), ranges_or_path[0])
+        sys.exit(1)
     else:
         range_list = ranges_or_path
 
@@ -316,11 +321,7 @@ def read_ranges(ranges_or_path):
                 pass
 
         if not match_found:
-            logging.error(_("Bad host name/range : '%s'"), reg_item)
-            if len(range_list) <= 1:
-                logging.error(_("Couldn't interpret %s as host file because "
-                                "no such file", reg_item))
-
+            log.error(_("Bad host name/range : '%s'" % (reg_item)))
             sys.exit(1)
 
     return normalized
@@ -332,6 +333,7 @@ class NotCIDRException(Exception):
     pass
 
 
+# pylint: disable=too-many-locals
 def cidr_to_ansible(ip_range):
     """Convert an IP address range from CIDR to Ansible notation.
 
@@ -348,34 +350,44 @@ def cidr_to_ansible(ip_range):
     # at all CIDR-like, in which case we tell the caller to parse it a
     # different way.
     cidr_like = r'[0-9.]*/[0-9]*'
-
+    err_prefix = 'A error occurred parsing an input host value. '
     if not re.match(cidr_like, ip_range):
         raise NotCIDRException
 
-    base_address, prefix_bits = ip_range.split('/')
+    try:
+        base_address, prefix_bits = ip_range.split('/')
+    except ValueError:
+        err_msg = err_prefix + 'IP range %s has invalid format.'
+        log.error(err_msg, ip_range)
+        sys.exit(1)
+
     prefix_bits = int(prefix_bits)
 
     if prefix_bits < 0 or prefix_bits > 32:
-        logging.error('Bit mask length %s of IP range %s is not in the valid '
-                      'range [0,32].', prefix_bits, ip_range)
+        err_msg = err_prefix + 'Bit mask length %s of IP range %s is not in ' \
+            'the valid range [0,32].'
+        log.error(err_msg, prefix_bits, ip_range)
         sys.exit(1)
 
     octet_strings = base_address.split('.')
     if len(octet_strings) != 4:
-        logging.error('IP address %s (part of IP range %s) '
-                      'does not have exactly 4 octets', base_address, ip_range)
+        err_msg = err_prefix + 'IP address %s (part of IP range %s) ' \
+            'does not have exactly 4 octets'
+        log.error(err_msg, base_address, ip_range)
         sys.exit(1)
 
     octets = [None] * 4
     for i in range(4):
         if not octet_strings[i]:
-            logging.error('Empty octet in IP range %s', ip_range)
+            err_msg = err_prefix + 'Empty octet in IP range %s'
+            log.error(err_msg, ip_range)
             sys.exit(1)
 
         val = int(octet_strings[i])
         if val < 0 or val > 255:
-            logging.error('IP octet %s (part of IP range %s) '
-                          'is not in the valid range [0,255]', val, ip_range)
+            err_msg = err_prefix + 'IP octet %s (part of IP range %s) ' \
+                'is not in the valid range [0,255]'
+            log.error(err_msg, val, ip_range)
             sys.exit(1)
         octets[i] = val
 

@@ -103,6 +103,11 @@ class TestReadRanges(unittest.TestCase):
             utilities.read_ranges(range_list),
             ['192.168.124.[0:127]'])
 
+    def test_invalid_file(self):
+        range_list = ['/im/an/invalid/file']
+        with self.assertRaises(SystemExit):
+            utilities.read_ranges(range_list)
+
 
 class TestCIDRToAnsible(unittest.TestCase):
     def test_wrong_format(self):
