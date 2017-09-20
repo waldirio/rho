@@ -33,15 +33,6 @@ from rho.utilities import (
 from rho.translation import _
 
 
-# Read ssh key from file
-def _read_key_file(filename):
-    keyfile = open(os.path.expanduser(
-        os.path.expandvars(filename)), "r")
-    sshkey = keyfile.read()
-    keyfile.close()
-    return sshkey
-
-
 def auth_as_ansible_host_vars(auth):
     """Get the Ansible host vars that implement an auth.
 
