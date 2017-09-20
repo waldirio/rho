@@ -20,7 +20,7 @@ help:
 all: build lint tests-coverage
 
 docs:
-	@cd doc; $(MAKE) gen-api; $(MAKE) html; $(MAKE) nojekyll
+	@cd doc; $(MAKE) gen-api; $(MAKE) html; $(MAKE) nojekyll; $(MAKE) manpage
 
 gen-python-docs:
 	@cd doc; $(MAKE) gen-python

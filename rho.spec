@@ -14,6 +14,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 BuildRequires: python-devel
 BuildRequires: python-setuptools
+BuildRequires: pandoc
 Requires: python-netaddr
 Requires: python-crypto
 Requires: ansible = 2.3.2.0
@@ -35,6 +36,7 @@ retrieving information about them.
 
 %build
 %{__python} setup.py build
+make docs
 
 %install
 rm -rf $RPM_BUILD_ROOT

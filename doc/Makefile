@@ -27,6 +27,18 @@ nojekyll:
 gen-python:
 	./generate_python_docs.py
 
+manpage:
+	pandoc source/man.rst \
+	  --standalone -t man -o rho.1 \
+	  --variable=section:1 \
+	  --variable=date:'August 29, 2017' \
+	  --variable=footer:'version 0.0.28' \
+	  --variable=header:'rho User Commands'
+
+man-html:
+	pandoc source/man.rst \
+	  --standalone -o man.html
+
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
