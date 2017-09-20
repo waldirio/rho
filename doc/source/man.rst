@@ -4,7 +4,7 @@ rho
 Name
 ----
 
-rho - Easily discover and manage product entitlement metadata in your network.
+rho - Discover and manage product entitlement metadata in your network.
 
 
 Synopsis
@@ -308,7 +308,7 @@ A scan can be run by specifying the profile to use and where to write the CSV fi
   uname.kernel: uname -r (kernel)
   uname.os: uname -s (os)
   uname.processor: uname -p (processor)
-  
+
 ``--scan-dirs dir1 dir2``
 
   The list of directories on remote systems to scan for products. This option is intended to help scope a scan for systems with very large file system under the root directory. You may provide a list of directories or a file where each item is on a separate line.
