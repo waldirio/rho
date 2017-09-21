@@ -134,19 +134,19 @@ this contains a large amount of information about the operating system, hardware
 - ``dmi.processor-family`` - processor family
 - ``dmi.system-manufacturer`` - system manufacturer
 - ``etc-issue.etc-issue`` - contents of /etc/issue (or equivalent)
-- ``etc-release.name`` - name of the release
-- ``etc-release.release`` - release information
-- ``etc-release.version`` - release version
+- ``etc_release.name`` - name of the release
+- ``etc_release.release`` - release information
+- ``etc_release.version`` - release version
 - ``instnum.instnum`` - installation number
-- ``jboss.brms.drools_core_ver`` - Drools version
-- ``jboss.brms.kie_api_ver`` - KIE API version
-- ``jboss.brms.kie_war_ver`` - KIE runtime version
-- ``jboss.deploy_dates`` - List of deployment dates of JBoss installations
+- ``jboss.brms.drools-core-ver`` - Drools version
+- ``jboss.brms.kie-api-ver`` - KIE API version
+- ``jboss.brms.kie-war-ver`` - KIE runtime version
+- ``jboss.deploy-dates`` - List of deployment dates of JBoss installations
 - ``jboss.fuse.activemq-ver`` - ActiveMQ version
 - ``jboss.fuse.camel-ver`` - Camel version
 - ``jboss.fuse.cxf-ver`` - CXF version
-- ``jboss.installed_versions`` - List of installed versions of JBoss
-- ``jboss.running_versions`` - List of running versions of JBoss
+- ``jboss.installed-versions`` - List of installed versions of JBoss
+- ``jboss.running-versions`` - List of running versions of JBoss
 - ``redhat-packages.is_redhat`` - determines if package is a Red Hat package
 - ``redhat-packages.last_installed`` - last installed package
 - ``redhat-packages.last_built`` - last built package
@@ -158,6 +158,7 @@ this contains a large amount of information about the operating system, hardware
 - ``subman.cpu.core(s)_per_socket`` - cpu cores per socket from subscription manager
 - ``subman.cpu.cpu(s)`` - cpus from subscription manager
 - ``subman.cpu.cpu_socket(s)`` - cpu sockets from subscription manager
+- ``subman.has_facts_file`` - Whether subscription manager has a facts file
 - ``subman.virt.is_guest`` - Whether is a virtual guest from subscription manager
 - ``subman.virt.host_type`` - Virtual host type from subscription manager
 - ``subman.virt.uuid`` - Virtual host uuid from subscription manager
