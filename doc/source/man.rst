@@ -4,7 +4,7 @@ rho
 Name
 ----
 
-rho - Discover and manage product entitlement metadata in your network.
+rho - Discover and manage product entitlement metadata on your network.
 
 
 Synopsis
@@ -15,36 +15,38 @@ Synopsis
 Description
 -----------
 
-rho is a network discovery tool to identify the number of systems running on a network, their operating system and versions of some key packages and products for almost any Linux or Unix flavor. Being able to identify the systems running on the network is a vital component to managing entitlements (licenses and renewals). Ultimately, discovery is part of the larger sysadmin task of managing inventories.
+Rho, and the rho command, is a network discovery tool to identify environment data, or *facts*, such as the number of physical and virtual systems on a network, their operating systems and other configuration data, and versions of some key packages and products for almost any Linux or UNIX version. The ability to discover and identify the software and systems that are running on the network improves your ability to understand and report on your entitlement usage. Ultimately, this discovery is part of the larger system administration task of managing your inventories.
 
-rho uses two configuration entries to manage the discovery process. *Profiles* define the network or subnet that is being monitored. *Credentials* contains the usernames, passwords or, alternatively, the SSH keys of the user which discovery runs as. There can be multiple network profiles and authentication credentials, used in any combination.
+Rho uses two types of profiles to manage the discovery process. An *authentication profile* contains credentials such as the user name and password or SSH key of the user that runs the discovery process.  A *network profile* defines the network, such as a host, subnet, or network that is being monitored, plus includes one or more authentication profiles to use to access that network during the discovery process. You can save multiple authentication profiles and network profiles to use with Rho in various combinations as you run discovery processes, or *scans*.
 
-rho is an *agentless* discovery tool, so there is no need to install anything on multiple systems. Discovery for the entire network is centralized in a single machine.
+By default, the authentication profiles and network profiles that are created when using Rho are stored in encrypted files. The files are encrypted with AES-256 encryption and are decrypted when the rho command runs, by using a *vault password* to access the files.
 
-This man page covers the commands, subcommands and options for rho with basic usage information. For more detailed information and examples, including best practices, see the rho README.
+Rho is an *agentless* discovery tool, so there is no need to install the tool on multiple systems. Discovery for the entire network is centralized on a single machine.
+
+This man page describes the commands, subcommands, and options for the rho command and includes basic usage information. For more detailed information and examples, including best practices, see the rho README file.
 
 Usage
 -----
 
-rho performs three major tasks:
+rho performs four major tasks:
 
-1. Creating authentication profiles. This has the basic command:
+* Creating authentication profiles:
 
-**rho auth add ...**
+``rho auth add ...``
 
-2. Creating network profiles. This has the basic command:
+* Creating network profiles:
 
-**rho profiles add --name=X --hosts X Y Z --auth A B**
+``rho profile add --name=X --hosts X Y Z --auth A B``
 
-3. Running discovery, such as:
+* Running a scan:
 
-**rho scan --profile=X --reportfile=Y**
+``rho scan --profile=X --reportfile=Y``
 
-The following sections cover these commands in more detail.
+* Working with facts that are gathered in a scan:
 
-The primary purpose of rho is to scan a network. This can be done using simply ``rho scan`` using network and authentication profiles.
+``rho fact ...``
 
-By default, the authentication credentials, profiles created using rho are stored in encrypted files. The files are encrypted with AES-256 encryption and is decrypted when the ``rho`` command is run, using a vault password to access the file.
+The following sections describe these commands, their subcommands, and their options in more detail.
 
 Authentication
 --------------
