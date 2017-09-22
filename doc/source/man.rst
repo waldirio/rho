@@ -15,13 +15,13 @@ Synopsis
 Description
 -----------
 
-Rho, and the rho command, is a network discovery tool to identify environment data, or *facts*, such as the number of physical and virtual systems on a network, their operating systems and other configuration data, and versions of some key packages and products for almost any Linux or UNIX version. The ability to discover and identify the software and systems that are running on the network improves your ability to understand and report on your entitlement usage. Ultimately, this discovery is part of the larger system administration task of managing your inventories.
+Rho, and the rho command, is a network discovery and inspection tool to identify environment data, or *facts*, such as the number of physical and virtual systems on a network, their operating systems and other configuration data, and versions of some key packages and products for almost any Linux or UNIX version. The ability to discover and inspect the software and systems that are running on the network improves your ability to understand and report on your entitlement usage. Ultimately, this discovery and inspection process is part of the larger system administration task of managing your inventories.
 
-Rho uses two types of profiles to manage the discovery process. An *authentication profile* contains credentials such as the user name and password or SSH key of the user that runs the discovery process.  A *network profile* defines the network, such as a host, subnet, or network that is being monitored, plus includes one or more authentication profiles to use to access that network during the discovery process. You can save multiple authentication profiles and network profiles to use with Rho in various combinations as you run discovery processes, or *scans*.
+Rho uses two types of profiles to manage the discovery and inspection process. An *authentication profile* contains credentials such as the user name and password or SSH key of the user that runs the discovery and inspection process.  A *network profile* defines the network, such as a host, subnet, or network that is being monitored, plus includes one or more authentication profiles to use to access that network during the discovery and inspection process. You can save multiple authentication profiles and network profiles to use with Rho in various combinations as you run discovery and inspection processes, or *scans*.
 
 By default, the authentication profiles and network profiles that are created when using Rho are stored in encrypted files. The files are encrypted with AES-256 encryption and are decrypted when the rho command runs, by using a *vault password* to access the files.
 
-Rho is an *agentless* discovery tool, so there is no need to install the tool on multiple systems. Discovery for the entire network is centralized on a single machine.
+Rho is an *agentless* discovery and inspection tool, so there is no need to install the tool on multiple systems. Discovery and inspection for the entire network is centralized on a single machine.
 
 This man page describes the commands, subcommands, and options for the rho command and includes basic usage information. For more detailed information and examples, including best practices, see the rho README file.
 
