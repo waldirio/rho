@@ -624,3 +624,4 @@ class ScanCommand(CliCommand):
         else:
             print(_("An error has occurred during the scan. Please review" +
                     " the output to resolve the given issue."))
+            sys.exit(1)
