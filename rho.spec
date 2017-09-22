@@ -17,7 +17,7 @@ BuildRequires: python-setuptools
 BuildRequires: pandoc
 Requires: python-netaddr
 Requires: python-crypto
-Requires: ansible = 2.3.2.0
+Requires: ansible = 2.3.1.0
 Requires: pexpect
 Requires: python-six
 Requires: python-enum34
