@@ -197,7 +197,7 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
         vault.dump_as_yaml_to_file(yml_dict, PING_INVENTORY_PATH)
         log_yaml_inventory('Ping inventory', yml_dict)
 
-        cmd_string = 'ansible alpha ' \
+        cmd_string = 'ansible alpha -m raw' \
                      '-i ' + PING_INVENTORY_PATH \
                      + ' --ask-vault-pass -f ' + forks \
                      + ' -a \'echo "Hello"\''
