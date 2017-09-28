@@ -32,206 +32,220 @@ rho performs four major tasks:
 
 * Creating authentication profiles:
 
-``rho auth add ...``
+  ``rho auth add ...``
 
 * Creating network profiles:
 
-``rho profile add --name=X --hosts X Y Z --auth A B``
+  ``rho profile add --name=X --hosts X Y Z --auth A B``
 
 * Running a scan:
 
-``rho scan --profile=X --reportfile=Y``
+  ``rho scan --profile=X --reportfile=Y``
 
 * Working with facts that are gathered in a scan:
 
-``rho fact ...``
+  ``rho fact ...``
 
 The following sections describe these commands, their subcommands, and their options in more detail.
 
-Authentication
---------------
+Authentication Profiles
+-----------------------
 
-The first part to configuring rho is setting up authentication credentials. rho uses SSH to connect to the servers on the network, and the username and password or ssh key are used for authentication credentials. An authentication credential is passed when the scan is run by reference in a profile.
+Use the ``rho auth`` command to create and manage authentication profiles.
 
-There can be multiple auth credentials contained in a single profile.
+An authentication profile defines a set of user credentials to be used during a scan. These user credentials include a username and a password or SSH key. Rho uses SSH to connect to servers on the network and uses authentication profiles to obtain the user credentials that are required to access those servers.
 
-Creating and Editing Authentication Credentials
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+When a scan runs, it uses a network profile that contains the host names or IP addresses to be accessed. The network profile also contains references to the authentication profiles that are required to access those systems. A single network profile can contain a reference to multiple authentication profiles as needed to connect to all systems in that network.
 
-rho uses SSH credentials to access the servers to get their system information during discovery. These credentials can be either a username-password or username-key pair. Each set of credentials is stored in a separate entry.
+Creating and Editing Authentication Profiles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**rho auth add --name=** *name* **--username=** *username* **[--password]** **[--sshkeyfile=** *key_file* **]** **[--sudo-password]** **[--vault=** *vault_file* **]**
+To create an authentication profile, supply SSH credentials as either a username-password pair or a username-key pair. Rho stores each set of credentials in a separate authentication profile entry.
+
+**rho auth add --name=** *name* **--username=** *username* **(--password | --sshkeyfile=** *key_file* **)** **[--sudo-password]** **[--vault=** *vault_file* **]**
 
 ``--name=name``
 
-  This required argument sets the name of the new authentication credentials entry. This should be descriptive, such as identifying the user or server it relates to. For example, ``"server1-rhouser"``. It should never contain the actual password, as this name may be logged or printed during rho execution.
-
+  Required. Sets the name of the new authentication profile. For the value, use a descriptive name that is meaningful to your organization. For example, you could identify the user or server that the authentication profile relates to, such as ``admin12`` or ``server1_jdoe``. Do not include the password as part of this value, because the value for the ``--name`` option might be logged or printed during ``rho`` execution.
 
 ``--username=username``
 
-  This required argument contains the username of the SSH identity will use to bind to the server.
+  Required. Sets the username of the SSH identity that is used to bind to the server.
 
 ``--password``
 
-  The argument prompts for the password for the --username identity.
+  Prompts for the password for the ``--username`` identity. Mutually exclusive with the ``--sshkeyfile`` option.
 
 ``--sshkeyfile=key_file``
 
-  Optionally, this contains the path and filename of the file containing the SSH key issued for the --username identity.
+  Sets the path of the file that contains the private SSH key for the ``--username`` identity. Mutually exclusive with the ``--password`` option.
 
 ``--sudo-password``
 
-  The argument prompts for the password to be used with those commands that run on remote systems utilizing sudo.
+  Prompts for the password to be used when running a command that uses sudo on the systems to be scanned.
 
 ``--vault=vault_file``
 
-  This contains the path and filename of the file containing the vault password. If this option is used the file should be limited in access on the system.
+  Contains the path of the file that contains the vault password. The vault password is the password that controls access to the encrypted Rho data such as authentication and network profiles, scan data, and other information. If you do not have a file to use as the value for this option, do not use the option. You are then prompted to enter the vault password or to create a new vault password if one does not exist. At any time, you can save this password in a file such as a text file. You can then use the --vault option in subsequent Rho commands. Because the encrypted Rho data could contain sensitive information, make sure that this vault password file is stored in a location that has limited access.
 
-The information given in an auth entry -- such as a password, sudo password, SSH keys, or even the username -- may change. For example, network security may require passwords to be updated every few months. The auth entry can be edited to change the SSH credential information. The parameters for ``rho auth edit`` are the same as those for ``rho auth add``.
+The information in an authentication profile, such as a password, sudo password, SSH keys, or even the user name, might change. For example, network security might require passwords to be updated every few months. Use the ``rho auth edit`` command to change the SSH credential information in an authentication profile. The parameters for ``rho auth edit`` are the same as those for ``rho auth add``.
 
-**rho auth edit --name=** *name* **--username=** *username* **[--sshkeyfile=** *key_file* **]** **[--password]** **[--sudo-password]** **[--vault=** *vault_file* **]**
+**rho auth edit --name=** *name* **--username=** *username* **(--password | --sshkeyfile=** *key_file* **)** **[--sudo-password]** **[--vault=** *vault_file* **]**
 
-Listing and Showing Authentication Credentials
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Listing and Showing Authentication Profiles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``rho auth list`` command returns the details for every auth entry configured for rho. This output includes the name, username, password, ssh keyfile and sudo password for each entry. Passwords are masked if provided, if not they will appear as ‘null’.
+The ``rho auth list`` command returns the details for every authentication profile that is configured for Rho. This output includes the name, user name, password, SSH keyfile and sudo password for each entry. Passwords are masked if provided, if not, they will appear as ``null``.
 
 **rho auth list [--vault=** *vault_file* **]**
 
 ``--vault=vault_file``
 
-  This contains the path and filename of the file containing the vault password. If this option is used the file should be limited in access on the system.
+  Contains the path of the file that contains the vault password. Because the encrypted Rho data could contain sensitive information, make sure that this vault password file is stored in a location that has limited access.
 
-The ``rho auth show`` command is the same as the ``rho auth list`` command, except that it only returns details for a single specified auth entry.
+The ``rho auth show`` command is the same as the ``rho auth list`` command, except that it returns details for a single specified authentication profile.
 
 **rho auth show --name=** *name* **[--vault=** *vault_file* **]**
 
 ``--name=name``
 
-  This required argument gives the authentication credentials entry to display.
+  Required. Contains the authentication profile entry to display.
 
 ``--vault=vault_file``
 
-  This contains the path and filename of the file containing the vault password. If this option is used the file should be limited in access on the system.
+  Contains the path of the file that contains the vault password. Because the encrypted Rho data could contain sensitive information, make sure that this vault password file is stored in a location that has limited access.
 
-Deleting Authentication Credentials
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Clearing Authentication Profiles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-It can be necessary to remove authentication credentials as the network infrastructure changes. This is done using the ``clear`` subcommand.
+As the network infrastructure changes, it might be necessary to delete some authentication profiles. Use the ``clear`` subcommand to delete authentication profiles.
 
-**IMPORTANT:** Remove the auth setting from any profile which uses it *before* removing the auth entry. Otherwise, any attempt to use the profile attempts to use the non-existent auth entry, which causes the ``rho`` command to fail.
+**IMPORTANT:** Remove or change the authentication profile from any network profile that uses it *before* clearing an authentication profile. Otherwise, any attempt to use the network profile to run a scan runs the command with a nonexistent authentication profile, an action that causes the ``rho`` command to fail.
 
-**rho auth clear --name** *name* **| --all [--vault=** *vault_file* **]**
+**rho auth clear (--name** *name* **| --all) [--vault=** *vault_file* **]**
 
 ``--name=name``
 
-  This argument gives the authentication credentials entry to delete.
+  Contains the authentication profile to clear. Mutually exclusive with the ``--all`` option.
 
 ``--all``
 
-  This deletes all stored authentication credentials.
+  Clears all stored authentication profiles. Mutually exclusive with the ``--name`` option.
 
 ``--vault=vault_file``
 
-  This contains the path and filename of the file containing the vault password. If this option is used the file should be limited in access on the system.
+  Contains the path of the file that contains the vault password. Because the encrypted Rho data could contain sensitive information, make sure that this vault password file is stored in a location that has limited access.
 
-Profiles
---------
+Network Profiles
+----------------
 
-*Profiles* define a collection of network information, including IP addresses, SSH port, and SSH credentials. A discovery scan can reference a profile so that running the scan is automatic and repeatable, without having to re-enter network information every time.
+Use the ``rho profile`` command to create and manage network profiles.
 
-Creating and Editing Profiles
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+A network profile defines a collection of network information, including IP addresses or host names, SSH ports, and SSH credentials. The SSH credentials are provided through reference to one or more authentication profiles. A discovery scan can reference a network profile so that the act of running the scan is automatic and repeatable, without a requirement to reenter network information for each scan attempt.
 
-A profile is essentially a concise collection of the information that rho needs to connect to a network or system. This means it contains servers to connect to and authentication credentials to use. Each of these parameters allowed multiple entries, so the same profile can access a patchwork of servers and subnets, as needed.
+Creating and Editing Network Profiles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To create a network profile, supply one or more host names or IP addresses to connect to with the ``--hosts`` option and the authentication profiles needed to access those systems with the ``--auth`` option. The ``rho profile`` command allows multiple entries for each of these options. Therefore, a single network profile can access a collection of servers and subnets as needed to create an accurate and complete scan.
 
 **rho profile add --name=** *name* **--hosts** *ip_address* **--auth** *auth_profile* **[--sshport=** *ssh_port* **] [--vault=** *vault_file* **]**
 
 ``--name=name``
 
-  This required argument sets the name of the new profile. This name is used to identify the profile in later operations. Use a descriptive name, such as ``"ColoSubnet"``.
+  Required. Sets the name of the new network profile. For the value, use a descriptive name that is meaningful to your organization, such as ``APSubnet`` or ``Lab3``.
 
 ``--hosts ip_address``
 
-  This sets the IP address, hostname, or IP address range to use when running discovery. You may provide a list of hosts or a file where each item is on a separate line. There are several different formats that are allowed for the *ip_address* value.
+  Sets the host name, IP address, or IP address range to use when running a scan. You can also provide a path for a file that contains a list of host names or IP addresses or ranges, where each item is on a separate line. The following examples show several different formats that are allowed as values for the ``--hosts`` option:
 
-  1. A specific hostname:
+  * A specific host name:
 
     --hosts server.example.com
 
-  2. A specific IP address:
+  * A specific IP address:
 
-    --hosts 1.2.3.4
+    --hosts 192.0.2.19
 
-  3. An IP address range:
+  * An IP address range:
 
-    --hosts "1.2.3.[4:255]"
+    --hosts 192.0.2.[0:255]
+    or
+    --hosts 192.0.2.0/24
+
+  * A file:
+
+    --hosts /home/user1/hosts_file
 
 ``--auth auth_profile``
 
-  This contains the name of the authentication profile (created with ``rho auth add``) to use to authentication to the servers being scanned. To add more than one auth profile to the network profile provide a list separated with a space. For example:
+  Contains the name of the authentication profile to use to authenticate to the systems that are being scanned. If the individual systems that are being scanned each require different authentication credentials, you can use more than one authentication profile. To add multiple authentication profiles to the network profile, separate each value with a space, for example:
 
   ``--auth first_auth second_auth``
 
-  IMPORTANT: This auth profile must exist before attempting to add the authentication profile to the network profile.
+  **IMPORTANT:** An authentication profile must exist before you attempt to use it in a network profile.
 
 ``--sshport=ssh_port``
 
-  This value is used to support discovery on a non-standard port. Discovery takes place by default on port 22.
+  Sets a port to be used for the scan. This value supports discovery on a non-standard port. By default, the scan runs on port 22.
 
 ``--vault=vault_file``
 
-  This contains the path and filename of the file containing the vault password. If this option is used the file should be limited in access on the system.
+  Contains the path of the file that contains the vault password. Because the encrypted Rho data could contain sensitive information, make sure that this vault password file is stored in a location that has limited access.
+
+The information in a network profile might change as the structure of the network changes. Use the ``rho profile edit`` command to edit a network profile to accommodate those changes.
+
+Although ``rho profile`` options can accept more than one value, the ``rho profile edit`` command is not additive. To edit a network profile and add a new value for an option, you must enter both the current and the new values for that option. Include only the options that you want to change in the ``rho profile edit`` command. Options that are not included are not changed.
 
 **rho profile edit --name** *name* **[--hosts** *ip_address* **] [--auth** *auth_profile* **] [--sshport=** *ssh_port* **] [--vault=** *vault_file* **]**
 
-Although all three ``rho profile`` parameters accept more than one setting, the ``rho profile edit`` command is not additive. If a new argument is passed, it overwrites whatever was originally in the profile, it doesn't add a new attribute, even if the parameter is multi-valued. To add or keep multiple values with the edit command, list all parameters in the edit. For example, if a profile was created with an auth value of ``"server1creds"`` and the same profile will be used to scan with both server1creds and server2creds, edit as follows:
+For example, if a network profile contains a value of ``server1creds`` for the ``--auth`` option, and you want to change that network profile to use both the ``server1creds`` and ``server2creds`` authentication profiles, you would edit the network profile as follows:
 
-rho profile edit --name=myprofile --auth server1creds server2creds
+``rho profile edit --name=myprofile --auth server1creds server2creds``
 
-You can use ``rho profile show --name=myprofile`` to make sure that the profile was properly edited.
+**TIP:** After editing a network profile, use the ``rho profile show`` command to review those edits.
 
-Listing and Showing Profiles
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Listing and Showing Network Profiles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``list`` commands lists the details for all configured profiles. The output includes the IP ranges, auth credentials, and ports for the profile.
+The ``rho profile list`` command returns the details for all configured network profiles. The output of this command includes the host names, IP addresses, or IP ranges, the authentication profiles, and the ports that are configured for each network profile.
 
 **rho profile list [--vault=** *vault_file* **]**
 
 ``--vault=vault_file``
 
-  This contains the path and filename of the file containing the vault password. If this option is used the file should be limited in access on the system.
+  Contains the path of the file that contains the vault password. Because the encrypted Rho data could contain sensitive information, make sure that this vault password file is stored in a location that has limited access.
 
-The ``rho profile show`` command is the same as the ``rho profile list`` command, except that it returns details for a single specific profile. This is a handy command to verify edits to a profile.
+The ``rho profile show`` command is the same as the ``rho profile list`` command, except that it returns details for a single specified network profile.
 
 **rho profile show --name=** *profile* **[--vault=** *vault_file* **]**
 
 ``--name=profile``
 
-  This argument gives the profile to display.
+  Required. Contains the network profile to display.
 
 ``--vault=vault_file``
 
-  This contains the path and filename of the file containing the vault password. If this option is used the file should be limited in access on the system.
+  Contains the path of the file that contains the vault password. Because the encrypted Rho data could contain sensitive information, make sure that this vault password file is stored in a location that has limited access.
 
-Deleting Profiles
-~~~~~~~~~~~~~~~~~
+Clearing Network Profiles
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Any or all profiles can be deleted using the ``clear`` subcommand.
+As the network infrastructure changes, it might be necessary to delete some network profiles. Use the ``rho profile clear`` command to delete network profiles.
 
-**rho profile clear --name=** *name* **| --all [--vault=** *vault_file* **]**
+**rho profile clear (--name=** *name* **| --all) [--vault=** *vault_file* **]**
 
 ``--name=name``
 
-  This argument gives the profile to delete.
+  Contains the network profile to clear. Mutually exclusive with the ``--all`` option.
 
 ``--all``
 
-  This deletes all stored profiles.
+  Clears all stored network profiles. Mutually exclusive with the ``--name`` option.
+
 
 ``--vault=vault_file``
 
-  This contains the path and filename of the file containing the vault password. If this option is used the file should be limited in access on the system.
+  Contains the path of the file that contains the vault password. Because the encrypted Rho data could contain sensitive information, make sure that this vault password file is stored in a location that has limited access.
 
 Facts
 -----
@@ -258,11 +272,11 @@ Sensitive facts can be encrypted within a report CSV file using the ``hash`` com
 
 ``--reportfile=file``
 
-  The path and filename of the comma-separated values (CSV) file to read.
+  The path of the comma-separated values (CSV) file to read.
 
 ``--outputfile=path``
 
-  The path and filename of the comma-separated values (CSV) file to be written.
+  The path of the comma-separated values (CSV) file to be written.
 
 Scanning
 --------
@@ -321,11 +335,11 @@ A scan can be run by specifying the profile to use and where to write the CSV fi
 
 ``--vault=vault_file``
 
-  This contains the path and filename of the file containing the vault password. If this option is used the file should be limited in access on the system.
+  This contains the path of the file that contains the vault password. If this option is used the file should be limited in access on the system.
 
 ``--logfile=log_file``
 
-  This contains the path and filename of the file for writing the scan log.
+  This contains the path of the file for writing the scan log.
 
 ``--ansible-forks=num_forks``
 
