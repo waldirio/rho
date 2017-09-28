@@ -250,54 +250,52 @@ As the network infrastructure changes, it might be necessary to delete some netw
 Facts
 -----
 
-The ``fact`` command is used to understand information that can be reported or to alter the contents of a report created from the ``rho scan`` command.
+Use the ``rho fact`` command to view information that can be reported in a scan or to alter the contents of a report that is created from the ``rho scan`` command.
 
 Listing Facts
 ~~~~~~~~~~~~~
 
-A list of facts that can be gathered during the scanning process can be obtained with the ``list`` command.
+To generate a list of facts that can be gathered during the discovery scanning process, use the ``rho fact list`` command.
 
 **rho fact list [--filter=** *reg_ex* **]**
 
 ``--filter=reg_ex``
 
-  Optionally, provide a filter view of the list of facts with a regular expression -- e.g ``uname.*``.
+  Optional. Contains a regular expression to use to provide a filtered view of the list of facts. For example, the ``uname.*`` string returns only those facts that contain that string in the fact name.
 
 Hashing Facts
 ~~~~~~~~~~~~~
 
-Sensitive facts can be encrypted within a report CSV file using the ``hash`` command. The facts that are hashed with this command are: *connection.host, connection.port, uname.all,* and *uname.hostname.*
+To encrypt sensitive facts within the comma separated values (CSV) file output of a scan, use the ``rho fact hash`` command. The sensitive facts that are hashed with this command are *connection.host, connection.port, uname.all,* and *uname.hostname.*
 
 **rho fact hash --reportfile=** *file* **[--outputfile=** *path* **]**
 
 ``--reportfile=file``
 
-  The path of the comma-separated values (CSV) file to read.
+  Contains the path of the comma-separated values (CSV) report file to read as input.
 
 ``--outputfile=path``
 
-  The path of the comma-separated values (CSV) file to be written.
+  Contains the path of the comma-separated values (CSV) report file to be written as output. Creates a new report with the sensitive facts encrypted.
 
 Scanning
 --------
 
-The ``scan`` command is the one that actually runs discovery on the network. This command scans all of the servers within the range, and then writes the information to a CSV file.
-
-A scan can be run by specifying the profile to use and where to write the CSV file:
+Use the ``rho scan`` command to run discovery scans on the network. This command scans all of the host names or IP addresses that are defined in the supplied network profile, and then writes the report information to a comma separated values (CSV) file.
 
 **rho scan --profile=** *profile_name* **--reportfile=** *file* **[--facts** *file or list of facts* **] [--scan-dirs=** *file or list of remote directories* **] [--cache] [--vault=** *vault_file* **] [--logfile=** *log_file* **] [--ansible-forks=** *num_forks* **]**
 
 ``--profile=profile_name``
 
-  Gives the name of the profile to use to run the scan.
+  Contains the name of the network profile to use to run the scan.
 
 ``--reportfile=file``
 
-  Writes the output to a comma-separated values (CSV) file.
+  Sets the path of the report file to create from the scan output. This file is saved in the comma-separated values (CSV) format.
 
 ``--facts fact1 fact2``
 
-  The list of facts that are returned in the scan output. You may provide a list of facts or a file where each item is on a separate line. The list below is included as an example and is not exhaustive. Please use the ’rho fact list’ command to get the full list of available facts.
+  Contains the list of facts that are returned in the scan report. You can provide multiple values for this option, with each value separated by a space, or provide a path to a file that contains a list of facts, where each fact is on a separate line. The list below is included as an example and is not exhaustive. Use the ``rho fact list`` command to get the full list of available facts.
 
 ::
 
@@ -327,52 +325,52 @@ A scan can be run by specifying the profile to use and where to write the CSV fi
 
 ``--scan-dirs dir1 dir2``
 
-  The list of directories on remote systems to scan for products. This option is intended to help scope a scan for systems with very large file system under the root directory. You may provide a list of directories or a file where each item is on a separate line.
+  Contains the list of directories on remote systems to scan for products. This option is intended to help scope a scan for systems with a very large file system under the root directory. You can provide multiple values for this option, with each value separated by a space, or provide a path to a file that contains a list of directories, where each directory is on a separate line.
 
 ``--cache``
 
-  This argument can be used if a profile has previously been used for a discovery and nothing new needs to be found during the scan
+  Restricts the scope of the scan to the hosts that were discovered in the previous scan. Use this option to discover software on hosts that were discovered in a previous scan. Do not use this option to scan for new hosts.
 
 ``--vault=vault_file``
 
-  This contains the path of the file that contains the vault password. If this option is used the file should be limited in access on the system.
+  Contains the path of the file that contains the vault password. Because the encrypted Rho data could contain sensitive information, make sure that this vault password file is stored in a location that has limited access.
 
 ``--logfile=log_file``
 
-  This contains the path of the file for writing the scan log.
+  Contains the path of the log file for this instance of the ``rho scan`` command.
 
 ``--ansible-forks=num_forks``
 
-  This value is used to determine the number of systems to scan in parallel. The current default is 50 concurrent connections.
+  Sets the number of systems to scan in parallel. The default number is 50 concurrent connections.
 
 Options for All Commands
 ------------------------
 
-A the following option is allowed with every command for rho.
+The following options are available for every Rho command.
 
 ``--help``
 
-  This prints the help for the rho command or subcommand.
+  Prints the help for the ``rho`` command or subcommand.
 
 ``-v``
 
-  The verbose mode (``-vvv`` for more, ``-vvvv`` to enable connection debugging).
+  Enables the verbose mode. The ``-vvv`` option increases verbosity to show more information. The ``-vvvv`` option enables connection debugging.
 
 Examples
 --------
 
-:Adding new authentication credentials with a keyfile: ``rho auth add --name=new-creds --username=rho-user --sshkeyfile=/etc/ssh/ssh_host_rsa_key``
-:Adding new authentication credentials with a password: ``rho auth add --name=other-creds --username=rho-user-pass --password``
-:Creating a new profile: ``rho profile add --name=new-profile --hosts 1.2.3.0 --auth new-creds``
-:Editing a profile: ``rho profile edit --name=new-profile --hosts 1.2.3.[0:255] --auth new-creds other-creds``
+:Creating a new authentication profile with a keyfile: ``rho auth add --name=new-creds --username=rho-user --sshkeyfile=/etc/ssh/ssh_host_rsa_key``
+:Creating a new authentication profile with a password: ``rho auth add --name=other-creds --username=rho-user-pass --password``
+:Creating a new profile: ``rho profile add --name=new-profile --hosts 1.192.0.19 --auth new-creds``
+:Editing a profile: ``rho profile edit --name=new-profile --hosts 1.192.0.[0:255] --auth new-creds other-creds``
 :Running a scan with a profile: ``rho scan --profile=new-profile --reportfile=/home/jsmith/Desktop/output.csv``
 
 Security Considerations
 -----------------------
 
-The credentials used to access servers are stored with the profile configuration in an AES-256 encrypted configuration file. A vault password is used to access this file. The vault password and decrypted file contents are in the system memory, and could theoretically be written to disk if they were to be swapped out.
+The authentication profile credentials that are used to access servers are stored with the network profile configuration in an AES-256 encrypted configuration file. A vault password is used to access this file. The vault password and decrypted file contents are in the system memory, and could theoretically be written to disk if memory swapping is enabled.
 
-While the vault password can be passed via a file to run ``rho`` without prompts (such as scheduling a cron job), using this can be risky and should be stored in a location with limited access; be cautious about using this mechanism.
+Although you can run the ``rho`` command without prompts (such as scheduling a cron job) by using a file to pass the vault password, the use of a file for vault password storage is not without risk; therefore, its use requires caution. The vault password allows access to encrypted Rho data that could contain sensitive information. Make sure that this vault password file, if used, is stored in a location that has limited access.
 
 Authors
 -------
