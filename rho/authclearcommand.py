@@ -49,10 +49,14 @@ class AuthClearCommand(CliCommand):
         CliCommand._validate_options(self)
 
         if not self.options.name and not self.options.all:
+            print(_('You must provide either "--all" or a value for '
+                    '"--name".'))
             self.parser.print_help()
             sys.exit(1)
 
         if self.options.name and self.options.all:
+            print(_('You must provide either "--all" or a value for '
+                    '"--name". You cannot supply both.'))
             self.parser.print_help()
             sys.exit(1)
 
