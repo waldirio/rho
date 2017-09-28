@@ -120,14 +120,24 @@ class AuthAddCommand(CliCommand):
     def _validate_options(self):
         CliCommand._validate_options(self)
 
-        if not self.options.name:
+        if not (self.options.name and self.options.username):
+            print(_('You must provide a value for "--name" and "--username".'))
+            self.parser.print_help()
+            sys.exit(1)
+        if not self.options.username:
             self.parser.print_help()
             sys.exit(1)
 
-        # need to pass in file or username:
-        if not self.options.filename \
-                and not (self.options.username and
-                         self.options.password):
+        # need to pass in file or password:
+        if not (self.options.filename or
+                self.options.password):
+            print(_('You must provide either "--password" or a value for '
+                    '"--sshkeyfile".'))
+            self.parser.print_help()
+            sys.exit(1)
+        if self.options.filename and self.options.password:
+            print(_('You must provide either "--password" or a value for '
+                    '"--sshkeyfile". You cannot supply both.'))
             self.parser.print_help()
             sys.exit(1)
 
