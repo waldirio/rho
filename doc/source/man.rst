@@ -15,20 +15,20 @@ Synopsis
 Description
 -----------
 
-Rho, and the rho command, is a network discovery and inspection tool to identify environment data, or *facts*, such as the number of physical and virtual systems on a network, their operating systems and other configuration data, and versions of some key packages and products for almost any Linux or UNIX version. The ability to discover and inspect the software and systems that are running on the network improves your ability to understand and report on your entitlement usage. Ultimately, this discovery and inspection process is part of the larger system administration task of managing your inventories.
+Rho, and the ``rho`` command, is a network discovery and inspection tool to identify environment data, or *facts*, such as the number of physical and virtual systems on a network, their operating systems and other configuration data, and versions of some key packages and products for almost any Linux or UNIX version. The ability to discover and inspect the software and systems that are running on the network improves your ability to understand and report on your entitlement usage. Ultimately, this discovery and inspection process is part of the larger system administration task of managing your inventories.
 
-Rho uses two types of profiles to manage the discovery and inspection process. An *authentication profile* contains credentials such as the user name and password or SSH key of the user that runs the discovery and inspection process.  A *network profile* defines the network, such as a host, subnet, or network that is being monitored, plus includes one or more authentication profiles to use to access that network during the discovery and inspection process. You can save multiple authentication profiles and network profiles to use with Rho in various combinations as you run discovery and inspection processes, or *scans*.
+Rho uses two types of profiles to manage the discovery and inspection process. An *authentication profile* contains credentials such as the username and password or SSH key of the user that runs the discovery and inspection process.  A *network profile* defines the network, such as a host, subnet, or network that is being monitored, plus includes one or more authentication profiles to use to access that network during the discovery and inspection process. You can save multiple authentication profiles and network profiles to use with Rho in various combinations as you run discovery and inspection processes, or *scans*.
 
-By default, the authentication profiles and network profiles that are created when using Rho are stored in encrypted files. The files are encrypted with AES-256 encryption and are decrypted when the rho command runs, by using a *vault password* to access the files.
+By default, the authentication profiles and network profiles that are created when using Rho are stored in encrypted files. The files are encrypted with AES-256 encryption and are decrypted when the ``rho`` command runs, by using a *vault password* to access the files.
 
 Rho is an *agentless* discovery and inspection tool, so there is no need to install the tool on multiple systems. Discovery and inspection for the entire network is centralized on a single machine.
 
-This man page describes the commands, subcommands, and options for the rho command and includes basic usage information. For more detailed information and examples, including best practices, see the rho README file.
+This man page describes the commands, subcommands, and options for the ``rho`` command and includes basic usage information. For more detailed information and examples, including best practices, see the Rho README file.
 
 Usage
 -----
 
-rho performs four major tasks:
+``rho`` performs four major tasks:
 
 * Creating authentication profiles:
 
@@ -88,14 +88,14 @@ To create an authentication profile, supply SSH credentials as either a username
 
   Contains the path of the file that contains the vault password. The vault password is the password that controls access to the encrypted Rho data such as authentication and network profiles, scan data, and other information. If you do not have a file to use as the value for this option, do not use the option. You are then prompted to enter the vault password or to create a new vault password if one does not exist. At any time, you can save this password in a file such as a text file. You can then use the --vault option in subsequent Rho commands. Because the encrypted Rho data could contain sensitive information, make sure that this vault password file is stored in a location that has limited access.
 
-The information in an authentication profile, such as a password, sudo password, SSH keys, or even the user name, might change. For example, network security might require passwords to be updated every few months. Use the ``rho auth edit`` command to change the SSH credential information in an authentication profile. The parameters for ``rho auth edit`` are the same as those for ``rho auth add``.
+The information in an authentication profile, such as a password, sudo password, SSH keys, or even the username, might change. For example, network security might require passwords to be updated every few months. Use the ``rho auth edit`` command to change the SSH credential information in an authentication profile. The parameters for ``rho auth edit`` are the same as those for ``rho auth add``.
 
 **rho auth edit --name=** *name* **--username=** *username* **(--password | --sshkeyfile=** *key_file* **)** **[--sudo-password]** **[--vault=** *vault_file* **]**
 
 Listing and Showing Authentication Profiles
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``rho auth list`` command returns the details for every authentication profile that is configured for Rho. This output includes the name, user name, password, SSH keyfile and sudo password for each entry. Passwords are masked if provided, if not, they will appear as ``null``.
+The ``rho auth list`` command returns the details for every authentication profile that is configured for Rho. This output includes the name, username, password, SSH keyfile and sudo password for each entry. Passwords are masked if provided, if not, they will appear as ``null``.
 
 **rho auth list [--vault=** *vault_file* **]**
 
@@ -141,7 +141,7 @@ Network Profiles
 
 Use the ``rho profile`` command to create and manage network profiles.
 
-A network profile defines a collection of network information, including IP addresses or host names, SSH ports, and SSH credentials. The SSH credentials are provided through reference to one or more authentication profiles. A discovery scan can reference a network profile so that the act of running the scan is automatic and repeatable, without a requirement to reenter network information for each scan attempt.
+A network profile defines a collection of network information, including IP addresses or host names, SSH ports, and SSH credentials. The SSH credentials are provided through reference to one or more authentication profiles. A discovery and inspection scan can reference a network profile so that the act of running the scan is automatic and repeatable, without a requirement to reenter network information for each scan attempt.
 
 Creating and Editing Network Profiles
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -186,7 +186,7 @@ To create a network profile, supply one or more host names or IP addresses to co
 
 ``--sshport=ssh_port``
 
-  Sets a port to be used for the scan. This value supports discovery on a non-standard port. By default, the scan runs on port 22.
+  Sets a port to be used for the scan. This value supports discovery and inspection on a non-standard port. By default, the scan runs on port 22.
 
 ``--vault=vault_file``
 
@@ -255,7 +255,7 @@ Use the ``rho fact`` command to view information that can be reported in a scan 
 Listing Facts
 ~~~~~~~~~~~~~
 
-To generate a list of facts that can be gathered during the discovery scanning process, use the ``rho fact list`` command.
+To generate a list of facts that can be gathered during the discovery and inspection scanning process, use the ``rho fact list`` command.
 
 **rho fact list [--filter=** *reg_ex* **]**
 
@@ -281,7 +281,7 @@ To encrypt sensitive facts within the comma separated values (CSV) file output o
 Scanning
 --------
 
-Use the ``rho scan`` command to run discovery scans on the network. This command scans all of the host names or IP addresses that are defined in the supplied network profile, and then writes the report information to a comma separated values (CSV) file.
+Use the ``rho scan`` command to run discovery and inspection scans on the network. This command scans all of the host names or IP addresses that are defined in the supplied network profile, and then writes the report information to a comma separated values (CSV) file.
 
 **rho scan --profile=** *profile_name* **--reportfile=** *file* **[--facts** *file or list of facts* **] [--scan-dirs=** *file or list of remote directories* **] [--cache] [--vault=** *vault_file* **] [--logfile=** *log_file* **] [--ansible-forks=** *num_forks* **]**
 
