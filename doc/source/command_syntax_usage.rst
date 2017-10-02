@@ -234,10 +234,10 @@ requested using the `--facts` option:
 The `installed-versions` and `deploy-dates` facts are computed by
 scanning the entire host filesystem with the `find` command. This can
 take a large amount of system resources and could potentially have a
-noticeable impact on the performance of running servers. The
-lightweight scan is a good way to get clues about which systems might
-have JBoss installed before performing a full scan, or even removing
-the need for a full scan.
+noticeable impact on the performance of running servers. The default
+facts are a good way to get clues about which systems might have JBoss
+installed before performing a resource-intensive scan, or even
+removing the need for a scan entirely.
 
 Programs on Remote Machines
 ---------------------------
