@@ -144,7 +144,9 @@ def safe_ansible_property(ansible_vars, fact_name, prop):
     Handles missing and skipped tasks safely.
 
     Usage:
-      output = safe_ansible_property(ansible_vars, 'jboss.jar-ver', 'stdout')
+      output = safe_ansible_property(ansible_vars,
+                                     'jboss.eap.jar-ver',
+                                     'stdout')
       if output:
         further_processing(output)
 
@@ -164,9 +166,9 @@ def safe_ansible_property(ansible_vars, fact_name, prop):
     return output[prop]
 
 
-JBOSS_INSTALLED_VERSIONS = 'jboss.installed-versions'
-JBOSS_DEPLOY_DATES = 'jboss.deploy-dates'
-JBOSS_RUNNING_VERSIONS = 'jboss.running-versions'
+JBOSS_EAP_INSTALLED_VERSIONS = 'jboss.eap.installed-versions'
+JBOSS_EAP_DEPLOY_DATES = 'jboss.eap.deploy-dates'
+JBOSS_EAP_RUNNING_VERSIONS = 'jboss.eap.running-versions'
 
 
 # JBoss versions are processed separately from other *-ver data
@@ -184,14 +186,14 @@ def process_jboss_versions(fact_names, host_vars):
     val = {}
 
     # host_vars is not used after this function (data that we return
-    # is copied to host_vals instead), so by not adding jboss.jar_ver
-    # and jboss.run_jar_ver to val, we are implicitly removing them
-    # from the output.
+    # is copied to host_vals instead), so by not adding
+    # jboss.eap.jar_ver and jboss.eap.run_jar_ver to val, we are
+    # implicitly removing them from the output.
     lines.extend(safe_ansible_property(host_vars,
-                                       'jboss.jar-ver',
+                                       'jboss.eap.jar-ver',
                                        'stdout_lines') or [])
     lines.extend(safe_ansible_property(host_vars,
-                                       'jboss.run-jar-ver',
+                                       'jboss.eap.run-jar-ver',
                                        'stdout_lines') or [])
 
     jboss_releases = []
@@ -223,17 +225,17 @@ def process_jboss_versions(fact_names, host_vars):
             return 'N/A (java not found)'
         return '({0} not found)'.format(name)
 
-    if JBOSS_INSTALLED_VERSIONS in fact_names:
-        val[JBOSS_INSTALLED_VERSIONS] = (
+    if JBOSS_EAP_INSTALLED_VERSIONS in fact_names:
+        val[JBOSS_EAP_INSTALLED_VERSIONS] = (
             empty_output_message('; '.join(jboss_releases), 'jboss'))
-    if JBOSS_DEPLOY_DATES in fact_names:
-        val[JBOSS_DEPLOY_DATES] = (
+    if JBOSS_EAP_DEPLOY_DATES in fact_names:
+        val[JBOSS_EAP_DEPLOY_DATES] = (
             empty_output_message('; '.join(deploy_dates), 'jboss'))
-    if JBOSS_RUNNING_VERSIONS in fact_names:
-        val[JBOSS_RUNNING_VERSIONS] = (
+    if JBOSS_EAP_RUNNING_VERSIONS in fact_names:
+        val[JBOSS_EAP_RUNNING_VERSIONS] = (
             empty_output_message(
                 safe_ansible_property(host_vars,
-                                      JBOSS_RUNNING_VERSIONS,
+                                      JBOSS_EAP_RUNNING_VERSIONS,
                                       'stdout'),
                 'running jboss'))
 
