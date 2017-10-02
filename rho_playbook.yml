@@ -22,6 +22,7 @@
     - virt
     - virt_what
     - jboss
+    - jboss-scan
     - brms
     - fuse
 
