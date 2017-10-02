@@ -17,12 +17,12 @@ BuildRequires: python-setuptools
 BuildRequires: pandoc
 Requires: python-netaddr
 Requires: python-crypto
-Requires: ansible = 2.3.1.0
+Requires: ansible
 Requires: pexpect
 Requires: python-six
 Requires: python-enum34
 Requires: python-yaml
-Requires: epel-release
+%{?rhel:Requires: epel-release}
 Requires: python2-future
 Requires: python2-sh
 Requires: python2-pyxdg

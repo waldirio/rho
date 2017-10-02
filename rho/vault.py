@@ -87,7 +87,15 @@ class Vault(object):
 
     def __init__(self, password):
         self.password = password
-        self.vault = VaultLib(password)
+
+        try:
+            from ansible.parsing.vault import VaultSecret
+            from ansible.module_utils._text import to_bytes
+            pass_bytes = to_bytes(password, encoding='utf-8', errors='strict')
+            secrets = [('password', VaultSecret(_bytes=pass_bytes))]
+            self.vault = VaultLib(secrets=secrets)
+        except ImportError:
+            self.vault = VaultLib(password)
 
     def load(self, stream):
         """ Read vault steam and return python object

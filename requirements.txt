@@ -1,4 +1,4 @@
-ansible==2.3.1.0
+ansible
 pexpect
 future
 sh
