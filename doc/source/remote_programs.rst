@@ -41,7 +41,7 @@ like those provided by bash.
   - sed
   - sort
   - echo
-- jboss.* (facts one level down from jboss)
+- jboss.eap.*
   - find
   - grep
   - **java**
