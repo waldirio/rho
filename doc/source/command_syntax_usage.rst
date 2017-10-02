@@ -217,6 +217,28 @@ If the scan user uses a password to sudo, one can be given with the
 commands. The sudo-with-password fundtionality can be tested by using
 the 'askpass' box in the Vagrantfile.
 
+JBoss-EAP and -Scan Variants
+----------------------------
+
+The JBoss EAP facts are divided into two groups. Rho scans for the
+following facts by default:
+
+  - jboss.eap.running-versions
+
+The following facts are available, but Rho will only scan for them if
+requested using the `--facts` option:
+
+  - jboss.eap.installed-versions
+  - jboss.eap.deploy-dates
+
+The `installed-versions` and `deploy-dates` facts are computed by
+scanning the entire host filesystem with the `find` command. This can
+take a large amount of system resources and could potentially have a
+noticeable impact on the performance of running servers. The default
+facts are a good way to get clues about which systems might have JBoss
+installed before performing a resource-intensive scan, or even
+removing the need for a scan entirely.
+
 Programs on Remote Machines
 ---------------------------
 
