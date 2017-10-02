@@ -21,7 +21,8 @@
     - uname
     - virt
     - virt_what
-    - jboss
+    - jboss_eap
+    - jboss_eap_scan
     - brms
     - fuse
 
