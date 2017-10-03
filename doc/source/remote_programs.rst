@@ -51,6 +51,7 @@ like those provided by bash.
   - tail
   - ls
   - sort
+  - id
 - redhat_packages
   - **rpm**
 - redhat_release.*

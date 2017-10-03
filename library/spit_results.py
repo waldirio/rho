@@ -306,7 +306,7 @@ def process_id_u_jboss(fact_names, host_vars):
 
     if 'jboss_eap_id_jboss' not in host_vars:
         return {JBOSS_EAP_JBOSS_USER:
-                'Error: "id -u jboss" not in Ansible playbook'}
+                'Error: "id -u jboss" not run'}
 
     raw_output = host_vars['jboss_eap_id_jboss']
 
