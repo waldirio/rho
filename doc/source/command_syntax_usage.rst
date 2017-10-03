@@ -143,6 +143,7 @@ this contains a large amount of information about the operating system, hardware
 - ``jboss.brms.kie-war-ver`` - KIE runtime version
 - ``jboss.eap.deploy-dates`` - List of deployment dates of JBoss installations
 - ``jboss.eap.installed-versions`` - List of installed versions of JBoss
+- ``jboss.eap.jboss-user`` - Whether a user called 'jboss' exists
 - ``jboss.eap.running-versions`` - List of running versions of JBoss
 - ``jboss.fuse.activemq-ver`` - ActiveMQ version
 - ``jboss.fuse.camel-ver`` - Camel version
