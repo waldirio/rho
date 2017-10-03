@@ -141,6 +141,7 @@ this contains a large amount of information about the operating system, hardware
 - ``jboss.brms.drools-core-ver`` - Drools version
 - ``jboss.brms.kie-api-ver`` - KIE API version
 - ``jboss.brms.kie-war-ver`` - KIE runtime version
+- ``jboss.eap.common-directories`` - Presence of common directories for JBoss
 - ``jboss.eap.deploy-dates`` - List of deployment dates of JBoss installations
 - ``jboss.eap.installed-versions`` - List of installed versions of JBoss
 - ``jboss.eap.jboss-user`` - Whether a user called 'jboss' exists

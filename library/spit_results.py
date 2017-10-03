@@ -328,6 +328,43 @@ def process_id_u_jboss(fact_names, host_vars):
             'Error: unexpected output from "id -u jboss": %s' % raw_output}
 
 
+JBOSS_EAP_COMMON_DIRECTORIES = 'jboss.eap.common-directories'
+
+
+def process_jboss_common_dirs(fact_names, host_vars):
+    """Process the output of 'test -d <dir>', for common install directories.
+
+    :returns: a dict of key, value pairs to add to the output.
+    """
+
+    if 'jboss.eap.common-directories' not in fact_names:
+        return {}
+
+    if 'jboss_eap_common_directories' not in host_vars:
+        return {JBOSS_EAP_COMMON_DIRECTORIES:
+                'Error: common install directory tests not run'}
+
+    raw_output = host_vars['jboss_eap_common_directories']
+
+    if 'results' not in raw_output:
+        return {JBOSS_EAP_COMMON_DIRECTORIES:
+                'Error: common install directory tests not run'}
+
+    items = raw_output['results']
+
+    out_list = []
+    for item in items:
+        directory = item['item']
+        if 'rc' not in item:
+            out_list.append('Error: "test -d {0}" not run'.format(directory))
+        elif item['rc'] == 0:
+            out_list.append('{0} found'.format(directory))
+        else:
+            out_list.append('{0} not found'.format(directory))
+
+    return {JBOSS_EAP_COMMON_DIRECTORIES: ';'.join(out_list)}
+
+
 def remove_newlines(data):
     """ Processes input data values and strips out any newlines
     """
@@ -518,6 +555,7 @@ class Results(object):
             host_vals.update(process_jboss_versions(keys, host_vars))
             host_vals.update(process_addon_versions(keys, host_vars))
             host_vals.update(process_id_u_jboss(keys, host_vars))
+            host_vals.update(process_jboss_common_dirs(keys, host_vars))
 
         # Process System ID.
         for data in self.vals:
