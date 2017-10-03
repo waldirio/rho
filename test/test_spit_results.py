@@ -94,3 +94,40 @@ class TestSafeAnsibleProperty(unittest.TestCase):
             spit_results.safe_ansible_property(
                 {'foo': fact}, 'foo', 'property'),
             'value')
+
+
+class TestProcessIdUJboss(unittest.TestCase):
+    def run_func(self, output):
+        return spit_results.process_id_u_jboss(
+            ['jboss.eap.jboss-user'],
+            {'jboss_eap_id_jboss': output})
+
+    def test_fact_not_requested(self):
+        self.assertEqual(
+            spit_results.process_id_u_jboss([], None),
+            {})
+
+    def test_wrongly_skipped(self):
+        res = self.run_func({'skipped': True})
+        self.assertTrue('jboss.eap.jboss-user' in res and
+                        res['jboss.eap.jboss-user'].startswith('Error:'),
+                        msg=res['jboss.eap.jboss-user'])
+
+    def test_user_found(self):
+        self.assertEqual(
+            self.run_func({'rc': 0}),
+            {'jboss.eap.jboss-user': "User 'jboss' present"})
+
+    def test_no_such_user(self):
+        self.assertEqual(
+            self.run_func({'rc': 1,
+                           'stdout_lines': ['id: jboss: no such user']}),
+            {'jboss.eap.jboss-user': 'No user "jboss" found'})
+
+    def test_unknown_error(self):
+        res = self.run_func({'rc': 1,
+                             'stdout_lines': ['id: something went wrong!']})
+
+        self.assertTrue('jboss.eap.jboss-user' in res and
+                        res['jboss.eap.jboss-user'].startswith('Error:'),
+                        msg=res['jboss.eap.jboss-user'])

@@ -113,7 +113,8 @@ SUBMAN_FACTS_TUPLE = ('subman.cpu.core(s)_per_socket',
                       'subman.virt.uuid',
                       'subman.has_facts_file')
 
-JBOSS_FACTS_TUPLE = ('jboss.eap.running-versions',)
+JBOSS_FACTS_TUPLE = ('jboss.eap.running-versions',
+                     'jboss.eap.jboss-user')
 
 JBOSS_SCAN_FACTS_TUPLE = ('jboss.eap.installed-versions',
                           'jboss.eap.deploy-dates')

@@ -288,6 +288,46 @@ def process_addon_versions(fact_names, host_vars):
     return result
 
 
+JBOSS_EAP_JBOSS_USER = 'jboss.eap.jboss-user'
+
+
+def process_id_u_jboss(fact_names, host_vars):
+    """Process the output from 'id -u jboss', as run by Ansible
+
+    :returns: a dict of key-value pairs to add to the output.
+    """
+
+    # We use the 'id' command to check for jboss because it's been in
+    # GNU coreutils since 1992, so it should be present on every
+    # system we encounter.
+
+    if 'jboss.eap.jboss-user' not in fact_names:
+        return {}
+
+    if 'jboss_eap_id_jboss' not in host_vars:
+        return {JBOSS_EAP_JBOSS_USER:
+                'Error: "id -u jboss" not in Ansible playbook'}
+
+    raw_output = host_vars['jboss_eap_id_jboss']
+
+    if 'rc' not in raw_output:
+        return {JBOSS_EAP_JBOSS_USER: 'Error: "id -u jboss" not run'}
+
+    if raw_output['rc'] == 0:
+        return {JBOSS_EAP_JBOSS_USER: "User 'jboss' present"}
+
+    # Don't output a definitive "not found" unless we see an error
+    # string that we recognize. We don't want to assume that any
+    # nonzero error code means "not found", because then we would give
+    # false negatives if the user didn't have permission to read
+    # /etc/passwd (or other errors).
+    if raw_output['stdout_lines'] == ['id: jboss: no such user']:
+        return {JBOSS_EAP_JBOSS_USER: 'No user "jboss" found'}
+
+    return {JBOSS_EAP_JBOSS_USER:
+            'Error: unexpected output from "id -u jboss": %s' % raw_output}
+
+
 def remove_newlines(data):
     """ Processes input data values and strips out any newlines
     """
@@ -477,6 +517,7 @@ class Results(object):
 
             host_vals.update(process_jboss_versions(keys, host_vars))
             host_vals.update(process_addon_versions(keys, host_vars))
+            host_vals.update(process_id_u_jboss(keys, host_vars))
 
         # Process System ID.
         for data in self.vals:
