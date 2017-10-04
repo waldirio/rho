@@ -52,6 +52,7 @@ like those provided by bash.
   - ls
   - sort
   - id
+  - test
 - redhat_packages
   - **rpm**
 - redhat_release.*
