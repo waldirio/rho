@@ -331,7 +331,7 @@ def process_id_u_jboss(fact_names, host_vars):
 JBOSS_EAP_COMMON_DIRECTORIES = 'jboss.eap.common-directories'
 
 
-def process_jboss_common_dirs(fact_names, host_vars):
+def process_jboss_eap_common_dirs(fact_names, host_vars):
     """Process the output of 'test -d <dir>', for common install directories.
 
     :returns: a dict of key, value pairs to add to the output.
@@ -555,7 +555,7 @@ class Results(object):
             host_vals.update(process_jboss_versions(keys, host_vars))
             host_vals.update(process_addon_versions(keys, host_vars))
             host_vals.update(process_id_u_jboss(keys, host_vars))
-            host_vals.update(process_jboss_common_dirs(keys, host_vars))
+            host_vals.update(process_jboss_eap_common_dirs(keys, host_vars))
 
         # Process System ID.
         for data in self.vals:

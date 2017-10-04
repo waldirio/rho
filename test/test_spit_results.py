@@ -135,17 +135,17 @@ class TestProcessIdUJboss(unittest.TestCase):
 
 class TestProcessJbossCommonDirectories(unittest.TestCase):
     def run_func(self, output):
-        return spit_results.process_jboss_common_dirs(
+        return spit_results.process_jboss_eap_common_dirs(
             ['jboss.eap.common-directories'],
             {'jboss_eap_common_directories': output})
 
     def test_fact_not_requested(self):
         self.assertEqual(
-            spit_results.process_jboss_common_dirs([], {}),
+            spit_results.process_jboss_eap_common_dirs([], {}),
             {})
 
     def test_not_in_host_vars(self):
-        res = spit_results.process_jboss_common_dirs(
+        res = spit_results.process_jboss_eap_common_dirs(
             ['jboss.eap.common-directories'], {})
 
         self.assertTrue(
