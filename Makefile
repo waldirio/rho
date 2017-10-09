@@ -19,6 +19,9 @@ help:
 
 all: build lint tests-coverage
 
+manpage:
+	@cd doc; $(MAKE) manpage
+
 docs:
 	@cd doc; $(MAKE) gen-api; $(MAKE) html; $(MAKE) nojekyll; $(MAKE) manpage
 

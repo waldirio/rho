@@ -2,7 +2,7 @@
 
 Name: rho
 Version: 0.0.28
-Release: 1%{?dist}
+Release: 3%{?dist}
 Summary: An SSH system profiler
 
 Group: Applications/Internet
@@ -13,19 +13,19 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildArch: noarch
 BuildRequires: python-devel
-BuildRequires: python-setuptools
+BuildRequires: python2-setuptools
 BuildRequires: pandoc
 Requires: python-netaddr
-Requires: python-crypto
+Requires: python2-crypto
 Requires: ansible
 Requires: pexpect
 Requires: python-six
 Requires: python-enum34
-Requires: python-yaml
+Requires: PyYAML
 %{?rhel:Requires: epel-release}
 Requires: python2-future
 Requires: python2-sh
-Requires: python2-pyxdg
+Requires: pyxdg
 
 %description
 Rho is a tool for scanning your network, logging into systems via SSH, and
@@ -36,7 +36,7 @@ retrieving information about them.
 
 %build
 %{__python} setup.py build
-make docs
+make manpage
 
 %install
 rm -rf $RPM_BUILD_ROOT
