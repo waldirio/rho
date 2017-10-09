@@ -176,11 +176,11 @@ class TestProcessJbossEapProcesses(unittest.TestCase):
             {'jboss.eap.processes': output})
 
     def test_no_processes(self):
-        self.assertEqual(self.run_func({
-            'rc': 1, 'stdout_lines': []}),
-                         {'jboss.eap.processes': 'No EAP processes found'})
+        self.assertEqual(
+            self.run_func({'rc': 1, 'stdout_lines': []}),
+            {'jboss.eap.processes': 'No EAP processes found'})
 
     def test_found_processes(self):
-        self.assertEqual(self.run_func({
-            'rc': 0, 'stdout_lines': [1,2,3]}),
-                         {'jboss.eap.processes': '3 EAP processes found'})
+        self.assertEqual(
+            self.run_func({'rc': 0, 'stdout_lines': [1, 2, 3]}),
+            {'jboss.eap.processes': '3 EAP processes found'})
