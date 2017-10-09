@@ -13,7 +13,8 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildArch: noarch
 BuildRequires: python-devel
-BuildRequires: python2-setuptools
+%{?fedora:BuildRequires: python2-setuptools}
+%{?rhel:BuildRequires: python-setuptools}
 BuildRequires: pandoc
 Requires: python-netaddr
 Requires: python2-crypto
@@ -63,7 +64,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/ansible/%{name}/roles/*
 
 %changelog
-* Thu Sep 21 2017 Christopher Hambridge <chambrid@redhat.com> 0.0.28-1
+* Thu Sep 21 2017 Christopher Hambridge <chambrid@redhat.com> 0.0.28-3
 - Updated to utilize Ansible 2.3.1.0 and an Ansible playbook and associate
   roles.
 - Encryption of auth credential entries and network profile entries using a
