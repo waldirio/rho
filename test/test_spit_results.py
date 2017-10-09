@@ -115,7 +115,7 @@ class TestProcessIdUJboss(unittest.TestCase):
 
     def test_user_found(self):
         self.assertEqual(
-            self.run_func({'rc': 0}),
+            self.run_func({'rc': 0, 'stdout_lines': []}),
             {'jboss.eap.jboss-user': "User 'jboss' present"})
 
     def test_no_such_user(self):
@@ -167,3 +167,20 @@ class TestProcessJbossCommonDirectories(unittest.TestCase):
              'Error: "test -d dir1" not run;'
              'dir2 not found;'
              'dir3 found'})
+
+
+class TestProcessJbossEapProcesses(unittest.TestCase):
+    def run_func(self, output):
+        return spit_results.process_jboss_eap_processes(
+            ['jboss.eap.processes'],
+            {'jboss.eap.processes': output})
+
+    def test_no_processes(self):
+        self.assertEqual(self.run_func({
+            'rc': 1, 'stdout_lines': []}),
+                         {'jboss.eap.processes': 'No EAP processes found'})
+
+    def test_found_processes(self):
+        self.assertEqual(self.run_func({
+            'rc': 0, 'stdout_lines': [1,2,3]}),
+                         {'jboss.eap.processes': '3 EAP processes found'})

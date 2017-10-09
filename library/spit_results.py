@@ -288,6 +288,45 @@ def process_addon_versions(fact_names, host_vars):
     return result
 
 
+def raw_output_present(fact_names, host_vars, this_fact, this_var, command):
+    """Basic sanity checks for processing an Ansible raw command.
+
+    :param fact_names: the facts to be collected
+    :param host_vars: all variables collected for a host
+    :param this_fact: the name of the fact we are processing
+    :param this_var: the name that Ansible has for our output
+    :param command: the command that was run
+
+    :returns: a tuple of
+        (None or error dict, None or raw command output).
+        The error dict is suitable for inclusion in the rho output
+        dictionary. There will not be both errors and raw command
+        output. If raw command output is returned, it will have
+        fields 'rc' and 'stdout_lines' or 'results'.
+
+    Usage:
+        err, output = raw_output_present(...)
+        if err is not None:
+            return err
+
+        ... process output ...
+    """
+
+    if this_fact not in fact_names:
+        return {}, None
+
+    if this_var not in host_vars:
+        return {this_fact: 'Error: "{0}" not run'.format(command)}, None
+
+    raw_output = host_vars[this_var]
+
+    if (('rc' not in raw_output or
+         'stdout_lines' not in raw_output) and 'results' not in raw_output):
+        return {this_fact: 'Error: "{0}" not run'.format(command)}, None
+
+    return None, raw_output
+
+
 JBOSS_EAP_JBOSS_USER = 'jboss.eap.jboss-user'
 
 
@@ -301,19 +340,14 @@ def process_id_u_jboss(fact_names, host_vars):
     # GNU coreutils since 1992, so it should be present on every
     # system we encounter.
 
-    if 'jboss.eap.jboss-user' not in fact_names:
-        return {}
+    err, output = raw_output_present(fact_names, host_vars,
+                                     'jboss.eap.jboss-user',
+                                     'jboss_eap_id_jboss',
+                                     'id -u jboss')
+    if err is not None:
+        return err
 
-    if 'jboss_eap_id_jboss' not in host_vars:
-        return {JBOSS_EAP_JBOSS_USER:
-                'Error: "id -u jboss" not run'}
-
-    raw_output = host_vars['jboss_eap_id_jboss']
-
-    if 'rc' not in raw_output:
-        return {JBOSS_EAP_JBOSS_USER: 'Error: "id -u jboss" not run'}
-
-    if raw_output['rc'] == 0:
+    if output['rc'] == 0:
         return {JBOSS_EAP_JBOSS_USER: "User 'jboss' present"}
 
     # Don't output a definitive "not found" unless we see an error
@@ -321,11 +355,11 @@ def process_id_u_jboss(fact_names, host_vars):
     # nonzero error code means "not found", because then we would give
     # false negatives if the user didn't have permission to read
     # /etc/passwd (or other errors).
-    if raw_output['stdout_lines'] == ['id: jboss: no such user']:
+    if output['stdout_lines'] == ['id: jboss: no such user']:
         return {JBOSS_EAP_JBOSS_USER: 'No user "jboss" found'}
 
     return {JBOSS_EAP_JBOSS_USER:
-            'Error: unexpected output from "id -u jboss": %s' % raw_output}
+            'Error: unexpected output from "id -u jboss": %s' % output}
 
 
 JBOSS_EAP_COMMON_DIRECTORIES = 'jboss.eap.common-directories'
@@ -337,20 +371,15 @@ def process_jboss_eap_common_dirs(fact_names, host_vars):
     :returns: a dict of key, value pairs to add to the output.
     """
 
-    if 'jboss.eap.common-directories' not in fact_names:
-        return {}
+    err, output = raw_output_present(fact_names, host_vars,
+                                     'jboss.eap.common-directories',
+                                     'jboss_eap_common_directories',
+                                     'common install directory tests')
 
-    if 'jboss_eap_common_directories' not in host_vars:
-        return {JBOSS_EAP_COMMON_DIRECTORIES:
-                'Error: common install directory tests not run'}
+    if err is not None:
+        return err
 
-    raw_output = host_vars['jboss_eap_common_directories']
-
-    if 'results' not in raw_output:
-        return {JBOSS_EAP_COMMON_DIRECTORIES:
-                'Error: common install directory tests not run'}
-
-    items = raw_output['results']
+    items = output['results']
 
     out_list = []
     for item in items:
@@ -363,6 +392,31 @@ def process_jboss_eap_common_dirs(fact_names, host_vars):
             out_list.append('{0} not found'.format(directory))
 
     return {JBOSS_EAP_COMMON_DIRECTORIES: ';'.join(out_list)}
+
+
+JBOSS_EAP_PROCESSES = 'jboss.eap.processes'
+
+
+def process_jboss_eap_processes(fact_names, host_vars):
+    """Process the output of 'pgrep -f eap'
+
+    :returns: a dict of key, value pairs to add to the output.
+    """
+
+    err, output = raw_output_present(fact_names, host_vars,
+                                     JBOSS_EAP_PROCESSES,
+                                     JBOSS_EAP_PROCESSES,
+                                     'pgrep -f eap')
+    if err is not None:
+        return err
+
+    # pgrep exists with status 0 if it finds processes matching its
+    # pattern, and status 1 if not.
+    if output['rc']:
+        return {JBOSS_EAP_PROCESSES: 'No EAP processes found'}
+
+    return {JBOSS_EAP_PROCESSES:
+            '{0} EAP processes found'.format(len(output['stdout_lines']))}
 
 
 def remove_newlines(data):
@@ -556,6 +610,7 @@ class Results(object):
             host_vals.update(process_addon_versions(keys, host_vars))
             host_vals.update(process_id_u_jboss(keys, host_vars))
             host_vals.update(process_jboss_eap_common_dirs(keys, host_vars))
+            host_vals.update(process_jboss_eap_processes(keys, host_vars))
 
         # Process System ID.
         for data in self.vals:
