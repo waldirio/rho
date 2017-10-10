@@ -322,7 +322,10 @@ def raw_output_present(fact_names, host_vars, this_fact, this_var, command):
 
     if (('rc' not in raw_output or
          'stdout_lines' not in raw_output) and 'results' not in raw_output):
-        return {this_fact: 'Error: "{0}" not run'.format(command)}, None
+        return (
+            {this_fact:
+             'Error: could not get output from "{0}"'.format(command)},
+            None)
 
     return None, raw_output
 
@@ -406,7 +409,7 @@ def process_jboss_eap_processes(fact_names, host_vars):
     err, output = raw_output_present(fact_names, host_vars,
                                      JBOSS_EAP_PROCESSES,
                                      JBOSS_EAP_PROCESSES,
-                                     'pgrep -f eap')
+                                     'ps -A -f | grep eap')
     if err is not None:
         return err
 
@@ -415,8 +418,16 @@ def process_jboss_eap_processes(fact_names, host_vars):
     if output['rc']:
         return {JBOSS_EAP_PROCESSES: 'No EAP processes found'}
 
+    num_procs = len(output['stdout_lines'])
+
+    # There should always be one process matching 'eap', which is the
+    # grep that's finding the other processes.
+    if not num_procs:
+        return {JBOSS_EAP_PROCESSES:
+                "Bad result (0 processes) from 'ps -A -f | grep eap'"}
+
     return {JBOSS_EAP_PROCESSES:
-            '{0} EAP processes found'.format(len(output['stdout_lines']))}
+            '{0} EAP processes found'.format(num_procs - 1)}
 
 
 def remove_newlines(data):
