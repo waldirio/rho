@@ -2,7 +2,7 @@
 
 Name: rho
 Version: 0.0.28
-Release: 3%{?dist}
+Release: 4%{?dist}
 Summary: An SSH system profiler
 
 Group: Applications/Internet
@@ -65,7 +65,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/ansible/%{name}/roles/*
 
 %changelog
-* Thu Sep 21 2017 Christopher Hambridge <chambrid@redhat.com> 0.0.28-3
+* Thu Sep 21 2017 Christopher Hambridge <chambrid@redhat.com> 0.0.28-4
 - Updated to utilize Ansible 2.3.1.0 and an Ansible playbook and associate
   roles.
 - Encryption of auth credential entries and network profile entries using a

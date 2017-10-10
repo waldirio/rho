@@ -358,7 +358,8 @@ def run_ansible_with_vault(cmd_string, vault_pass, env=None, log_path=None,
             child.logfile = logfile
             last_pos = logfile.tell()
 
-            i = child.expect([pexpect.EOF, 'Enter passphrase for key .*:'])
+            i = child.expect([pexpect.EOF, 'Enter passphrase for key .*:',
+                              'you want to continue connecting (yes/no)?'])
             while i:
                 new_pos = logfile.tell()
                 logfile.seek(last_pos)
@@ -372,7 +373,8 @@ def run_ansible_with_vault(cmd_string, vault_pass, env=None, log_path=None,
                 # confusing if getpass printed another one.
                 child.sendline(getpass(''))
                 child.logfile = logfile
-                i = child.expect([pexpect.EOF, 'Enter passphrase for key .*:'])
+                i = child.expect([pexpect.EOF, 'Enter passphrase for key .*:',
+                                  'you want to continue connecting (yes/no)?'])
 
             if child.isalive():
                 child.wait()
