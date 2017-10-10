@@ -455,7 +455,7 @@ def str_to_ascii(in_string):
     :param in_string: input string to convert to ascii
     :returns: ASCII encoded string
     """
-    if sys.version_info.major == 2:
+    if sys.version_info[0] == 2:
         return in_string.decode('utf-8').encode('ascii')
 
     return in_string
@@ -467,7 +467,7 @@ def iteritems(dictionary):
     :param dictionary: the dictionary to iterate over.
     """
 
-    if sys.version_info.major == 2:
+    if sys.version_info[0] == 2:
         return dictionary.iteritems()
 
     return dictionary.items()
@@ -486,8 +486,15 @@ def write_csv_data(keys, data, path):
         writer = csv.DictWriter(
             data_temp, fieldnames=sorted(keys), delimiter=',')
 
-        # Write a CSV header if necessary
-        writer.writeheader()
+        # Write a CSV header if necessary;
+        # handle Python 2.6 not having writeheader method
+        if sys.version_info[0] == 2 and sys.version_info[1] <= 6:
+            headers = {}
+            for fields in writer.fieldnames:
+                headers[fields] = fields
+            writer.writerow(headers)
+        else:
+            writer.writeheader()
 
         # Write the data
         for row in data:
