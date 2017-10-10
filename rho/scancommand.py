@@ -142,6 +142,8 @@ def process_ping_output(out_lines):
         pieces = line.split('|')
         if len(pieces) == 3 and pieces[1].strip() == 'SUCCESS':
             success_hosts.add(pieces[0].strip())
+        elif len(pieces) == 3 and pieces[1].strip() == 'FAILED':
+            failed_hosts.add(pieces[0].strip())
         elif len(pieces) == 2 and pieces[1].strip().startswith('UNREACHABLE'):
             failed_hosts.add(pieces[0].strip())
 
@@ -191,35 +193,35 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
         else:
             hosts_dict[hostname] = None
 
-        vars_dict = auth_as_ansible_host_vars(credential)
+    vars_dict = auth_as_ansible_host_vars(credential)
 
-        yml_dict = {'alpha': {'hosts': hosts_dict, 'vars': vars_dict}}
-        vault.dump_as_yaml_to_file(yml_dict, PING_INVENTORY_PATH)
-        log_yaml_inventory('Ping inventory', yml_dict)
+    yml_dict = {'alpha': {'hosts': hosts_dict, 'vars': vars_dict}}
+    vault.dump_as_yaml_to_file(yml_dict, PING_INVENTORY_PATH)
+    log_yaml_inventory('Ping inventory', yml_dict)
 
-        cmd_string = 'ansible alpha -m raw' \
-                     ' -i ' + PING_INVENTORY_PATH \
-                     + ' --ask-vault-pass -f ' + forks \
-                     + ' -a \'echo "Hello"\''
+    cmd_string = 'ansible alpha -m raw' \
+                 ' -i ' + PING_INVENTORY_PATH \
+                 + ' --ask-vault-pass -f ' + forks \
+                 + ' -a \'echo "Hello"\''
 
-        my_env = os.environ.copy()
-        my_env["ANSIBLE_HOST_KEY_CHECKING"] = "False"
-        # Don't pass ansible_verbosity here as adding too much
-        # verbosity can break our parsing of Ansible's output. This is
-        # a temporary fix - a better solution would be less-fragile
-        # output parsing.
-        run_ansible_with_vault(cmd_string, vault_pass,
-                               log_path=PING_LOG_PATH,
-                               env=my_env,
-                               log_to_stdout=True,
-                               ansible_verbosity=0)
+    my_env = os.environ.copy()
+    my_env["ANSIBLE_HOST_KEY_CHECKING"] = "False"
+    # Don't pass ansible_verbosity here as adding too much
+    # verbosity can break our parsing of Ansible's output. This is
+    # a temporary fix - a better solution would be less-fragile
+    # output parsing.
+    run_ansible_with_vault(cmd_string, vault_pass,
+                           log_path=PING_LOG_PATH,
+                           env=my_env,
+                           log_to_stdout=True,
+                           ansible_verbosity=0)
 
-        with open(PING_LOG_PATH, 'r') as ping_log:
-            success_hosts, failed_hosts = process_ping_output(ping_log)
+    with open(PING_LOG_PATH, 'r') as ping_log:
+        success_hosts, failed_hosts = process_ping_output(ping_log)
 
-        for host in success_hosts:
-            success_auth_map[host].append(credential)
-            success_port_map[host] = profile_port
+    for host in success_hosts:
+        success_auth_map[host].append(credential)
+        success_port_map[host] = profile_port
 
     return list(success_hosts), success_port_map, success_auth_map, \
         list(failed_hosts)

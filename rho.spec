@@ -17,7 +17,8 @@ BuildRequires: python-devel
 %{?rhel:BuildRequires: python-setuptools}
 BuildRequires: pandoc
 Requires: python-netaddr
-Requires: python2-crypto
+%{?fedora:BuildRequires: python2-crypto}
+%{?rhel:BuildRequires: python-crypto}
 Requires: ansible
 Requires: pexpect
 Requires: python-six
