@@ -102,6 +102,11 @@ class AuthEditCommand(CliCommand):
                     "--username, --password, --sshkeyfile "
                     "or --sudo-password"))
             sys.exit(1)
+        if self.options.filename and self.options.password:
+            print(_('You must provide either "--password" or a value for '
+                    '"--sshkeyfile". You cannot supply both.'))
+            self.parser.print_help()
+            sys.exit(1)
 
     def _do_command(self):
         vault = get_vault(self.options.vaultfile)
