@@ -401,15 +401,36 @@ JBOSS_EAP_PROCESSES = 'jboss.eap.processes'
 
 
 def process_jboss_eap_processes(fact_names, host_vars):
-    """Process the output of 'pgrep -f eap'
+    """Process the output of 'ps -A -f e | grep eap'
 
     :returns: a dict of key, value pairs to add to the output.
     """
 
+    # Why use 'ps -A -f e | grep eap'? The -A gets us every process on
+    # the system, and -f means ps will print the command-line
+    # arguments, which is key because JBoss will be invoked with java
+    # as the executable and an argument that says to run the Wildfly
+    # jar.
+
+    # The e makes ps print the process's environment. It's in a format
+    # that is not machine-readable, because ps uses spaces as the
+    # delimiter for both command-line args and the process
+    # environment, and we have no way to tell where the arguments end
+    # and the environment begins. However, that's fine for grepping. I
+    # observed an EAP 7 application server running with MANPATH,
+    # JBOSS_MODULEPATH, JBOSS_HOME, WILDFLY_CONSOLE_LOG, WILDFLY_SH,
+    # LD_LIBRARY_PATH, EAP7_SCLS_ENABLED, PATH, WILDFLY_MODULEPATH,
+    # HOME, and PKG_CONFIG_PATH set to directories that included
+    # /opt/rh/eap7, all of which will be caught by our
+    # grep. Additionally, variables LAUNCH_JBOSS_IN_BACKGROUND and
+    # JBOSS_HOME will be caught because of the variable names
+    # themselves. We deliberately don't grep for wildfly or jboss,
+    # because that could catch non-JBoss Wildfly installations.
+
     err, output = raw_output_present(fact_names, host_vars,
                                      JBOSS_EAP_PROCESSES,
                                      JBOSS_EAP_PROCESSES,
-                                     'ps -A -f | grep eap')
+                                     'ps -A -f e | grep eap')
     if err is not None:
         return err
 
@@ -420,14 +441,17 @@ def process_jboss_eap_processes(fact_names, host_vars):
 
     num_procs = len(output['stdout_lines'])
 
-    # There should always be one process matching 'eap', which is the
-    # grep that's finding the other processes.
-    if not num_procs:
-        return {JBOSS_EAP_PROCESSES:
-                "Bad result (0 processes) from 'ps -A -f | grep eap'"}
+    # There should always be two processes matching 'eap', one for the
+    # grep that's searching for 'eap', and one for the bash that's
+    # running the pipeline.
+    if num_procs < 2:
+        return {
+            JBOSS_EAP_PROCESSES:
+            "Bad result ({0} processes) from 'ps -A -f e | grep eap'".format(
+                num_procs)}
 
     return {JBOSS_EAP_PROCESSES:
-            '{0} EAP processes found'.format(num_procs - 1)}
+            '{0} EAP processes found'.format(num_procs - 2)}
 
 
 JBOSS_EAP_PACKAGES = 'jboss.eap.packages'
