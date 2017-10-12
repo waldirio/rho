@@ -145,6 +145,8 @@ this contains a large amount of information about the operating system, hardware
 - ``jboss.eap.deploy-dates`` - List of deployment dates of JBoss EAP installations
 - ``jboss.eap.installed-versions`` - List of installed versions of JBoss EAP
 - ``jboss.eap.jboss-user`` - Whether a user called 'jboss' exists
+- ``jboss.eap.packages`` - Installed RPMs that look like JBoss
+- ``jboss.eap.processes`` - Running processes that look like JBoss
 - ``jboss.eap.running-versions`` - List of running versions of JBoss EAP
 - ``jboss.fuse.activemq-ver`` - ActiveMQ version
 - ``jboss.fuse.camel-ver`` - Camel version
