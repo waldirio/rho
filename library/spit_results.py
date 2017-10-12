@@ -430,6 +430,42 @@ def process_jboss_eap_processes(fact_names, host_vars):
             '{0} EAP processes found'.format(num_procs - 1)}
 
 
+JBOSS_EAP_PACKAGES = 'jboss.eap.packages'
+
+
+def process_jboss_eap_packages(fact_names, host_vars):
+    """Process the list of JBoss EAP-related RPMs.
+
+    :returns: a dict of key, value pairs to add to the output.
+    """
+
+    # We use (eap7)|(jbossas) as the pattern because all of the EAP 6
+    # packages had the prefix jbossas- and all of the EAP 7 packages
+    # have the prefix eap7-. We set a custom format for rpm output and
+    # get a lot of package fields, even though we only use the number
+    # of output lines, so we will have full package data in the logs
+    # if customers have questions about the number. Hopefully in the
+    # future we can surface that data through a UI.
+
+    err, output = raw_output_present(fact_names, host_vars,
+                                     JBOSS_EAP_PACKAGES,
+                                     JBOSS_EAP_PACKAGES,
+                                     "rpm -q -a | grep -E '(eap7)|(jbossas)'")
+    if err is not None:
+        return err
+
+    # the sort on the end of the pipeline returns 0 whether or not
+    # matches were found, so a nonzero return code should never
+    # happen.
+    if output['rc']:
+        return {JBOSS_EAP_PACKAGES: 'Pipeline returned non-zero status'}
+
+    num_packages = len(output['stdout_lines'])
+
+    return {JBOSS_EAP_PACKAGES:
+            '{0} JBoss-related packages found'.format(num_packages)}
+
+
 def remove_newlines(data):
     """ Processes input data values and strips out any newlines
     """
@@ -622,6 +658,7 @@ class Results(object):
             host_vals.update(process_id_u_jboss(keys, host_vars))
             host_vals.update(process_jboss_eap_common_dirs(keys, host_vars))
             host_vals.update(process_jboss_eap_processes(keys, host_vars))
+            host_vals.update(process_jboss_eap_packages(keys, host_vars))
 
         # Process System ID.
         for data in self.vals:

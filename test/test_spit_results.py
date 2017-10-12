@@ -184,3 +184,25 @@ class TestProcessJbossEapProcesses(unittest.TestCase):
         self.assertEqual(
             self.run_func({'rc': 0, 'stdout_lines': [1, 2, 3]}),
             {'jboss.eap.processes': '2 EAP processes found'})
+
+
+class TestProcessJbossEapPackages(unittest.TestCase):
+    def run_func(self, output):
+        return spit_results.process_jboss_eap_packages(
+            ['jboss.eap.packages'],
+            {'jboss.eap.packages': output})
+
+    def test_nonzero_return_code(self):
+        self.assertEqual(
+            self.run_func({'rc': 1, 'stdout_lines': []}),
+            {'jboss.eap.packages': 'Pipeline returned non-zero status'})
+
+    def test_found_packages(self):
+        self.assertEqual(
+            self.run_func({'rc': 0, 'stdout_lines': ['a', 'b', 'c']}),
+            {'jboss.eap.packages': '3 JBoss-related packages found'})
+
+    def test_no_packages(self):
+        self.assertEqual(
+            self.run_func({'rc': 0, 'stdout_lines': []}),
+            {'jboss.eap.packages': '0 JBoss-related packages found'})

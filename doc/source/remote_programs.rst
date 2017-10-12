@@ -54,6 +54,7 @@ like those provided by bash.
   - id
   - test
   - ps
+  - **rpm**
 - redhat_packages
   - **rpm**
 - redhat_release.*
