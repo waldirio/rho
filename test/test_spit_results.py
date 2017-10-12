@@ -183,7 +183,7 @@ class TestProcessJbossEapProcesses(unittest.TestCase):
     def test_found_processes(self):
         self.assertEqual(
             self.run_func({'rc': 0, 'stdout_lines': [1, 2, 3]}),
-            {'jboss.eap.processes': '2 EAP processes found'})
+            {'jboss.eap.processes': '1 EAP processes found'})
 
 
 class TestProcessJbossEapPackages(unittest.TestCase):

@@ -19,7 +19,7 @@
         - /usr/log/jboss-as
       when: '"jboss.eap.common-directories" in facts_to_collect'
     - name: gather jboss.eap.processes
-      raw: ps -A -f | grep eap
+      raw: ps -A -f e | grep eap
       register: jboss.eap.processes
       ignore_errors: yes
       when: '"jboss.eap.processes" in facts_to_collect'
