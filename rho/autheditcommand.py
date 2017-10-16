@@ -108,6 +108,18 @@ class AuthEditCommand(CliCommand):
             self.parser.print_help()
             sys.exit(1)
 
+        if self.options.filename:
+            keyfile_path = os.path.abspath(os.path.normpath(
+                os.path.expanduser(os.path.expandvars(self.options.filename))))
+            if os.path.isfile(keyfile_path) is False:
+                print(_('You must provide a valid file path for'
+                        ' "--sshkeyfile", "%s" could not be found.'
+                        % keyfile_path))
+                self.parser.print_help()
+                sys.exit(1)
+            else:
+                self.options.filename = keyfile_path
+
     def _do_command(self):
         vault = get_vault(self.options.vaultfile)
         auth_found = False
