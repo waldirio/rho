@@ -459,11 +459,10 @@ class ScanCommand(CliCommand):
 
         # perform fact validation
         facts = self.options.facts
-        if facts == []:
-            self.facts_to_collect = list(utilities.RHEL_FACTS +
-                                         utilities.CONNECTION_FACTS_TUPLE)
-        elif facts == ['default'] or facts == ['all']:
+        if facts == [] or facts == ['default']:
             self.facts_to_collect = list(utilities.DEFAULT_FACTS)
+        elif facts == ['all']:
+            self.facts_to_collect = list(utilities.ALL_FACTS)
         elif facts == ['jboss']:
             self.facts_to_collect = list(utilities.JBOSS_FACTS +
                                          utilities.CONNECTION_FACTS_TUPLE)
@@ -475,8 +474,8 @@ class ScanCommand(CliCommand):
         else:
             assert isinstance(facts, list)
             self.facts_to_collect = facts
-        # check facts_to_collect is subset of utilities.DEFAULT_FACTS
-        all_facts = utilities.DEFAULT_FACTS
+        # check facts_to_collect has valid facts
+        all_facts = utilities.ALL_FACTS
         facts_to_collect_set = set(self.facts_to_collect)
         if not facts_to_collect_set.issubset(all_facts):
             invalid_facts = facts_to_collect_set.difference(all_facts)

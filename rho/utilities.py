@@ -140,6 +140,8 @@ JBOSS_FACTS = JBOSS_FACTS_TUPLE + BRMS_FACTS_TUPLE + FUSE_FACTS_TUPLE
 
 DEFAULT_FACTS = RHEL_FACTS + JBOSS_FACTS + CONNECTION_FACTS_TUPLE
 
+ALL_FACTS = DEFAULT_FACTS + JBOSS_SCAN_FACTS_TUPLE
+
 # 'log' is a convenience for getting the appropriate logger from the
 # logging module. Use it like this:
 #
