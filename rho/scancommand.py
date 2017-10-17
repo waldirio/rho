@@ -475,8 +475,8 @@ class ScanCommand(CliCommand):
         else:
             assert isinstance(facts, list)
             self.facts_to_collect = facts
-        # check facts_to_collect is subset of utilities.DEFAULT_FACTS
-        all_facts = utilities.DEFAULT_FACTS
+        # check facts_to_collect has valid facts
+        all_facts = utilities.ALL_FACTS
         facts_to_collect_set = set(self.facts_to_collect)
         if not facts_to_collect_set.issubset(all_facts):
             invalid_facts = facts_to_collect_set.difference(all_facts)
