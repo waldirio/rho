@@ -2,7 +2,7 @@
 
 Name: rho
 Version: 0.0.29
-Release: 5%{?dist}
+Release: 1%{?dist}
 Summary: An SSH system profiler
 
 Group: Applications/Internet
@@ -65,7 +65,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/ansible/%{name}/roles/*
 
 %changelog
-* Tue Oct 17 2017 Noah Lavine <nlavine@redhat.com> 0.0.29
+* Tue Oct 17 2017 Noah Lavine <nlavine@redhat.com> 0.0.29-1
 - Split JBoss scanning into full and lightweight scans; lightweight scan is
   active by default.
 * Thu Sep 21 2017 Christopher Hambridge <chambrid@redhat.com> 0.0.28-5
