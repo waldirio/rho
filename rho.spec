@@ -1,7 +1,7 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 Name: rho
-Version: 0.0.28
+Version: 0.0.29
 Release: 1%{?dist}
 Summary: An SSH system profiler
 
