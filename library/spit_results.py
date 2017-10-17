@@ -288,6 +288,208 @@ def process_addon_versions(fact_names, host_vars):
     return result
 
 
+def raw_output_present(fact_names, host_vars, this_fact, this_var, command):
+    """Basic sanity checks for processing an Ansible raw command.
+
+    :param fact_names: the facts to be collected
+    :param host_vars: all variables collected for a host
+    :param this_fact: the name of the fact we are processing
+    :param this_var: the name that Ansible has for our output
+    :param command: the command that was run
+
+    :returns: a tuple of
+        (None or error dict, None or raw command output).
+        The error dict is suitable for inclusion in the rho output
+        dictionary. There will not be both errors and raw command
+        output. If raw command output is returned, it will have
+        fields 'rc' and 'stdout_lines' or 'results'.
+
+    Usage:
+        err, output = raw_output_present(...)
+        if err is not None:
+            return err
+
+        ... process output ...
+    """
+
+    if this_fact not in fact_names:
+        return {}, None
+
+    if this_var not in host_vars:
+        return {this_fact: 'Error: "{0}" not run'.format(command)}, None
+
+    raw_output = host_vars[this_var]
+
+    if (('rc' not in raw_output or
+         'stdout_lines' not in raw_output) and 'results' not in raw_output):
+        return (
+            {this_fact:
+             'Error: could not get output from "{0}"'.format(command)},
+            None)
+
+    return None, raw_output
+
+
+JBOSS_EAP_JBOSS_USER = 'jboss.eap.jboss-user'
+
+
+def process_id_u_jboss(fact_names, host_vars):
+    """Process the output from 'id -u jboss', as run by Ansible
+
+    :returns: a dict of key-value pairs to add to the output.
+    """
+
+    # We use the 'id' command to check for jboss because it's been in
+    # GNU coreutils since 1992, so it should be present on every
+    # system we encounter.
+
+    err, output = raw_output_present(fact_names, host_vars,
+                                     'jboss.eap.jboss-user',
+                                     'jboss_eap_id_jboss',
+                                     'id -u jboss')
+    if err is not None:
+        return err
+
+    if output['rc'] == 0:
+        return {JBOSS_EAP_JBOSS_USER: "User 'jboss' present"}
+
+    # Don't output a definitive "not found" unless we see an error
+    # string that we recognize. We don't want to assume that any
+    # nonzero error code means "not found", because then we would give
+    # false negatives if the user didn't have permission to read
+    # /etc/passwd (or other errors).
+    if output['stdout_lines'] == ['id: jboss: no such user']:
+        return {JBOSS_EAP_JBOSS_USER: 'No user "jboss" found'}
+
+    return {JBOSS_EAP_JBOSS_USER:
+            'Error: unexpected output from "id -u jboss": %s' % output}
+
+
+JBOSS_EAP_COMMON_DIRECTORIES = 'jboss.eap.common-directories'
+
+
+def process_jboss_eap_common_dirs(fact_names, host_vars):
+    """Process the output of 'test -d <dir>', for common install directories.
+
+    :returns: a dict of key, value pairs to add to the output.
+    """
+
+    err, output = raw_output_present(fact_names, host_vars,
+                                     'jboss.eap.common-directories',
+                                     'jboss_eap_common_directories',
+                                     'common install directory tests')
+
+    if err is not None:
+        return err
+
+    items = output['results']
+
+    out_list = []
+    for item in items:
+        directory = item['item']
+        if 'rc' not in item:
+            out_list.append('Error: "test -d {0}" not run'.format(directory))
+        elif item['rc'] == 0:
+            out_list.append('{0} found'.format(directory))
+        else:
+            out_list.append('{0} not found'.format(directory))
+
+    return {JBOSS_EAP_COMMON_DIRECTORIES: ';'.join(out_list)}
+
+
+JBOSS_EAP_PROCESSES = 'jboss.eap.processes'
+
+
+def process_jboss_eap_processes(fact_names, host_vars):
+    """Process the output of 'ps -A -f e | grep eap'
+
+    :returns: a dict of key, value pairs to add to the output.
+    """
+
+    # Why use 'ps -A -f e | grep eap'? The -A gets us every process on
+    # the system, and -f means ps will print the command-line
+    # arguments, which is key because JBoss will be invoked with java
+    # as the executable and an argument that says to run the Wildfly
+    # jar.
+
+    # The e makes ps print the process's environment. It's in a format
+    # that is not machine-readable, because ps uses spaces as the
+    # delimiter for both command-line args and the process
+    # environment, and we have no way to tell where the arguments end
+    # and the environment begins. However, that's fine for grepping. I
+    # observed an EAP 7 application server running with MANPATH,
+    # JBOSS_MODULEPATH, JBOSS_HOME, WILDFLY_CONSOLE_LOG, WILDFLY_SH,
+    # LD_LIBRARY_PATH, EAP7_SCLS_ENABLED, PATH, WILDFLY_MODULEPATH,
+    # HOME, and PKG_CONFIG_PATH set to directories that included
+    # /opt/rh/eap7, all of which will be caught by our
+    # grep. Additionally, variables LAUNCH_JBOSS_IN_BACKGROUND and
+    # JBOSS_HOME will be caught because of the variable names
+    # themselves. We deliberately don't grep for wildfly or jboss,
+    # because that could catch non-JBoss Wildfly installations.
+
+    err, output = raw_output_present(fact_names, host_vars,
+                                     JBOSS_EAP_PROCESSES,
+                                     JBOSS_EAP_PROCESSES,
+                                     'ps -A -f e | grep eap')
+    if err is not None:
+        return err
+
+    # pgrep exists with status 0 if it finds processes matching its
+    # pattern, and status 1 if not.
+    if output['rc']:
+        return {JBOSS_EAP_PROCESSES: 'No EAP processes found'}
+
+    num_procs = len(output['stdout_lines'])
+
+    # There should always be two processes matching 'eap', one for the
+    # grep that's searching for 'eap', and one for the bash that's
+    # running the pipeline.
+    if num_procs < 2:
+        return {
+            JBOSS_EAP_PROCESSES:
+            "Bad result ({0} processes) from 'ps -A -f e | grep eap'".format(
+                num_procs)}
+
+    return {JBOSS_EAP_PROCESSES:
+            '{0} EAP processes found'.format(num_procs - 2)}
+
+
+JBOSS_EAP_PACKAGES = 'jboss.eap.packages'
+
+
+def process_jboss_eap_packages(fact_names, host_vars):
+    """Process the list of JBoss EAP-related RPMs.
+
+    :returns: a dict of key, value pairs to add to the output.
+    """
+
+    # We use (eap7)|(jbossas) as the pattern because all of the EAP 6
+    # packages had the prefix jbossas- and all of the EAP 7 packages
+    # have the prefix eap7-. We set a custom format for rpm output and
+    # get a lot of package fields, even though we only use the number
+    # of output lines, so we will have full package data in the logs
+    # if customers have questions about the number. Hopefully in the
+    # future we can surface that data through a UI.
+
+    err, output = raw_output_present(fact_names, host_vars,
+                                     JBOSS_EAP_PACKAGES,
+                                     JBOSS_EAP_PACKAGES,
+                                     "rpm -q -a | grep -E '(eap7)|(jbossas)'")
+    if err is not None:
+        return err
+
+    # the sort on the end of the pipeline returns 0 whether or not
+    # matches were found, so a nonzero return code should never
+    # happen.
+    if output['rc']:
+        return {JBOSS_EAP_PACKAGES: 'Pipeline returned non-zero status'}
+
+    num_packages = len(output['stdout_lines'])
+
+    return {JBOSS_EAP_PACKAGES:
+            '{0} JBoss-related packages found'.format(num_packages)}
+
+
 def remove_newlines(data):
     """ Processes input data values and strips out any newlines
     """
@@ -477,6 +679,10 @@ class Results(object):
 
             host_vals.update(process_jboss_versions(keys, host_vars))
             host_vals.update(process_addon_versions(keys, host_vars))
+            host_vals.update(process_id_u_jboss(keys, host_vars))
+            host_vals.update(process_jboss_eap_common_dirs(keys, host_vars))
+            host_vals.update(process_jboss_eap_processes(keys, host_vars))
+            host_vals.update(process_jboss_eap_packages(keys, host_vars))
 
         # Process System ID.
         for data in self.vals:

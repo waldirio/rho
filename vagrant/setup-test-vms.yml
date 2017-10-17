@@ -8,6 +8,10 @@
 - hosts: test_2
   roles:
     - jboss-standalone
+  tasks:
+    - user:
+        name: jboss
+      become: yes
 
 - hosts: askpass
   tasks:

@@ -113,7 +113,11 @@ SUBMAN_FACTS_TUPLE = ('subman.cpu.core(s)_per_socket',
                       'subman.virt.uuid',
                       'subman.has_facts_file')
 
-JBOSS_FACTS_TUPLE = ('jboss.eap.running-versions',)
+JBOSS_FACTS_TUPLE = ('jboss.eap.running-versions',
+                     'jboss.eap.jboss-user',
+                     'jboss.eap.common-directories',
+                     'jboss.eap.processes',
+                     'jboss.eap.packages')
 
 JBOSS_SCAN_FACTS_TUPLE = ('jboss.eap.installed-versions',
                           'jboss.eap.deploy-dates')
@@ -132,9 +136,10 @@ RHEL_FACTS = SUBMAN_FACTS_TUPLE + DATE_FACTS_TUPLE \
     + CPU_FACTS_TUPLE + SYSID_FACTS_TUPLE + INSTNUM_FACTS_TUPLE \
     + REDHAT_RELEASE_FACTS_TUPLE + UNAME_FACTS_TUPLE
 
-JBOSS_FACTS = JBOSS_FACTS_TUPLE + BRMS_FACTS_TUPLE + FUSE_FACTS_TUPLE
+DEFAULT_FACTS = RHEL_FACTS + JBOSS_FACTS_TUPLE + CONNECTION_FACTS_TUPLE
 
-DEFAULT_FACTS = RHEL_FACTS + JBOSS_FACTS + CONNECTION_FACTS_TUPLE
+ALL_FACTS = DEFAULT_FACTS + JBOSS_SCAN_FACTS_TUPLE + BRMS_FACTS_TUPLE \
+    + FUSE_FACTS_TUPLE
 
 # 'log' is a convenience for getting the appropriate logger from the
 # logging module. Use it like this:
