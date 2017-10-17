@@ -464,7 +464,7 @@ class ScanCommand(CliCommand):
         elif facts == ['all']:
             self.facts_to_collect = list(utilities.ALL_FACTS)
         elif facts == ['jboss']:
-            self.facts_to_collect = list(utilities.JBOSS_FACTS +
+            self.facts_to_collect = list(utilities.JBOSS_FACTS_TUPLE +
                                          utilities.CONNECTION_FACTS_TUPLE)
         elif facts == ['rhel']:
             self.facts_to_collect = list(utilities.RHEL_FACTS +
