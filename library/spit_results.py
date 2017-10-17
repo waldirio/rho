@@ -120,7 +120,7 @@ def iteritems(dictionary):
     :param dictionary: the dictionary to iterate over.
     """
 
-    if sys.version_info.major == 2:
+    if sys.version_info[0] == 2:
         return dictionary.iteritems()
 
     return dictionary.items()
@@ -132,7 +132,7 @@ def safe_next(iterator):
     :param iterator: the iterator.
     """
 
-    if sys.version_info.major == 2:
+    if sys.version_info[0] == 2:
         return iterator.next()
 
     return next(iterator)
@@ -699,7 +699,14 @@ class Results(object):
             # Write a CSV header if necessary
             file_size = os.path.getsize(normalized_path)
             if file_size == 0:
-                writer.writeheader()
+                # handle Python 2.6 not having writeheader method
+                if sys.version_info[0] == 2 and sys.version_info[1] <= 6:
+                    headers = {}
+                    for fields in writer.fieldnames:
+                        headers[fields] = fields
+                    writer.writerow(headers)
+                else:
+                    writer.writeheader()
 
             # Write the data
             for data in self.vals:

@@ -2,7 +2,7 @@
 
 Name: rho
 Version: 0.0.29
-Release: 1%{?dist}
+Release: 5%{?dist}
 Summary: An SSH system profiler
 
 Group: Applications/Internet
@@ -13,19 +13,21 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildArch: noarch
 BuildRequires: python-devel
-BuildRequires: python-setuptools
+%{?fedora:BuildRequires: python2-setuptools}
+%{?rhel:BuildRequires: python-setuptools}
 BuildRequires: pandoc
 Requires: python-netaddr
-Requires: python-crypto
+%{?fedora:BuildRequires: python2-crypto}
+%{?rhel:BuildRequires: python-crypto}
 Requires: ansible
 Requires: pexpect
 Requires: python-six
 Requires: python-enum34
-Requires: python-yaml
+Requires: PyYAML
 %{?rhel:Requires: epel-release}
 Requires: python2-future
 Requires: python2-sh
-Requires: python2-pyxdg
+Requires: pyxdg
 
 %description
 Rho is a tool for scanning your network, logging into systems via SSH, and
@@ -36,7 +38,7 @@ retrieving information about them.
 
 %build
 %{__python} setup.py build
-make docs
+make manpage
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -66,7 +68,7 @@ rm -rf $RPM_BUILD_ROOT
 * Tue Oct 17 2017 Noah Lavine <nlavine@redhat.com> 0.0.29
 - Split JBoss scanning into full and lightweight scans; lightweight scan is
   active by default.
-* Thu Sep 21 2017 Christopher Hambridge <chambrid@redhat.com> 0.0.28-1
+* Thu Sep 21 2017 Christopher Hambridge <chambrid@redhat.com> 0.0.28-5
 - Updated to utilize Ansible 2.3.1.0 and an Ansible playbook and associate
   roles.
 - Encryption of auth credential entries and network profile entries using a
