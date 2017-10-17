@@ -459,11 +459,10 @@ class ScanCommand(CliCommand):
 
         # perform fact validation
         facts = self.options.facts
-        if facts == []:
-            self.facts_to_collect = list(utilities.RHEL_FACTS +
-                                         utilities.CONNECTION_FACTS_TUPLE)
-        elif facts == ['default'] or facts == ['all']:
+        if facts == [] or facts == ['default']:
             self.facts_to_collect = list(utilities.DEFAULT_FACTS)
+        elif facts == ['all']:
+            self.facts_to_collect = list(utilities.ALL_FACTS)
         elif facts == ['jboss']:
             self.facts_to_collect = list(utilities.JBOSS_FACTS +
                                          utilities.CONNECTION_FACTS_TUPLE)
