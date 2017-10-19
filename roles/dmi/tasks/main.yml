@@ -6,56 +6,96 @@
 
 - name: gather dmi.bios-vendor fact
   raw: /usr/sbin/dmidecode -s bios-vendor
-  register: dmi_bios_vendor
+  register: dmi_bios_vendor_cmd
   ignore_errors: yes
   become: yes
   when: '"dmi.bios-vendor" in facts_to_collect'
 
+- name: extract result value for dmi.bios-vendor
+  set_fact:
+    dmi_bios_vendor: "{{  dmi_bios_vendor_cmd['stdout'] | trim | default('error') if have_dmidecode else 'N/A (dmidecode not found)' }}"
+  when: '"dmi.bios-vendor" in facts_to_collect and "stdout" in dmi_bios_vendor_cmd'
+
+- name: handle failure value for dmi.bios-vendor
+  set_fact:
+    dmi_bios_vendor: "{{ 'error' if have_dmidecode else 'N/A (dmidecode not found)' }}"
+  when: '"dmi.bios-vendor" in facts_to_collect and "stdout" not in dmi_bios_vendor_cmd'
+
 - name: add dmi.bios-vendor to dictionary
   set_fact:
-    dmi: "{{ dmi|default({}) | combine({ item: dmi_bios_vendor['stdout'] | trim | default('error') if have_dmidecode else 'N/A (dmidecode not found)' }) }}"
+    dmi: "{{ dmi|default({}) | combine({ item: dmi_bios_vendor }) }}"
   with_items:
   - 'dmi.bios-vendor'
   when: '"dmi.bios-vendor" in facts_to_collect'
 
 - name: gather dmi.bios-version fact
   raw: /usr/sbin/dmidecode -s bios-version
-  register: dmi_bios_version
+  register: dmi_bios_version_cmd
   ignore_errors: yes
   become: yes
   when: '"dmi.bios-version" in facts_to_collect'
 
+- name: extract result value for dmi.bios-version
+  set_fact:
+    dmi_bios_version: "{{  dmi_bios_version_cmd['stdout'] | trim | default('error') if have_dmidecode else 'N/A (dmidecode not found)' }}"
+  when: '"dmi.bios-version" in facts_to_collect and "stdout" in dmi_bios_version_cmd'
+
+- name: handle failure value for dmi.bios-version
+  set_fact:
+    dmi_bios_version: "{{ 'error' if have_dmidecode else 'N/A (dmidecode not found)' }}"
+  when: '"dmi.bios-version" in facts_to_collect and "stdout" not in dmi_bios_version_cmd'
+
 - name: add dmi.bios-version to dictionary
   set_fact:
-    dmi: "{{ dmi|default({}) | combine({ item: dmi_bios_version['stdout'] | trim | default('error') if have_dmidecode else 'N/A (dmidecode not found)' }) }}"
+    dmi: "{{ dmi|default({}) | combine({ item: dmi_bios_version }) }}"
   with_items:
   - 'dmi.bios-version'
   when: '"dmi.bios-version" in facts_to_collect'
 
 - name: gather dmi.system-manufacturer fact
   raw: /usr/sbin/dmidecode | grep -A4 'System Information' | grep 'Manufacturer' | sed -n -e 's/^.*Manufacturer:\s//p'
-  register: dmi_system_manufacturer
+  register: dmi_system_manufacturer_cmd
   ignore_errors: yes
   become: yes
   when: '"dmi.system-manufacturer" in facts_to_collect'
 
+- name: extract result value for dmi.system-manufacturer
+  set_fact:
+    dmi_system_manufacturer: "{{  dmi_system_manufacturer_cmd['stdout'] | trim | default('error') if have_dmidecode else 'N/A (dmidecode not found)' }}"
+  when: '"dmi.system-manufacturer" in facts_to_collect and "stdout" in dmi_system_manufacturer_cmd'
+
+- name: handle failure value for dmi.system-manufacturer
+  set_fact:
+    dmi_system_manufacturer: "{{ 'error' if have_dmidecode else 'N/A (dmidecode not found)' }}"
+  when: '"dmi.system-manufacturer" in facts_to_collect and "stdout" not in dmi_system_manufacturer_cmd'
+
 - name: add dmi.system-manufacturer to dictionary
   set_fact:
-    dmi: "{{ dmi|default({}) | combine({ item: dmi_system_manufacturer['stdout'] | trim | default('error') if have_dmidecode else 'N/A (dmidecode not found)' }) }}"
+    dmi: "{{ dmi|default({}) | combine({ item: dmi_system_manufacturer }) }}"
   with_items:
   - 'dmi.system-manufacturer'
   when: '"dmi.system-manufacturer" in facts_to_collect'
 
-- name: gather processor-family fact
+- name: gather dmi.processor-family fact
   raw: /usr/sbin/dmidecode -s processor-family
-  register: dmi_processor_family
+  register: dmi_processor_family_cmd
   ignore_errors: yes
   become: yes
   when: '"dmi.processor-family" in facts_to_collect'
 
+- name: extract result value for dmi.processor-family
+  set_fact:
+    dmi_processor_family: "{{  dmi_processor_family_cmd['stdout'] | trim | default('error') if have_dmidecode else 'N/A (dmidecode not found)' }}"
+  when: '"dmi.processor-family" in facts_to_collect and "stdout" in dmi_processor_family_cmd'
+
+- name: handle failure value for dmi.processor-family
+  set_fact:
+    dmi_processor_family: "{{ 'error' if have_dmidecode else 'N/A (dmidecode not found)' }}"
+  when: '"dmi.processor-family" in facts_to_collect and "stdout" not in dmi_processor_family_cmd'
+
 - name: add dmi.processor-family to dictionary
   set_fact:
-    dmi: "{{ dmi|default({}) | combine({ item: dmi_processor_family['stdout'] | trim | default('error') if have_dmidecode else 'N/A (dmidecode not found)' }) }}"
+    dmi: "{{ dmi|default({}) | combine({ item: dmi_processor_family }) }}"
   with_items:
   - 'dmi.processor-family'
   when: '"dmi.processor-family" in facts_to_collect'

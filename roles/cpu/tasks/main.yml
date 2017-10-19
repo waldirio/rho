@@ -84,14 +84,24 @@
 
 - name: gather cpu.socket_count fact
   raw: /usr/sbin/dmidecode -t 4 | grep 'Socket Designation'| wc -l
-  register: cpu_socket_count
+  register: cpu_socket_count_cmd
   become: yes
   ignore_errors: yes
   when: 'have_dmidecode and "cpu.socket_count" in facts_to_collect'
 
+- name: extract result value for cpu.socket_count
+  set_fact:
+    cpu_socket_count: "{{ cpu_socket_count_cmd['stdout'] | trim | default('error') if have_dmidecode else 'N/A (dmidecode not found)' }}"
+  when: '"cpu.socket_count" in facts_to_collect and "stdout" in cpu_socket_count_cmd'
+
+- name: handle failure value for cpu.socket_count
+  set_fact:
+    cpu_socket_count: "{{ 'error' if have_dmidecode  else 'N/A (dmidecode not found)' }}"
+  when: '"cpu.socket_count" in facts_to_collect and "stdout" not in cpu_socket_count_cmd'
+
 - name: add cpu.socket_count to dictionary
   set_fact:
-    cpu: "{{ cpu|default({}) | combine({ item: cpu_socket_count['stdout'] | trim | default('error') if have_dmidecode else 'N/A (dmidecode not found)' }) }}"
+    cpu: "{{ cpu|default({}) | combine({ item: cpu_socket_count }) }}"
   with_items:
   - 'cpu.socket_count'
   when: '"cpu.socket_count" in facts_to_collect'

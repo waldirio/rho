@@ -24,9 +24,19 @@
   ignore_errors: yes
   when: '"date.anaconda_log" in facts_to_collect'
 
+- name: extract result value for date.anaconda_log
+  set_fact:
+    date_anaconda_log: "{{ date_anaconda_log['stdout'] | trim | default('error') }}"
+  when: '"date.anaconda_log" in facts_to_collect and "stdout" in date_anaconda_log'
+
+- name: handle failure value for date.anaconda_log
+  set_fact:
+    date_anaconda_log: "error"
+  when: '"date.anaconda_log" in facts_to_collect and "stdout" not in date_anaconda_log'
+
 - name: add date.anaconda_log to dictionary
   set_fact:
-    date: "{{ date|default({}) | combine({ item: date_anaconda_log['stdout'] | trim | default('error') }) }}"
+    date: "{{ date|default({}) | combine({ item: date_anaconda_log }) }}"
   with_items:
   - 'date.anaconda_log'
   when: '"date.anaconda_log" in facts_to_collect'
@@ -59,14 +69,24 @@
 
 - name: gather date.yum_history fact
   raw: yum history | tail -n 4 | grep -o '[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}'
-  register: date_yum_history
+  register: date_yum_history_cmd
   become: yes
   ignore_errors: yes
   when: 'have_yum and "date.yum_history" in facts_to_collect'
 
+- name: extract result value for date.yum_history
+  set_fact:
+    date_yum_history: "{{  date_yum_history_cmd['stdout_lines'] | select | first | default('error') if have_yum else 'N/A (yum not found)' }}"
+  when: '"date.yum_history" in facts_to_collect and "stdout_lines" in date_yum_history_cmd'
+
+- name: handle failure value for date.yum_history
+  set_fact:
+    date_yum_history: "{{ 'error' if have_yum else 'N/A (yum not found)' }}"
+  when: '"date.yum_history" in facts_to_collect and "stdout_lines" not in date_yum_history_cmd'
+
 - name: add date.yum_history to dictionary
   set_fact:
-    date: "{{ date|default({}) | combine({ item: date_yum_history['stdout_lines'] | select | first | default('error') if have_yum else 'N/A (yum not found)' }) }}"
+    date: "{{ date|default({}) | combine({ item: date_yum_history }) }}"
   with_items:
   - 'date.yum_history'
   when: '"date.yum_history" in facts_to_collect'
