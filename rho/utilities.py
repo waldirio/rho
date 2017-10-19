@@ -73,7 +73,9 @@ CPU_FACTS_TUPLE = ('cpu.count',
                    'cpu.bogomips',
                    'cpu.cpu_family',
                    'cpu.model_name',
-                   'cpu.model_ver')
+                   'cpu.model_ver',
+                   'cpu.hyperthreading',
+                   'cpu.core_count')
 
 ETC_RELEASE_FACTS_TUPLE = ('etc_release.name',
                            'etc_release.version',

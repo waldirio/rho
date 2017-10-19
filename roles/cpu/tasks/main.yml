@@ -71,33 +71,87 @@
 
 - name: gather cpu.count fact
   raw: cat /proc/cpuinfo | grep '^processor\s*.' | wc -l
-  register: cpu_count
+  register: cpu_count_cmd
   ignore_errors: yes
-  when: '"cpu.count" in facts_to_collect'
+  when: '"cpu.count" in facts_to_collect or "cpu.socket_count" in facts_to_collect or "cpu.core_count" in facts_to_collect'
+
+- name: extract or default cpu.count fact
+  set_fact:
+    cpu_count: "{{ cpu_count_cmd['stdout_lines'][0] | default('Not Found')}}"
+  when: '"cpu.count" in facts_to_collect or "cpu.socket_count" in facts_to_collect  or "cpu.core_count" in facts_to_collect'
 
 - name: add cpu.count to dictionary
   set_fact:
-    cpu: "{{ cpu|default({}) | combine({ item: cpu_count['stdout_lines'][0] | default('error') }) }}"
+    cpu: "{{ cpu|default({}) | combine({ item: cpu_count }) }}"
   with_items:
   - 'cpu.count'
   when: '"cpu.count" in facts_to_collect'
+
+- name: gather cpu.core_per_socket fact
+  raw: cat /proc/cpuinfo | grep '^cpu cores\s*.' | sed -n -e 's/^.*cpu cores\s*.\s*//p'
+  register: cpu_core_per_socket_cmd
+  ignore_errors: yes
+  when: '"cpu.hyperthreading" in facts_to_collect or "cpu.core_count" in facts_to_collect'
+
+- name: extract or default cpu.core_per_socket fact
+  set_fact:
+    cpu_core_per_socket: "{{ cpu_core_per_socket_cmd['stdout_lines'][0] | default('Not Found')}}"
+  when: '"cpu.hyperthreading" in facts_to_collect or "cpu.core_count" in facts_to_collect'
+
+- name: gather cpu.siblings fact
+  raw: cat /proc/cpuinfo | grep '^siblings\s*.' | sed -n -e 's/^.*siblings\s*.\s*//p'
+  register: cpu_siblings_cmd
+  ignore_errors: yes
+  when: '"cpu.hyperthreading" in facts_to_collect or "cpu.core_count" in facts_to_collect'
+
+- name: extract or default cpu.siblings fact
+  set_fact:
+    cpu_siblings: "{{ cpu_siblings_cmd['stdout_lines'][0] | default('Not Found')}}"
+  when: '"cpu.hyperthreading" in facts_to_collect or "cpu.core_count" in facts_to_collect'
+
+- name: determine cpu.hyperthreading fact
+  set_fact:
+    cpu_hyperthreading: "{{ cpu_siblings != 'Not Found' and cpu_siblings == cpu_core_per_socket }}"
+  when: '"cpu.hyperthreading" in facts_to_collect or "cpu.core_count" in facts_to_collect'
+
+- name: add cpu.hyperthreading to dictionary
+  set_fact:
+    cpu: "{{ cpu|default({}) | combine({ item: cpu_hyperthreading }) }}"
+  with_items:
+  - 'cpu.hyperthreading'
+  when: '"cpu.hyperthreading" in facts_to_collect'
+
+- name: initialize cpu.socket_count fact
+  set_fact:
+      cpu_socket_count: "0"
 
 - name: gather cpu.socket_count fact
   raw: /usr/sbin/dmidecode -t 4 | grep 'Socket Designation'| wc -l
   register: cpu_socket_count_cmd
   become: yes
   ignore_errors: yes
-  when: 'have_dmidecode and "cpu.socket_count" in facts_to_collect'
+  when: 'have_dmidecode and ("cpu.socket_count" in facts_to_collect  or "cpu.core_count" in facts_to_collect)'
 
 - name: extract result value for cpu.socket_count
   set_fact:
     cpu_socket_count: "{{ cpu_socket_count_cmd['stdout'] | trim | default('error') if have_dmidecode else 'N/A (dmidecode not found)' }}"
-  when: '"cpu.socket_count" in facts_to_collect and "stdout" in cpu_socket_count_cmd'
+  when: '("cpu.socket_count" in facts_to_collect  or "cpu.core_count" in facts_to_collect) and "stdout" in cpu_socket_count_cmd'
 
-- name: handle failure value for cpu.socket_count
+- name: gather cpu.socket_count fact with fallback
+  raw: cat /proc/cpuinfo | grep 'physical id' | sort -u | wc -l
+  register: cpu_socket_count_cmd
+  ignore_errors: yes
+  when: '("cpu.socket_count" in facts_to_collect or "cpu.core_count" in facts_to_collect) and "failed" in cpu_socket_count_cmd and cpu_socket_count_cmd["failed"] == true'
+
+- name: extract result from cpu_socket_count_cmd
   set_fact:
-    cpu_socket_count: "{{ 'error' if have_dmidecode  else 'N/A (dmidecode not found)' }}"
-  when: '"cpu.socket_count" in facts_to_collect and "stdout" not in cpu_socket_count_cmd'
+      cpu_socket_count: "{{ cpu_socket_count_cmd['stdout_lines'][0] }}"
+  when: '("cpu.socket_count" in facts_to_collect or "cpu.core_count" in facts_to_collect) and "stdout_lines" in cpu_socket_count_cmd'
+
+- name: assume cpu.socket_count equals 1 if result is 0
+  set_fact:
+      cpu_socket_count: "{{ cpu_count }}"
+  when: '("cpu.socket_count" in facts_to_collect or "cpu.core_count" in facts_to_collect) and cpu_socket_count == "0"'
 
 - name: add cpu.socket_count to dictionary
   set_fact:
@@ -105,3 +159,30 @@
   with_items:
   - 'cpu.socket_count'
   when: '"cpu.socket_count" in facts_to_collect'
+
+- name: calculate cpu.core_count
+  set_fact:
+    cpu_core_count: "{{ (cpu_core_per_socket | int) *  (cpu_socket_count | int)}}"
+  when: 'cpu_core_per_socket is defined and cpu_core_per_socket != "Not Found"'
+
+- name: calculate cpu.core_count fallback no hyperthreading
+  set_fact:
+    cpu_core_count: "{{ (cpu_count | int) *  (cpu_socket_count | int)}}"
+  when: 'cpu_core_per_socket is defined and cpu_core_per_socket == "Not Found" and not cpu_hyperthreading'
+
+- name: calculate cpu.core_count fallback with hyperthreading
+  set_fact:
+    cpu_core_count: "{{ (cpu_count | int) /  2 }}"
+  when: 'cpu_core_per_socket is defined and cpu_core_per_socket == "Not Found" and cpu_hyperthreading'
+
+- name: default cpu.core_count to error if it doesn't exists
+  set_fact:
+    cpu_core_count: "error"
+  when: '"cpu.core_count" in facts_to_collect and cpu_core_count is not defined'
+
+- name: add cpu.core_count to dictionary
+  set_fact:
+    cpu: "{{ cpu|default({}) | combine({ item: cpu_core_count }) }}"
+  with_items:
+  - 'cpu.core_count'
+  when: '"cpu.core_count" in facts_to_collect'

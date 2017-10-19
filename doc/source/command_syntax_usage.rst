@@ -119,7 +119,9 @@ this contains a large amount of information about the operating system, hardware
 - ``connection.uuid`` - A generated identifier for the connection
 - ``cpu.bogomips`` - measurement of CPU speed made by the Linux kernel
 - ``cpu.count`` - number of processors
+- ``cpu.core_count`` - number of cores
 - ``cpu.cpu_family`` - cpu family
+- ``cpu.hyperthreading`` - Whether cpu is hyperthreaded
 - ``cpu.model_name`` - cpu model name
 - ``cpu.model_ver`` - cpu model version
 - ``cpu.socket_count`` - number of sockets
