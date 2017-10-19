@@ -26,8 +26,8 @@ docs:
 	@cd doc; $(MAKE) gen-api; $(MAKE) html; $(MAKE) nojekyll; $(MAKE) manpage
 
 gen-python-docs:
-	@cd doc; $(MAKE) gen-python
-	mv doc/fact_docs.py rho
+	$(PYTHON) doc/generate_python_docs.py
+	mv fact_docs.py rho
 
 build: clean
 	$(PYTHON) setup.py build -f

@@ -145,7 +145,7 @@ FACT_DOCS = collections.OrderedDict([
 def main(argv):
     """Run the script."""
 
-    doc_dir = os.path.dirname(argv[0])
+    doc_dir = os.path.join(os.path.dirname(argv[0]), 'source')
 
     fact_docs = get_fact_docs(doc_dir)
 

@@ -24,9 +24,6 @@ gen-api: clean
 nojekyll:
 	touch $(BUILDDIR)/html/.nojekyll
 
-gen-python:
-	./generate_python_docs.py
-
 manpage:
 	pandoc source/man.rst \
 	  --standalone -t man -o rho.1 \
