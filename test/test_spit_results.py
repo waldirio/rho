@@ -72,13 +72,13 @@ class TestSafeAnsibleProperty(unittest.TestCase):
         self.assertEqual(
             spit_results.safe_ansible_property(
                 {'foo': 'bar'}, 'baz', 'property'),
-            None)
+            'error (fact not found)')
 
     def test_skipped_fact(self):
         self.assertEqual(
             spit_results.safe_ansible_property(
                 {'foo': {'skipped': True}}, 'foo', 'property'),
-            None)
+            'error (fact was skipped)')
 
     def test_not_skipped_fact(self):
         fact = {'skipped': False,

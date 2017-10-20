@@ -157,11 +157,11 @@ def safe_ansible_property(ansible_vars, fact_name, prop):
     """
 
     if fact_name not in ansible_vars:
-        return None
+        return 'error (fact not found)'
 
     output = ansible_vars[fact_name]
     if 'skipped' in output and output['skipped'] is True:
-        return None
+        return 'error (fact was skipped)'
 
     return output[prop]
 
@@ -169,6 +169,10 @@ def safe_ansible_property(ansible_vars, fact_name, prop):
 JBOSS_EAP_INSTALLED_VERSIONS = 'jboss.eap.installed-versions'
 JBOSS_EAP_DEPLOY_DATES = 'jboss.eap.deploy-dates'
 JBOSS_EAP_RUNNING_VERSIONS = 'jboss.eap.running-versions'
+
+FIND_WARNING = 'find: WARNING: Hard link count is wrong for /proc: this may' \
+    ' be a bug in your filesystem driver.'
+GENERIC_ERROR = 'error'
 
 
 # JBoss versions are processed separately from other *-ver data
@@ -209,6 +213,20 @@ def process_jboss_versions(fact_names, host_vars):
             elif version.strip():
                 jboss_releases.append('Unknown-Release: ' + version)
 
+    def stdout_err(val, err_msg, replace):
+        """Look for know warnings/errors that aren't triggering failures for
+        the running command and replace with a more friendly message
+
+        :param val: The input message to check
+        :param err_msg: the message to check for
+        :param replace: the replace message
+        :returns: the appropriate message
+        """
+        # pylint: disable=len-as-condition
+        if len(val) > 0 and val.find(err_msg) > 0:
+            return replace
+        return val
+
     def empty_output_message(val, name):
         """Give the right error message for missing data.
 
@@ -234,9 +252,10 @@ def process_jboss_versions(fact_names, host_vars):
     if JBOSS_EAP_RUNNING_VERSIONS in fact_names:
         val[JBOSS_EAP_RUNNING_VERSIONS] = (
             empty_output_message(
-                safe_ansible_property(host_vars,
-                                      JBOSS_EAP_RUNNING_VERSIONS,
-                                      'stdout'),
+                stdout_err(safe_ansible_property(host_vars,
+                                                 JBOSS_EAP_RUNNING_VERSIONS,
+                                                 'stdout'),
+                           FIND_WARNING, GENERIC_ERROR),
                 'running jboss'))
 
     return val
@@ -490,12 +509,12 @@ def process_jboss_eap_packages(fact_names, host_vars):
             '{0} JBoss-related packages found'.format(num_packages)}
 
 
-def remove_newlines(data):
-    """ Processes input data values and strips out any newlines
+def escape_characters(data):
+    """ Processes input data values and strips out any newlines or commas
     """
     for key in data:
         if isinstance(data[key], str):
-            data[key] = data[key].replace('\r\n', '')
+            data[key] = data[key].replace('\r\n', '').replace(',', '')
     return data
 
 
@@ -688,7 +707,7 @@ class Results(object):
         for data in self.vals:
             data = self.handle_systemid(data)
             data = self.handle_redhat_packages(data)
-            data = remove_newlines(data)
+            data = escape_characters(data)
 
         normalized_path = os.path.normpath(self.file_path)
         with open(normalized_path, 'w') as write_file:
