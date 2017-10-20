@@ -15,12 +15,21 @@
       register: jboss_eap_common_directories
       ignore_errors: yes
       with_items:
-        - /var/log/jboss-as
-        - /usr/log/jboss-as
-        - /opt/rh/eap7
+        - /app/jboss
+        - /app/jboss6
         - /home/jboss/EAP
         - /home/jboss/EAP-6.3
+        - /JBossAS
+        - /JBossEAP
+        - /opt/app/jboss
+        - /opt/deploy/jboss
+        - /opt/hpom/share/jboss
+        - /opt/jboss
+        - /opt/rh/eap7
+        - /usr/local/jee/jboss
+        - /usr/log/jboss-as
         - /usr/share/jbossas
+        - /var/log/jboss-as
       when: '"jboss.eap.common-directories" in facts_to_collect'
     - name: gather jboss.eap.processes
       raw: ps -A -f e | grep eap
