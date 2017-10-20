@@ -18,6 +18,7 @@ import sys
 import re
 import time
 import json
+from tempfile import NamedTemporaryFile
 from collections import defaultdict
 from getpass import getpass
 import pexpect
@@ -199,6 +200,9 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
     vault.dump_as_yaml_to_file(yml_dict, PING_INVENTORY_PATH)
     log_yaml_inventory('Ping inventory', yml_dict)
 
+    print(_('Attempting connection discovery with auth "%s".' %
+            (credential.get('name'))))
+
     cmd_string = 'ansible alpha -m raw' \
                  ' -i ' + PING_INVENTORY_PATH \
                  + ' --ask-vault-pass -f ' + forks \
@@ -222,6 +226,17 @@ def _create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
     for host in success_hosts:
         success_auth_map[host].append(credential)
         success_port_map[host] = profile_port
+
+    num_success = len(success_hosts)
+    num_failed = len(failed_hosts)
+    if num_success > 0:
+        print(_('Connection succeeded with auth "%s" to %d systems.') %
+              (credential.get('name'), num_success))
+    if num_failed > 0:
+        print(_('Failed to connect with auth "%s" to %d systems.') %
+              (credential.get('name'), num_failed))
+    if num_success > 0 or num_failed > 0:
+        print()
 
     return list(success_hosts), success_port_map, success_auth_map, \
         list(failed_hosts)
@@ -554,6 +569,13 @@ class ScanCommand(CliCommand):
             success_port_map = {}
             auth_map = {}
             remaining_hosts = profile_ranges
+            cred_names = [cred.get('name') for cred in profile_auth_list]
+            creds_str = ', '.join(cred_names)
+            print(_('Connection discovery will be perform with the following'
+                    ' auth credentials: %s' % (creds_str)))
+            print(_('Note: Any ssh-agent connection setup for a target host '
+                    'will be used as a fallback if it exists.'))
+            print()
             for cred_item in profile_auth_list:
                 success_hosts_, success_port_map_, \
                     auth_map_, remaining_hosts_ = \
@@ -569,6 +591,27 @@ class ScanCommand(CliCommand):
             if not success_hosts:
                 print(_('All auths are invalid for this profile'))
                 sys.exit(1)
+
+            num_success = len(success_hosts)
+            num_failed = len(remaining_hosts)
+            num_total = num_success + num_failed
+            if num_failed > 0:
+                with NamedTemporaryFile(mode='w', delete=False) as failed_temp:
+                    for failed in remaining_hosts:
+                        failed_temp.write(failed + '\n')
+                    print(_('Failed to connect to %d systems with all auth '
+                            'credentials. See the following file "%s" for a '
+                            'list  of the failed systems.' %
+                            (num_failed, failed_temp.name)))
+                if self.verbosity > 1:
+                    failed_hosts = ', '.join(remaining_hosts)
+                    print(_('Failed to connect to the following systems: %s.'
+                            % (failed_hosts)))
+                print()
+
+            print(_('Scan will be performed against %d of %d systems.' %
+                    (num_success, num_total)))
+            print()
 
             _create_hosts_auths_file(auth_map, profile)
 

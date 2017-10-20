@@ -281,7 +281,8 @@ To encrypt sensitive facts within the comma separated values (CSV) file output o
 Scanning
 --------
 
-Use the ``rho scan`` command to run discovery and inspection scans on the network. This command scans all of the host names or IP addresses that are defined in the supplied network profile, and then writes the report information to a comma separated values (CSV) file.
+Use the ``rho scan`` command to run discovery and inspection scans on the network. This command scans all of the host names or IP addresses that are defined in the supplied network profile, and then writes the report information to a comma separated values (CSV) file. Note: Any ssh-agent connection setup for a target host '
+              'will be used as a fallback if it exists.
 
 **rho scan --profile=** *profile_name* **--reportfile=** *file* **[--facts** *file or list of facts* **] [--scan-dirs=** *file or list of remote directories* **] [--cache] [--vault=** *vault_file* **] [--logfile=** *log_file* **] [--ansible-forks=** *num_forks* **]**
 
@@ -297,31 +298,30 @@ Use the ``rho scan`` command to run discovery and inspection scans on the networ
 
   Contains the list of facts that are returned in the scan report. You can provide multiple values for this option, with each value separated by a space, or provide a path to a file that contains a list of facts, where each fact is on a separate line. The list below is included as an example and is not exhaustive. Use the ``rho fact list`` command to get the full list of available facts.
 
-::
 
-  cpu.count: number of processors
-  cpu.cpu_family: cpu family
-  cpu.model_name: cpu model name
-  cpu.vendor_id: cpu vendor name
-  dmi.bios-vendor: bios vendor name
-  etc-release.etc-release: contents of /etc/release (or equivalent)
-  instnum.instnum: installation number
-  connection.uuid: unique id associate with scan
-  connection.ip: ip address
-  connection.port: ssh port
-  redhat-release.name: name of package that provides 'redhat-release'
-  redhat-release.release: release of package that provides 'redhat-release'
-  redhat-release.version: version of package that provides 'redhat-release'
-  systemid.system_id: Red Hat Network system id
-  systemid.username: Red Hat Network username
-  virt.virt: host, guest, or baremetal
-  virt.type: type of virtual system
-  uname.all: uname -a (all)
-  uname.hardware_platform: uname -i (hardware_platform)
-  uname.hostname: uname -n (hostname)
-  uname.kernel: uname -r (kernel)
-  uname.os: uname -s (os)
-  uname.processor: uname -p (processor)
+-  cpu.count: number of processors
+-  cpu.cpu_family: cpu family
+-  cpu.model_name: cpu model name
+-  cpu.vendor_id: cpu vendor name
+-  dmi.bios-vendor: bios vendor name
+-  etc-release.etc-release: contents of /etc/release (or equivalent)
+-  instnum.instnum: installation number
+-  connection.uuid: unique id associate with scan
+-  connection.ip: ip address
+-  connection.port: ssh port
+-  redhat-release.name: name of package that provides 'redhat-release'
+-  redhat-release.release: release of package that provides 'redhat-release'
+-  redhat-release.version: version of package that provides 'redhat-release'
+-  systemid.system_id: Red Hat Network system id
+-  systemid.username: Red Hat Network username
+-  virt.virt: host, guest, or baremetal
+-  virt.type: type of virtual system
+-  uname.all: uname -a (all)
+-  uname.hardware_platform: uname -i (hardware_platform)
+-  uname.hostname: uname -n (hostname)
+-  uname.kernel: uname -r (kernel)
+-  uname.os: uname -s (os)
+-  uname.processor: uname -p (processor)
 
 ``--scan-dirs dir1 dir2``
 
