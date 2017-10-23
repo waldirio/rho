@@ -23,7 +23,7 @@ manpage:
 	@cd doc; $(MAKE) manpage
 
 fact-docs:
-	PYTHONPATH=rho:$$PYTHONPATH doc/generate_fact_list.py > doc/facts.rst
+	$(PYTHON) doc/generate_fact_list.py > doc/facts.rst
 
 docs: fact-docs
 	@cd doc; $(MAKE) gen-api; $(MAKE) html; $(MAKE) nojekyll; $(MAKE) manpage

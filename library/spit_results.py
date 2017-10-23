@@ -514,7 +514,7 @@ def escape_characters(data):
     """
     for key in data:
         if isinstance(data[key], str):
-            data[key] = data[key].replace('\r\n', '').replace(',', '')
+            data[key] = data[key].replace('\r\n', ' ').replace(',', ' ')
     return data
 
 

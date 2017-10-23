@@ -174,6 +174,8 @@ new_fact('jboss.eap.running-versions', 'List of running versions of JBoss EAP',
 new_fact('jboss.fuse.activemq-ver', 'ActiveMQ version')
 new_fact('jboss.fuse.camel-ver', 'Camel version')
 new_fact('jboss.fuse.cxf-ver', 'CXF version')
+new_fact('redhat-packages.certs', 'the list of Red Hat certificates found',
+         categories=[RHEL_FACTS])
 new_fact('redhat-packages.is_redhat',
          'determines if package is a Red Hat package',
          categories=[RHEL_FACTS])

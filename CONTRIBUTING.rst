@@ -83,6 +83,7 @@ Adding facts requires changes in three places.
 3. Finally, update `library/spit_results.py` for any postprocessing
    that your fact needs. You may not need to do any postprocessing, if
    you just want the remote shell output reported as the fact value.
+4. Run `make fact-docs` to create the updated `doc\fact.rst` file.
 
 Running all tests:
 ******************

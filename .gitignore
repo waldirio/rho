@@ -19,7 +19,6 @@ test/coverage
 data
 doc/source/modules.rst
 doc/source/rho.rst
-doc/facts.rst
 .coverage
 .vagrant
 *.retry
