@@ -31,6 +31,7 @@ from rho.utilities import (
     ANSIBLE_LOG_PATH, SCAN_LOG_PATH, PING_INVENTORY_PATH, PROFILE_HOSTS_SUFIX,
     PROFILE_HOST_AUTH_MAPPING_SUFFIX, log
 )
+from rho import facts
 from rho.translation import _
 
 
@@ -477,31 +478,13 @@ class ScanCommand(CliCommand):
                 sys.exit(1)
 
         # perform fact validation
-        facts = self.options.facts
-        if facts == [] or facts == ['default']:
-            self.facts_to_collect = list(utilities.DEFAULT_FACTS)
-        elif facts == ['all']:
-            self.facts_to_collect = list(utilities.ALL_FACTS)
-        elif facts == ['jboss']:
-            self.facts_to_collect = list(utilities.JBOSS_FACTS_TUPLE +
-                                         utilities.CONNECTION_FACTS_TUPLE)
-        elif facts == ['rhel']:
-            self.facts_to_collect = list(utilities.RHEL_FACTS +
-                                         utilities.CONNECTION_FACTS_TUPLE)
-        elif os.path.isfile(facts[0]):
-            self.facts_to_collect = _read_in_file(facts[0])
-        else:
-            assert isinstance(facts, list)
-            self.facts_to_collect = facts
-        # check facts_to_collect has valid facts
-        all_facts = utilities.ALL_FACTS
-        facts_to_collect_set = set(self.facts_to_collect)
-        if not facts_to_collect_set.issubset(all_facts):
-            invalid_facts = facts_to_collect_set.difference(all_facts)
-            print(_("Invalid facts were supplied to scan command: " +
-                    ",".join(invalid_facts)))
-            self.parser.print_help()
-            sys.exit(1)
+        input_facts = self.options.facts
+        assert isinstance(input_facts, list)
+
+        if input_facts and os.path.isfile(input_facts[0]):
+            input_facts = _read_in_file(input_facts[0])
+
+        self.facts_to_collect = facts.expand_facts(input_facts)
 
         if self.options.scan_dirs == []:
             self.options.scan_dirs = ['/', '/opt', '/app', '/home', '/usr']
@@ -623,13 +606,8 @@ class ScanCommand(CliCommand):
                   "Please run without using --cache with the profile first.")
             sys.exit(1)
 
-        # always output connection.x
-        for key in utilities.CONNECTION_FACTS_TUPLE:
-            if key not in self.facts_to_collect:
-                self.facts_to_collect.append(key)
-
         scan_dirs = ' '.join(self.options.scan_dirs)
-        ansible_vars = {'facts_to_collect': self.facts_to_collect,
+        ansible_vars = {'facts_to_collect': list(self.facts_to_collect),
                         'report_path': report_path,
                         'scan_dirs': scan_dirs}
 

@@ -22,12 +22,11 @@ all: build lint tests-coverage
 manpage:
 	@cd doc; $(MAKE) manpage
 
+fact-docs:
+	PYTHONPATH=rho:$$PYTHONPATH doc/generate_fact_list.py > doc/facts.rst
+
 docs:
 	@cd doc; $(MAKE) gen-api; $(MAKE) html; $(MAKE) nojekyll; $(MAKE) manpage
-
-gen-python-docs:
-	$(PYTHON) doc/generate_python_docs.py
-	mv fact_docs.py rho
 
 build: clean
 	$(PYTHON) setup.py build -f
