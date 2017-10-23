@@ -16,7 +16,7 @@ import sys
 import os
 from optparse import SUPPRESS_HELP  # pylint: disable=deprecated-module
 import hashlib
-from rho import utilities
+from rho import facts
 from rho.clicommand import CliCommand
 from rho.translation import _
 from rho.utilities import multi_arg, _read_in_file, write_csv_data
@@ -72,19 +72,17 @@ class FactHashCommand(CliCommand):
             sys.exit(1)
 
         # perform fact validation
-        facts = self.options.facts
-        if facts == [] or facts == ['default']:
-            self.facts_to_hash = list(utilities.SENSITIVE_FACTS_TUPLE)
-        elif os.path.isfile(facts[0]):
-            self.facts_to_hash = _read_in_file(facts[0])
+        input_facts = self.options.facts
+        if input_facts == [] or input_facts == ['default']:
+            self.facts_to_hash = facts.SENSITIVE_FACTS
+        elif os.path.isfile(input_facts[0]):
+            self.facts_to_hash = set(_read_in_file(input_facts[0]))
         else:
-            assert isinstance(facts, list)
-            self.facts_to_hash = facts
-        # check facts_to_hash is subset of utilities.DEFAULT_FACTS
-        all_facts = utilities.DEFAULT_FACTS
-        facts_to_hash_set = set(self.facts_to_hash)
-        if not facts_to_hash_set.issubset(all_facts):
-            invalid_facts = facts_to_hash_set.difference(all_facts)
+            assert isinstance(input_facts, list)
+            self.facts_to_hash = set(input_facts)
+        # check facts_to_hash is subset of facts.ALL_FACTS
+        if not self.facts_to_hash.issubset(facts.ALL_FACTS):
+            invalid_facts = self.facts_to_hash.difference(facts.ALL_FACTS)
             print(_("Invalid facts were supplied to the command: " +
                     ",".join(invalid_facts)))
             self.parser.print_help()

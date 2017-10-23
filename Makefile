@@ -22,12 +22,11 @@ all: build lint tests-coverage
 manpage:
 	@cd doc; $(MAKE) manpage
 
-docs:
-	@cd doc; $(MAKE) gen-api; $(MAKE) html; $(MAKE) nojekyll; $(MAKE) manpage
+fact-docs:
+	PYTHONPATH=rho:$$PYTHONPATH doc/generate_fact_list.py > doc/facts.rst
 
-gen-python-docs:
-	$(PYTHON) doc/generate_python_docs.py
-	mv fact_docs.py rho
+docs: fact-docs
+	@cd doc; $(MAKE) gen-api; $(MAKE) html; $(MAKE) nojekyll; $(MAKE) manpage
 
 build: clean
 	$(PYTHON) setup.py build -f
@@ -40,6 +39,7 @@ clean:
 	-rm -rf dist/ build/ test/coverage rpm-build/ rho.egg-info/
 	-rm -rf *~
 	-rm -rf docs/*.gz
+	-rm -f docs/facts.rst
 
 install: build
 	$(PYTHON) setup.py install -f
@@ -51,7 +51,7 @@ tests-coverage:
 	py.test -v --cov=rho --cov=library
 
 lint-flake8:
-	flake8 . --ignore D203 --exclude fact_docs.py
+	flake8 . --ignore D203
 
 lint-pylint:
 	pylint --disable=duplicate-code */*.py
@@ -68,7 +68,7 @@ tests-coverage-3:
 	-py.test-3 -v --cov=rho --cov=library
 
 lint-flake8-3:
-	python3 -m flake8 . --ignore D203 --exclude fact_docs.py
+	python3 -m flake8 . --ignore D203
 
 lint-pylint-3:
 	python3 -m pylint --disable=duplicate-code,locally-disabled,bad-option-value */*.py -rn

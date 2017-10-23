@@ -15,7 +15,7 @@ import re
 
 from rho import utilities
 from rho.clicommand import CliCommand
-from rho.fact_docs import FACT_DOCS
+from rho.facts import FACT_DOCS
 from rho.translation import _
 
 

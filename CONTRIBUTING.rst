@@ -73,19 +73,16 @@ rho uses `pytest`_ for testing.
 Adding Facts
 ------------
 
-If you want to make a change that affects the documentation of
-particular facts,
+Adding facts requires changes in three places.
 
-1. Make the change in `doc/source/command_syntax_usage.rst`
-2. Run `make gen-python-docs` to update `rho/fact_docs.py`
-3. Check in the new version of `rho/fact_docs.py` with your change
-
-Rho keeps fact documentation in two places - in
-`docs/command_syntax_usage.rst`, and in `rho/fact_docs.py` for use by
-the program at runtime. The second is generated from the first at
-build time rather than runtime to minimize the number of things that
-can go wrong at runtime.
-
+1. First, add information about your fact by calling `new_fact` in
+   `rho/facts.py`.
+2. Then, add an Ansible role to collect data for your fact. Be sure to
+   use a `where` clause so the collection only runs when the fact is
+   wanted.
+3. Finally, update `library/spit_results.py` for any postprocessing
+   that your fact needs. You may not need to do any postprocessing, if
+   you just want the remote shell output reported as the fact value.
 
 Running all tests:
 ******************
