@@ -58,8 +58,9 @@ def expand_facts(fact_names):
 
     facts_to_collect.update(ALWAYS_COLLECT)
 
-    if not facts_to_collect.issubset(ALL_FACTS):
-        log.error('Bad fact list %s', facts_to_collect)
+    bad_facts = facts_to_collect.difference(ALL_FACTS)
+    if bad_facts:
+        log.error('Unknown facts requested: %s', ', '.join(sorted(bad_facts)))
         sys.exit(1)
 
     return facts_to_collect
