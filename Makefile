@@ -25,7 +25,7 @@ manpage:
 fact-docs:
 	PYTHONPATH=rho:$$PYTHONPATH doc/generate_fact_list.py > doc/facts.rst
 
-docs:
+docs: fact-docs
 	@cd doc; $(MAKE) gen-api; $(MAKE) html; $(MAKE) nojekyll; $(MAKE) manpage
 
 build: clean
@@ -39,6 +39,7 @@ clean:
 	-rm -rf dist/ build/ test/coverage rpm-build/ rho.egg-info/
 	-rm -rf *~
 	-rm -rf docs/*.gz
+	-rm -f docs/facts.rst
 
 install: build
 	$(PYTHON) setup.py install -f
