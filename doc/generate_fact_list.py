@@ -15,10 +15,13 @@ import sys
 
 from rho import facts
 
+
 def main():
+    """Generate the fact documentation."""
+
     for fact, desc in facts.FACT_DOCS.items():
         sys.stdout.write('- ``{0}`` - {1}\n'.format(fact, desc))
-    
+
 
 if __name__ == '__main__':
     main()

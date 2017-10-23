@@ -51,7 +51,7 @@ tests-coverage:
 	py.test -v --cov=rho --cov=library
 
 lint-flake8:
-	flake8 . --ignore D203 --exclude fact_docs.py
+	flake8 . --ignore D203
 
 lint-pylint:
 	pylint --disable=duplicate-code */*.py
@@ -68,7 +68,7 @@ tests-coverage-3:
 	-py.test-3 -v --cov=rho --cov=library
 
 lint-flake8-3:
-	python3 -m flake8 . --ignore D203 --exclude fact_docs.py
+	python3 -m flake8 . --ignore D203
 
 lint-pylint-3:
 	python3 -m pylint --disable=duplicate-code,locally-disabled,bad-option-value */*.py -rn
