@@ -65,6 +65,7 @@ like those provided by bash.
   - sed
   - ls
   - wc
+  - awk
 - uname.*
   - uname
 - virt.*

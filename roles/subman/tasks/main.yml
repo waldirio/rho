@@ -160,3 +160,27 @@
   with_items:
   - 'subman.has_facts_file'
   when: '"subman.has_facts_file" in facts_to_collect'
+
+- name: gather subman.consumed fact
+  raw: subscription-manager list --consumed | grep -e '^SKU' -e '^Subscription Name' | sed -n -e 's/SKU\s*.\s*//p' -e 's/Subscription Name\s*.\s*//p' | awk '{ ORS = (NR%2 ? " - " {{":"}} RS) } 1'
+  register: subman_consumed_cmd
+  ignore_errors: yes
+  become: yes
+  when: 'have_subscription_manager and "subman.consumed" in facts_to_collect'
+
+- name: extract result value for subman.consumed
+  set_fact:
+    subman_consumed: "{{  subman_consumed_cmd['stdout'] | trim | default('error') if have_subscription_manager else 'N/A (subscription-manager not found)' }}"
+  when: '"subman.consumed" in facts_to_collect and "stdout" in subman_consumed_cmd'
+
+- name: handle failure value for subman.consumed
+  set_fact:
+    subman_consumed: "{{ 'error' if have_subscription_manager else 'N/A (subscription-manager not found)' }}"
+  when: '"subman.consumed" in facts_to_collect and "stdout" not in subman_consumed_cmd'
+
+- name: add subman.consumed to dictionary
+  set_fact:
+    subman: "{{ subman|default({}) | combine({ item: subman_consumed }) }}"
+  with_items:
+  - 'subman.consumed'
+  when: '"subman.consumed" in facts_to_collect'

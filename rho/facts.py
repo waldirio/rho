@@ -197,6 +197,9 @@ new_fact('redhat-release.release',
 new_fact('redhat-release.version',
          "version of package that provides 'redhat-release'",
          categories=[RHEL_FACTS])
+new_fact('subman.consumed',
+         'consumed SKUs from subscription manager',
+         categories=[RHEL_FACTS])
 new_fact('subman.cpu.core(s)_per_socket',
          'cpu cores per socket from subscription manager',
          categories=[RHEL_FACTS])

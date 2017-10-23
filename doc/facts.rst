@@ -46,6 +46,7 @@
 - ``redhat-release.name`` - name of package that provides 'redhat-release'
 - ``redhat-release.release`` - release of package that provides 'redhat-release'
 - ``redhat-release.version`` - version of package that provides 'redhat-release'
+- ``subman.consumed`` - consumed SKUs from subscription manager
 - ``subman.cpu.core(s)_per_socket`` - cpu cores per socket from subscription manager
 - ``subman.cpu.cpu(s)`` - cpus from subscription manager
 - ``subman.cpu.cpu_socket(s)`` - cpu sockets from subscription manager
