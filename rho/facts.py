@@ -40,9 +40,6 @@ def expand_facts(fact_names):
 
     facts_to_collect = set()
 
-    if fact_names == []:
-        facts_to_collect.update(DEFAULT_FACTS)
-
     for fact in fact_names:
         if fact == 'all':
             return ALL_FACTS
@@ -56,6 +53,9 @@ def expand_facts(fact_names):
         else:
             facts_to_collect.add(fact)
 
+    if fact_names == []:
+        facts_to_collect.update(DEFAULT_FACTS)
+
     facts_to_collect.update(ALWAYS_COLLECT)
 
     bad_facts = facts_to_collect.difference(ALL_FACTS)
@@ -67,17 +67,17 @@ def expand_facts(fact_names):
 
 
 # pylint: disable=too-many-arguments
-def new_fact(fact_name, description, is_sensitive=False,
-             is_default=True, always_collect=False,
+def new_fact(fact_name, description, is_default,
+             is_sensitive=False, always_collect=False,
              categories=None):
     """Define a new fact.
 
     :param fact_name: the name of the fact.
     :param description: a short description of the fact, for 'rho fact list'
         and the documentation.
+    :param is_default: whether this fact should be scanned for by default.
     :param is_sensitive: whether this fact should be redacted by
         'rho fact hash'.
-    :param is_default: whether this fact should be scanned for by default.
     :param always_collect: whether rho should always collect this fact.
     """
 
@@ -100,149 +100,149 @@ def new_fact(fact_name, description, is_sensitive=False,
             category.add(fact_name)
 
 
-new_fact('connection.host', 'The host address of the connection',
+new_fact('connection.host', 'The host address of the connection', True,
          is_sensitive=True, always_collect=True)
-new_fact('connection.port', 'The port used for the connection',
+new_fact('connection.port', 'The port used for the connection', True,
          is_sensitive=True, always_collect=True)
-new_fact('connection.uuid', 'A generated identifier for the connection',
+new_fact('connection.uuid', 'A generated identifier for the connection', True,
          always_collect=True)
 new_fact('cpu.bogomips', 'measurement of CPU speed made by the Linux kernel',
+         True, categories=[RHEL_FACTS])
+new_fact('cpu.count', 'number of processors', True,
          categories=[RHEL_FACTS])
-new_fact('cpu.count', 'number of processors',
+new_fact('cpu.core_count', 'number of cores', True,
          categories=[RHEL_FACTS])
-new_fact('cpu.core_count', 'number of cores',
+new_fact('cpu.cpu_family', 'cpu family', True,
          categories=[RHEL_FACTS])
-new_fact('cpu.cpu_family', 'cpu family',
+new_fact('cpu.hyperthreading', 'Whether cpu is hyperthreaded', True,
          categories=[RHEL_FACTS])
-new_fact('cpu.hyperthreading', 'Whether cpu is hyperthreaded',
+new_fact('cpu.model_name', 'cpu model name', True,
          categories=[RHEL_FACTS])
-new_fact('cpu.model_name', 'cpu model name',
+new_fact('cpu.model_ver', 'cpu model version', True,
          categories=[RHEL_FACTS])
-new_fact('cpu.model_ver', 'cpu model version',
+new_fact('cpu.socket_count', 'number of sockets', True,
          categories=[RHEL_FACTS])
-new_fact('cpu.socket_count', 'number of sockets',
+new_fact('cpu.vendor_id', 'cpu vendor name', True,
          categories=[RHEL_FACTS])
-new_fact('cpu.vendor_id', 'cpu vendor name',
+new_fact('date.anaconda_log', '/root/anaconda-ks.cfg modified time', True,
          categories=[RHEL_FACTS])
-new_fact('date.anaconda_log', '/root/anaconda-ks.cfg modified time',
-         categories=[RHEL_FACTS])
-new_fact('date.date', 'date',
+new_fact('date.date', 'date', True,
          categories=[RHEL_FACTS])
 new_fact('date.filesystem_create',
-         'uses tune2fs -l on the / filesystem dev found using mount',
+         'uses tune2fs -l on the / filesystem dev found using mount', True,
          categories=[RHEL_FACTS])
-new_fact('date.machine_id', "/etc/machine-id modified time'",
+new_fact('date.machine_id', "/etc/machine-id modified time'", True,
          categories=[RHEL_FACTS])
-new_fact('date.yum_history', 'dates from yum history',
+new_fact('date.yum_history', 'dates from yum history', True,
          categories=[RHEL_FACTS])
-new_fact('dmi.bios-vendor', 'bios vendor name',
+new_fact('dmi.bios-vendor', 'bios vendor name', True,
          categories=[RHEL_FACTS])
-new_fact('dmi.bios-version', 'bios version info',
+new_fact('dmi.bios-version', 'bios version info', True,
          categories=[RHEL_FACTS])
-new_fact('dmi.processor-family', 'processor family',
+new_fact('dmi.processor-family', 'processor family', True,
          categories=[RHEL_FACTS])
-new_fact('dmi.system-manufacturer', 'system manufacturer',
+new_fact('dmi.system-manufacturer', 'system manufacturer', True,
          categories=[RHEL_FACTS])
-new_fact('etc-issue.etc-issue', 'contents of /etc/issue (or equivalent)',
+new_fact('etc-issue.etc-issue', 'contents of /etc/issue (or equivalent)', True,
          categories=[RHEL_FACTS])
-new_fact('etc_release.name', 'name of the release',
+new_fact('etc_release.name', 'name of the release', True,
          categories=[RHEL_FACTS])
-new_fact('etc_release.release', 'release information',
+new_fact('etc_release.release', 'release information', True,
          categories=[RHEL_FACTS])
-new_fact('etc_release.version', 'release version',
+new_fact('etc_release.version', 'release version', True,
          categories=[RHEL_FACTS])
-new_fact('instnum.instnum', 'installation number',
+new_fact('instnum.instnum', 'installation number', True,
          categories=[RHEL_FACTS])
-new_fact('jboss.brms.drools-core-ver', 'Drools version')
-new_fact('jboss.brms.kie-api-ver', 'KIE API version')
-new_fact('jboss.brms.kie-war-ver', 'KIE runtime version')
+new_fact('jboss.brms.drools-core-ver', 'Drools version', False)
+new_fact('jboss.brms.kie-api-ver', 'KIE API version', False)
+new_fact('jboss.brms.kie-war-ver', 'KIE runtime version', False)
 new_fact('jboss.eap.common-directories',
-         'Presence of common directories for JBoss EAP',
+         'Presence of common directories for JBoss EAP', True,
          categories=[JBOSS_FACTS])
 new_fact('jboss.eap.deploy-dates',
-         'List of deployment dates of JBoss EAP installations')
+         'List of deployment dates of JBoss EAP installations', False)
 new_fact('jboss.eap.installed-versions',
-         'List of installed versions of JBoss EAP')
-new_fact('jboss.eap.jboss-user', "Whether a user called 'jboss' exists",
+         'List of installed versions of JBoss EAP', False)
+new_fact('jboss.eap.jboss-user', "Whether a user called 'jboss' exists", True,
          categories=[JBOSS_FACTS])
-new_fact('jboss.eap.packages', 'Installed RPMs that look like JBoss',
+new_fact('jboss.eap.packages', 'Installed RPMs that look like JBoss', True,
          categories=[JBOSS_FACTS])
-new_fact('jboss.eap.processes', 'Running processes that look like JBoss',
+new_fact('jboss.eap.processes', 'Running processes that look like JBoss', True,
          categories=[JBOSS_FACTS])
 new_fact('jboss.eap.running-versions', 'List of running versions of JBoss EAP',
-         categories=[JBOSS_FACTS])
-new_fact('jboss.fuse.activemq-ver', 'ActiveMQ version')
-new_fact('jboss.fuse.camel-ver', 'Camel version')
-new_fact('jboss.fuse.cxf-ver', 'CXF version')
+         True, categories=[JBOSS_FACTS])
+new_fact('jboss.fuse.activemq-ver', 'ActiveMQ version', False)
+new_fact('jboss.fuse.camel-ver', 'Camel version', False)
+new_fact('jboss.fuse.cxf-ver', 'CXF version', False)
 new_fact('redhat-packages.certs', 'the list of Red Hat certificates found',
-         categories=[RHEL_FACTS])
+         True, categories=[RHEL_FACTS])
 new_fact('redhat-packages.is_redhat',
-         'determines if package is a Red Hat package',
+         'determines if package is a Red Hat package', True,
          categories=[RHEL_FACTS])
-new_fact('redhat-packages.last_installed', 'last installed package',
+new_fact('redhat-packages.last_installed', 'last installed package', True,
          categories=[RHEL_FACTS])
-new_fact('redhat-packages.last_built', 'last built package',
+new_fact('redhat-packages.last_built', 'last built package', True,
          categories=[RHEL_FACTS])
 new_fact('redhat-packages.num_rh_packages', 'number of Red Hat packages',
-         categories=[RHEL_FACTS])
+         True, categories=[RHEL_FACTS])
 new_fact('redhat-packages.num_installed_packages',
-         'number of installed packages',
+         'number of installed packages', True,
          categories=[RHEL_FACTS])
 new_fact('redhat-release.name',
-         "name of package that provides 'redhat-release'",
+         "name of package that provides 'redhat-release'", True,
          categories=[RHEL_FACTS])
 new_fact('redhat-release.release',
-         "release of package that provides 'redhat-release'",
+         "release of package that provides 'redhat-release'", True,
          categories=[RHEL_FACTS])
 new_fact('redhat-release.version',
-         "version of package that provides 'redhat-release'",
+         "version of package that provides 'redhat-release'", True,
          categories=[RHEL_FACTS])
 new_fact('subman.consumed',
-         'consumed SKUs from subscription manager',
+         True, 'consumed SKUs from subscription manager',
          categories=[RHEL_FACTS])
 new_fact('subman.cpu.core(s)_per_socket',
-         'cpu cores per socket from subscription manager',
+         'cpu cores per socket from subscription manager', True,
          categories=[RHEL_FACTS])
-new_fact('subman.cpu.cpu(s)', 'cpus from subscription manager',
+new_fact('subman.cpu.cpu(s)', 'cpus from subscription manager', True,
          categories=[RHEL_FACTS])
 new_fact('subman.cpu.cpu_socket(s)', 'cpu sockets from subscription manager',
-         categories=[RHEL_FACTS])
+         True, categories=[RHEL_FACTS])
 new_fact('subman.has_facts_file',
-         'Whether subscription manager has a facts file',
+         'Whether subscription manager has a facts file', True,
          categories=[RHEL_FACTS])
 new_fact('subman.virt.is_guest',
-         'Whether is a virtual guest from subscription manager',
+         'Whether is a virtual guest from subscription manager', True,
          categories=[RHEL_FACTS])
 new_fact('subman.virt.host_type',
-         'Virtual host type from subscription manager',
+         'Virtual host type from subscription manager', True,
          categories=[RHEL_FACTS])
 new_fact('subman.virt.uuid', 'Virtual host uuid from subscription manager',
+         True, categories=[RHEL_FACTS])
+new_fact('systemid.system_id', 'Red Hat Network System ID', True,
          categories=[RHEL_FACTS])
-new_fact('systemid.system_id', 'Red Hat Network System ID',
+new_fact('systemid.username', 'Red Hat Network username', True,
          categories=[RHEL_FACTS])
-new_fact('systemid.username', 'Red Hat Network username',
-         categories=[RHEL_FACTS])
-new_fact('uname.all', 'uname -a (all)',
+new_fact('uname.all', 'uname -a (all)', True,
          is_sensitive=True,
          categories=[RHEL_FACTS])
-new_fact('uname.hardware_platform', 'uname -i (hardware_platform)',
+new_fact('uname.hardware_platform', 'uname -i (hardware_platform)', True,
          categories=[RHEL_FACTS])
-new_fact('uname.hostname', 'uname -n (hostname)',
+new_fact('uname.hostname', 'uname -n (hostname)', True,
          is_sensitive=True,
          categories=[RHEL_FACTS])
-new_fact('uname.kernel', 'uname -r (kernel)',
+new_fact('uname.kernel', 'uname -r (kernel)', True,
          categories=[RHEL_FACTS])
-new_fact('uname.os', 'uname -s (os)',
+new_fact('uname.os', 'uname -s (os)', True,
          categories=[RHEL_FACTS])
-new_fact('uname.processor', 'uname -p (processor)',
+new_fact('uname.processor', 'uname -p (processor)', True,
          categories=[RHEL_FACTS])
-new_fact('virt.num_guests', 'the number of virtualized guests',
+new_fact('virt.num_guests', 'the number of virtualized guests', True,
          categories=[RHEL_FACTS])
 new_fact('virt.num_running_guests', 'the number of running virtualized guests',
+         True, categories=[RHEL_FACTS])
+new_fact('virt.type', 'type of virtual system', True,
          categories=[RHEL_FACTS])
-new_fact('virt.type', 'type of virtual system',
-         categories=[RHEL_FACTS])
-new_fact('virt.virt', 'host, guest, or baremetal',
+new_fact('virt.virt', 'host, guest, or baremetal', True,
          categories=[RHEL_FACTS])
 new_fact('virt-what.type', 'What type of virtualization a system is running',
-         categories=[RHEL_FACTS])
+         True, categories=[RHEL_FACTS])
