@@ -20,14 +20,12 @@ class TestFacts(unittest.TestCase):
     def setUp(self):
         self.category = set()
 
-        facts.new_fact('fact1', 'test fact 1',
+        facts.new_fact('fact1', 'test fact 1', True,
                        is_sensitive=True,
-                       is_default=True,
                        always_collect=True)
 
-        facts.new_fact('fact2', 'test fact 2',
+        facts.new_fact('fact2', 'test fact 2', False,
                        is_sensitive=False,
-                       is_default=False,
                        always_collect=False,
                        categories=[self.category])
 
@@ -38,6 +36,7 @@ class TestFacts(unittest.TestCase):
         self.assertIn('fact1', facts.SENSITIVE_FACTS)
         self.assertIn('fact1', facts.DEFAULT_FACTS)
         self.assertIn('fact1', facts.ALWAYS_COLLECT)
+        self.assertNotIn('fact1', self.category)
 
         self.assertIn('fact2', facts.ALL_FACTS)
         self.assertNotIn('fact2', facts.SENSITIVE_FACTS)
