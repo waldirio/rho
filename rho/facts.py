@@ -67,7 +67,7 @@ def expand_facts(fact_names):
 
 
 # pylint: disable=too-many-arguments
-def new_fact(fact_name, description, is_default,
+def new_fact(fact_name, description, is_default=None,
              is_sensitive=False, always_collect=False,
              categories=None):
     """Define a new fact.
@@ -80,6 +80,9 @@ def new_fact(fact_name, description, is_default,
         'rho fact hash'.
     :param always_collect: whether rho should always collect this fact.
     """
+
+    if is_default is None:
+        raise ValueError('new_fact: is_default must be set, but is not')
 
     ALL_FACTS.add(fact_name)
     if is_sensitive:
@@ -100,149 +103,149 @@ def new_fact(fact_name, description, is_default,
             category.add(fact_name)
 
 
-new_fact('connection.host', 'The host address of the connection', True,
-         is_sensitive=True, always_collect=True)
-new_fact('connection.port', 'The port used for the connection', True,
-         is_sensitive=True, always_collect=True)
-new_fact('connection.uuid', 'A generated identifier for the connection', True,
-         always_collect=True)
+new_fact('connection.host', 'The host address of the connection',
+         is_default=True, is_sensitive=True, always_collect=True)
+new_fact('connection.port', 'The port used for the connection',
+         is_default=True, is_sensitive=True, always_collect=True)
+new_fact('connection.uuid', 'A generated identifier for the connection',
+         is_default=True, always_collect=True)
 new_fact('cpu.bogomips', 'measurement of CPU speed made by the Linux kernel',
-         True, categories=[RHEL_FACTS])
-new_fact('cpu.count', 'number of processors', True,
-         categories=[RHEL_FACTS])
-new_fact('cpu.core_count', 'number of cores', True,
-         categories=[RHEL_FACTS])
-new_fact('cpu.cpu_family', 'cpu family', True,
-         categories=[RHEL_FACTS])
-new_fact('cpu.hyperthreading', 'Whether cpu is hyperthreaded', True,
-         categories=[RHEL_FACTS])
-new_fact('cpu.model_name', 'cpu model name', True,
-         categories=[RHEL_FACTS])
-new_fact('cpu.model_ver', 'cpu model version', True,
-         categories=[RHEL_FACTS])
-new_fact('cpu.socket_count', 'number of sockets', True,
-         categories=[RHEL_FACTS])
-new_fact('cpu.vendor_id', 'cpu vendor name', True,
-         categories=[RHEL_FACTS])
-new_fact('date.anaconda_log', '/root/anaconda-ks.cfg modified time', True,
-         categories=[RHEL_FACTS])
-new_fact('date.date', 'date', True,
-         categories=[RHEL_FACTS])
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('cpu.count', 'number of processors',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('cpu.core_count', 'number of cores',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('cpu.cpu_family', 'cpu family',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('cpu.hyperthreading', 'Whether cpu is hyperthreaded',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('cpu.model_name', 'cpu model name',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('cpu.model_ver', 'cpu model version',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('cpu.socket_count', 'number of sockets',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('cpu.vendor_id', 'cpu vendor name',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('date.anaconda_log', '/root/anaconda-ks.cfg modified time',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('date.date', 'date',
+         is_default=True, categories=[RHEL_FACTS])
 new_fact('date.filesystem_create',
-         'uses tune2fs -l on the / filesystem dev found using mount', True,
-         categories=[RHEL_FACTS])
-new_fact('date.machine_id', "/etc/machine-id modified time'", True,
-         categories=[RHEL_FACTS])
-new_fact('date.yum_history', 'dates from yum history', True,
-         categories=[RHEL_FACTS])
-new_fact('dmi.bios-vendor', 'bios vendor name', True,
-         categories=[RHEL_FACTS])
-new_fact('dmi.bios-version', 'bios version info', True,
-         categories=[RHEL_FACTS])
-new_fact('dmi.processor-family', 'processor family', True,
-         categories=[RHEL_FACTS])
-new_fact('dmi.system-manufacturer', 'system manufacturer', True,
-         categories=[RHEL_FACTS])
-new_fact('etc-issue.etc-issue', 'contents of /etc/issue (or equivalent)', True,
-         categories=[RHEL_FACTS])
-new_fact('etc_release.name', 'name of the release', True,
-         categories=[RHEL_FACTS])
-new_fact('etc_release.release', 'release information', True,
-         categories=[RHEL_FACTS])
-new_fact('etc_release.version', 'release version', True,
-         categories=[RHEL_FACTS])
-new_fact('instnum.instnum', 'installation number', True,
-         categories=[RHEL_FACTS])
-new_fact('jboss.brms.drools-core-ver', 'Drools version', False)
-new_fact('jboss.brms.kie-api-ver', 'KIE API version', False)
-new_fact('jboss.brms.kie-war-ver', 'KIE runtime version', False)
+         'uses tune2fs -l on the / filesystem dev found using mount',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('date.machine_id', "/etc/machine-id modified time'",
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('date.yum_history', 'dates from yum history',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('dmi.bios-vendor', 'bios vendor name',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('dmi.bios-version', 'bios version info',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('dmi.processor-family', 'processor family',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('dmi.system-manufacturer', 'system manufacturer',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('etc-issue.etc-issue', 'contents of /etc/issue (or equivalent)',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('etc_release.name', 'name of the release',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('etc_release.release', 'release information',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('etc_release.version', 'release version',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('instnum.instnum', 'installation number',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('jboss.brms.drools-core-ver', 'Drools version', is_default=False)
+new_fact('jboss.brms.kie-api-ver', 'KIE API version', is_default=False)
+new_fact('jboss.brms.kie-war-ver', 'KIE runtime version', is_default=False)
 new_fact('jboss.eap.common-directories',
-         'Presence of common directories for JBoss EAP', True,
-         categories=[JBOSS_FACTS])
+         'Presence of common directories for JBoss EAP',
+         is_default=True, categories=[JBOSS_FACTS])
 new_fact('jboss.eap.deploy-dates',
-         'List of deployment dates of JBoss EAP installations', False)
+         'List of deployment dates of JBoss EAP installations',
+         is_default=False)
 new_fact('jboss.eap.installed-versions',
-         'List of installed versions of JBoss EAP', False)
-new_fact('jboss.eap.jboss-user', "Whether a user called 'jboss' exists", True,
-         categories=[JBOSS_FACTS])
-new_fact('jboss.eap.packages', 'Installed RPMs that look like JBoss', True,
-         categories=[JBOSS_FACTS])
-new_fact('jboss.eap.processes', 'Running processes that look like JBoss', True,
-         categories=[JBOSS_FACTS])
+         'List of installed versions of JBoss EAP',
+         is_default=False)
+new_fact('jboss.eap.jboss-user', "Whether a user called 'jboss' exists",
+         is_default=True, categories=[JBOSS_FACTS])
+new_fact('jboss.eap.packages', 'Installed RPMs that look like JBoss',
+         is_default=True, categories=[JBOSS_FACTS])
+new_fact('jboss.eap.processes', 'Running processes that look like JBoss',
+         is_default=True, categories=[JBOSS_FACTS])
 new_fact('jboss.eap.running-versions', 'List of running versions of JBoss EAP',
-         True, categories=[JBOSS_FACTS])
-new_fact('jboss.fuse.activemq-ver', 'ActiveMQ version', False)
-new_fact('jboss.fuse.camel-ver', 'Camel version', False)
-new_fact('jboss.fuse.cxf-ver', 'CXF version', False)
+         is_default=True, categories=[JBOSS_FACTS])
+new_fact('jboss.fuse.activemq-ver', 'ActiveMQ version', is_default=False)
+new_fact('jboss.fuse.camel-ver', 'Camel version', is_default=False)
+new_fact('jboss.fuse.cxf-ver', 'CXF version', is_default=False)
 new_fact('redhat-packages.certs', 'the list of Red Hat certificates found',
-         True, categories=[RHEL_FACTS])
+         is_default=True, categories=[RHEL_FACTS])
 new_fact('redhat-packages.is_redhat',
-         'determines if package is a Red Hat package', True,
-         categories=[RHEL_FACTS])
-new_fact('redhat-packages.last_installed', 'last installed package', True,
-         categories=[RHEL_FACTS])
-new_fact('redhat-packages.last_built', 'last built package', True,
-         categories=[RHEL_FACTS])
+         'determines if package is a Red Hat package',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('redhat-packages.last_installed', 'last installed package',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('redhat-packages.last_built', 'last built package',
+         is_default=True, categories=[RHEL_FACTS])
 new_fact('redhat-packages.num_rh_packages', 'number of Red Hat packages',
-         True, categories=[RHEL_FACTS])
+         is_default=True, categories=[RHEL_FACTS])
 new_fact('redhat-packages.num_installed_packages',
-         'number of installed packages', True,
-         categories=[RHEL_FACTS])
+         'number of installed packages',
+         is_default=True, categories=[RHEL_FACTS])
 new_fact('redhat-release.name',
-         "name of package that provides 'redhat-release'", True,
-         categories=[RHEL_FACTS])
+         "name of package that provides 'redhat-release'",
+         is_default=True, categories=[RHEL_FACTS])
 new_fact('redhat-release.release',
-         "release of package that provides 'redhat-release'", True,
-         categories=[RHEL_FACTS])
+         "release of package that provides 'redhat-release'",
+         is_default=True, categories=[RHEL_FACTS])
 new_fact('redhat-release.version',
-         "version of package that provides 'redhat-release'", True,
-         categories=[RHEL_FACTS])
+         "version of package that provides 'redhat-release'",
+         is_default=True, categories=[RHEL_FACTS])
 new_fact('subman.consumed',
-         True, 'consumed SKUs from subscription manager',
-         categories=[RHEL_FACTS])
+         'consumed SKUs from subscription manager',
+         is_default=True, categories=[RHEL_FACTS])
 new_fact('subman.cpu.core(s)_per_socket',
-         'cpu cores per socket from subscription manager', True,
-         categories=[RHEL_FACTS])
-new_fact('subman.cpu.cpu(s)', 'cpus from subscription manager', True,
-         categories=[RHEL_FACTS])
+         'cpu cores per socket from subscription manager',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('subman.cpu.cpu(s)', 'cpus from subscription manager',
+         is_default=True, categories=[RHEL_FACTS])
 new_fact('subman.cpu.cpu_socket(s)', 'cpu sockets from subscription manager',
-         True, categories=[RHEL_FACTS])
+         is_default=True, categories=[RHEL_FACTS])
 new_fact('subman.has_facts_file',
-         'Whether subscription manager has a facts file', True,
-         categories=[RHEL_FACTS])
+         'Whether subscription manager has a facts file',
+         is_default=True, categories=[RHEL_FACTS])
 new_fact('subman.virt.is_guest',
-         'Whether is a virtual guest from subscription manager', True,
-         categories=[RHEL_FACTS])
+         'Whether is a virtual guest from subscription manager',
+         is_default=True, categories=[RHEL_FACTS])
 new_fact('subman.virt.host_type',
-         'Virtual host type from subscription manager', True,
-         categories=[RHEL_FACTS])
+         'Virtual host type from subscription manager',
+         is_default=True, categories=[RHEL_FACTS])
 new_fact('subman.virt.uuid', 'Virtual host uuid from subscription manager',
-         True, categories=[RHEL_FACTS])
-new_fact('systemid.system_id', 'Red Hat Network System ID', True,
-         categories=[RHEL_FACTS])
-new_fact('systemid.username', 'Red Hat Network username', True,
-         categories=[RHEL_FACTS])
-new_fact('uname.all', 'uname -a (all)', True,
-         is_sensitive=True,
-         categories=[RHEL_FACTS])
-new_fact('uname.hardware_platform', 'uname -i (hardware_platform)', True,
-         categories=[RHEL_FACTS])
-new_fact('uname.hostname', 'uname -n (hostname)', True,
-         is_sensitive=True,
-         categories=[RHEL_FACTS])
-new_fact('uname.kernel', 'uname -r (kernel)', True,
-         categories=[RHEL_FACTS])
-new_fact('uname.os', 'uname -s (os)', True,
-         categories=[RHEL_FACTS])
-new_fact('uname.processor', 'uname -p (processor)', True,
-         categories=[RHEL_FACTS])
-new_fact('virt.num_guests', 'the number of virtualized guests', True,
-         categories=[RHEL_FACTS])
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('systemid.system_id', 'Red Hat Network System ID',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('systemid.username', 'Red Hat Network username',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('uname.all', 'uname -a (all)',
+         is_default=True, is_sensitive=True, categories=[RHEL_FACTS])
+new_fact('uname.hardware_platform', 'uname -i (hardware_platform)',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('uname.hostname', 'uname -n (hostname)',
+         is_default=True, is_sensitive=True, categories=[RHEL_FACTS])
+new_fact('uname.kernel', 'uname -r (kernel)',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('uname.os', 'uname -s (os)',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('uname.processor', 'uname -p (processor)',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('virt.num_guests', 'the number of virtualized guests',
+         is_default=True, categories=[RHEL_FACTS])
 new_fact('virt.num_running_guests', 'the number of running virtualized guests',
-         True, categories=[RHEL_FACTS])
-new_fact('virt.type', 'type of virtual system', True,
-         categories=[RHEL_FACTS])
-new_fact('virt.virt', 'host, guest, or baremetal', True,
-         categories=[RHEL_FACTS])
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('virt.type', 'type of virtual system',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('virt.virt', 'host, guest, or baremetal',
+         is_default=True, categories=[RHEL_FACTS])
 new_fact('virt-what.type', 'What type of virtualization a system is running',
-         True, categories=[RHEL_FACTS])
+         is_default=True, categories=[RHEL_FACTS])
