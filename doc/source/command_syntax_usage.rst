@@ -160,24 +160,23 @@ the 'askpass' box in the Vagrantfile.
 JBoss-EAP and -Scan Variants
 ----------------------------
 
-The JBoss EAP facts are divided into two groups. Rho scans for the
-following facts by default:
+The JBoss facts are divided into two groups. The plain jboss-eap facts
+will look for running EAP processes in the process table, and for EAP
+installations on the filesystem at a short list of common installation
+locations. The jboss-eap-scan variant will do a full filesystem scan,
+traversing all directories to find an EAP installation.
 
-  - jboss.eap.running-versions
+The distinction is meant to allow a tradeoff of performance
+vs. completeness. The jboss-eap facts will not do much work on the
+system being scanned, but will not be able to find an EAP installation
+if it is not running and is in an unusual place in the
+filesystem. The -scan variant will find all EAP installations, but
+could cause a performance hit on a server which is under load,
+especially if the server is I/O-bound.
 
-The following facts are available, but Rho will only scan for them if
-requested using the `--facts` option:
-
-  - jboss.eap.installed-versions
-  - jboss.eap.deploy-dates
-
-The `installed-versions` and `deploy-dates` facts are computed by
-scanning the entire host filesystem with the `find` command. This can
-take a large amount of system resources and could potentially have a
-noticeable impact on the performance of running servers. The default
-facts are a good way to get clues about which systems might have JBoss
-installed before performing a resource-intensive scan, or even
-removing the need for a scan entirely.
+A reasonable approach would be to run the jboss-eap scan first, see if
+the results make sense, and decide whether to run the full -scan
+variant on a host-by-host basis.
 
 Programs on Remote Machines
 ---------------------------
