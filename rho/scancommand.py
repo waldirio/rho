@@ -586,7 +586,7 @@ class ScanCommand(CliCommand):
                             'credentials. See the following file "%s" for a '
                             'list  of the failed systems.' %
                             (num_failed, failed_temp.name)))
-                if self.verbosity > 1:
+                if self.verbosity:
                     failed_hosts = ', '.join(remaining_hosts)
                     print(_('Failed to connect to the following systems: %s.'
                             % (failed_hosts)))
