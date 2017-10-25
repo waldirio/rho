@@ -133,25 +133,25 @@ class TestProcessIdUJboss(unittest.TestCase):
                         msg=res['jboss.eap.jboss-user'])
 
 
-class TestProcessJbossCommonDirectories(unittest.TestCase):
+class TestProcessJbossCommonFiles(unittest.TestCase):
     def run_func(self, output):
-        return spit_results.process_jboss_eap_common_dirs(
-            ['jboss.eap.common-directories'],
-            {'jboss_eap_common_directories': output})
+        return spit_results.process_jboss_eap_common_files(
+            ['jboss.eap.common-files'],
+            {'jboss_eap_common_files': output})
 
     def test_fact_not_requested(self):
         self.assertEqual(
-            spit_results.process_jboss_eap_common_dirs([], {}),
+            spit_results.process_jboss_eap_common_files([], {}),
             {})
 
     def test_not_in_host_vars(self):
-        res = spit_results.process_jboss_eap_common_dirs(
-            ['jboss.eap.common-directories'], {})
+        res = spit_results.process_jboss_eap_common_files(
+            ['jboss.eap.common-files'], {})
 
         self.assertTrue(
-            'jboss.eap.common-directories' in res and
-            res['jboss.eap.common-directories'].startswith('Error:'),
-            msg=res['jboss.eap.common-directories'])
+            'jboss.eap.common-files' in res and
+            res['jboss.eap.common-files'].startswith('Error:'),
+            msg=res['jboss.eap.common-files'])
 
     def test_three_states(self):
         self.assertEqual(
@@ -163,8 +163,8 @@ class TestProcessJbossCommonDirectories(unittest.TestCase):
                      'rc': 1},
                     {'item': 'dir3',
                      'rc': 0}]}),
-            {'jboss.eap.common-directories':
-             'Error: "test -d dir1" not run;'
+            {'jboss.eap.common-files':
+             'Error: "test -e dir1" not run;'
              'dir2 not found;'
              'dir3 found'})
 

@@ -384,19 +384,19 @@ def process_id_u_jboss(fact_names, host_vars):
             'Error: unexpected output from "id -u jboss": %s' % output}
 
 
-JBOSS_EAP_COMMON_DIRECTORIES = 'jboss.eap.common-directories'
+JBOSS_EAP_COMMON_FILES = 'jboss.eap.common-files'
 
 
-def process_jboss_eap_common_dirs(fact_names, host_vars):
-    """Process the output of 'test -d <dir>', for common install directories.
+def process_jboss_eap_common_files(fact_names, host_vars):
+    """Process the output of 'test -e <dir>', for common install paths.
 
     :returns: a dict of key, value pairs to add to the output.
     """
 
     err, output = raw_output_present(fact_names, host_vars,
-                                     'jboss.eap.common-directories',
-                                     'jboss_eap_common_directories',
-                                     'common install directory tests')
+                                     'jboss.eap.common-files',
+                                     'jboss_eap_common_files',
+                                     'common file and directory tests')
 
     if err is not None:
         return err
@@ -407,13 +407,13 @@ def process_jboss_eap_common_dirs(fact_names, host_vars):
     for item in items:
         directory = item['item']
         if 'rc' not in item:
-            out_list.append('Error: "test -d {0}" not run'.format(directory))
+            out_list.append('Error: "test -e {0}" not run'.format(directory))
         elif item['rc'] == 0:
             out_list.append('{0} found'.format(directory))
         else:
             out_list.append('{0} not found'.format(directory))
 
-    return {JBOSS_EAP_COMMON_DIRECTORIES: ';'.join(out_list)}
+    return {JBOSS_EAP_COMMON_FILES: ';'.join(out_list)}
 
 
 JBOSS_EAP_PROCESSES = 'jboss.eap.processes'
@@ -699,7 +699,7 @@ class Results(object):
             host_vals.update(process_jboss_versions(keys, host_vars))
             host_vals.update(process_addon_versions(keys, host_vars))
             host_vals.update(process_id_u_jboss(keys, host_vars))
-            host_vals.update(process_jboss_eap_common_dirs(keys, host_vars))
+            host_vals.update(process_jboss_eap_common_files(keys, host_vars))
             host_vals.update(process_jboss_eap_processes(keys, host_vars))
             host_vals.update(process_jboss_eap_packages(keys, host_vars))
 

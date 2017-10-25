@@ -159,8 +159,8 @@ new_fact('instnum.instnum', 'installation number',
 new_fact('jboss.brms.drools-core-ver', 'Drools version', is_default=False)
 new_fact('jboss.brms.kie-api-ver', 'KIE API version', is_default=False)
 new_fact('jboss.brms.kie-war-ver', 'KIE runtime version', is_default=False)
-new_fact('jboss.eap.common-directories',
-         'Presence of common directories for JBoss EAP',
+new_fact('jboss.eap.common-files',
+         'Presence of common files and directories for JBoss EAP',
          is_default=True, categories=[JBOSS_FACTS])
 new_fact('jboss.eap.deploy-dates',
          'List of deployment dates of JBoss EAP installations',
