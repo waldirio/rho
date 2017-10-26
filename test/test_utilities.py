@@ -97,6 +97,11 @@ class TestReadRanges(unittest.TestCase):
         with self.assertRaises(SystemExit):
             utilities.read_ranges(range_list)
 
+    def test_issue404(self):
+        range_list = ['10.1.1.1-10.1.1.254']
+        with self.assertRaises(SystemExit):
+            utilities.read_ranges(range_list)
+
     def test_cidr_range(self):
         range_list = ['192.168.124.0/25']
         self.assertEqual(
