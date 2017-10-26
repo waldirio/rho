@@ -1,10 +1,10 @@
 
 ---
-    - name: Gather jboss.eap.running-versions
+    - name: Gather jboss.eap.running-paths
       raw: for proc_pid in $(find /proc -maxdepth 1 -xdev -name "[0-9]*"); do ls -l ${proc_pid}/fd 2>/dev/null | grep "java"; done | grep -e "/modules/system/layers/base\|/opt/rh/eap" | sed -n "s/.*\->//p" | sed -n 's/\/modules\/system\/layers\/base.*//p;s/.*\(\/opt\/rh\/eap[1-9]\).*/\1/p' | sort -u
-      register: jboss.eap.running-versions
+      register: jboss.eap.running-paths
       ignore_errors: yes
-      when: 'have_java and "jboss.eap.running-versions" in facts_to_collect'
+      when: 'have_java and "jboss.eap.running-paths" in facts_to_collect'
     - name: check for user 'jboss'
       raw: id -u jboss
       register: jboss_eap_id_jboss

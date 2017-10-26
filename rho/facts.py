@@ -174,12 +174,27 @@ new_fact('jboss.eap.packages', 'Installed RPMs that look like JBoss',
          is_default=True, categories=[JBOSS_FACTS])
 new_fact('jboss.eap.processes', 'Running processes that look like JBoss',
          is_default=True, categories=[JBOSS_FACTS])
-new_fact('jboss.eap.running-versions', 'List of running versions of JBoss EAP',
+new_fact('jboss.eap.running-paths', 'Paths of running installs of JBoss EAP',
          is_default=True, categories=[JBOSS_FACTS])
 new_fact('jboss.fuse.activemq-ver', 'ActiveMQ version', is_default=False)
 new_fact('jboss.fuse.camel-ver', 'Camel version', is_default=False)
 new_fact('jboss.fuse.cxf-ver', 'CXF version', is_default=False)
 new_fact('redhat-packages.certs', 'the list of Red Hat certificates found',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('redhat-packages.gpg.is_redhat',
+         'determines if package is a Red Hat package filtered by GPG keys',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('redhat-packages.gpg.last_installed',
+         'last installed package filtered by GPG keys',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('redhat-packages.gpg.last_built',
+         'last built package filtered by GPG keys',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('redhat-packages.gpg.num_rh_packages',
+         'number of Red Hat packages filtered by GPG keys',
+         is_default=True, categories=[RHEL_FACTS])
+new_fact('redhat-packages.gpg.num_installed_packages',
+         'number of installed packages filtered by GPG keys',
          is_default=True, categories=[RHEL_FACTS])
 new_fact('redhat-packages.is_redhat',
          'determines if package is a Red Hat package',

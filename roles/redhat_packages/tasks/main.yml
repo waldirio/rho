@@ -24,6 +24,26 @@
   set_fact:
     gather_last_built: "{{ 'redhat-packages.last_built' in facts_to_collect }}"
 
+- name: set gather_is_redhat_gpg fact
+  set_fact:
+    gather_is_redhat_gpg: "{{ 'redhat-packages.gpg.is_redhat' in facts_to_collect }}"
+
+- name: set gather_num_rh_packages_gpg fact
+  set_fact:
+    gather_num_rh_packages_gpg: "{{ 'redhat-packages.gpg.num_rh_packages' in facts_to_collect }}"
+
+- name: set gather_num_installed_packages_gpg fact
+  set_fact:
+    gather_num_installed_packages_gpg: "{{ 'redhat-packages.gpg.num_installed_packages' in facts_to_collect }}"
+
+- name: set gather_last_installed_gpg fact
+  set_fact:
+    gather_last_installed_gpg: "{{ 'redhat-packages.gpg.last_installed' in facts_to_collect }}"
+
+- name: set gather_last_built_gpg fact
+  set_fact:
+    gather_last_built_gpg: "{{ 'redhat-packages.gpg.last_built' in facts_to_collect }}"
+
 - name: set gather_certs fact
   set_fact:
     gather_certs: "{{ 'redhat-packages.certs' in facts_to_collect }}"
@@ -31,6 +51,10 @@
 - name: set gather_redhat_packages fact
   set_fact:
     gather_redhat_packages: "{{ gather_is_redhat or gather_num_rh_packages or gather_num_installed_packages or gather_last_installed or gather_last_built }}"
+
+- name: set gather_redhat_packages_gpg fact
+  set_fact:
+    gather_redhat_packages_gpg: "{{ gather_is_redhat_gpg or gather_num_rh_packages_gpg or gather_num_installed_packages_gpg or gather_last_installed_gpg or gather_last_built_gpg }}"
 
 - name: initialize redhat-packages.is_redhat to dictionary
   set_fact:
@@ -67,11 +91,46 @@
   - 'redhat-packages.last_built'
   when: gather_last_built
 
+- name: initialize redhat-packages.gpg.is_redhat to dictionary
+  set_fact:
+    redhat_packages: "{{ redhat_packages|default({}) | combine({ item: '' }) }}"
+  with_items:
+  - 'redhat-packages.gpg.is_redhat'
+  when: gather_is_redhat_gpg
+
+- name: initialize redhat-packages.gpg.num_rh_packages to dictionary
+  set_fact:
+    redhat_packages: "{{ redhat_packages|default({}) | combine({ item: '' }) }}"
+  with_items:
+  - 'redhat-packages.gpg.num_rh_packages'
+  when: gather_num_rh_packages_gpg
+
+- name: initialize redhat-packages.gpg.num_installed_packages to dictionary
+  set_fact:
+    redhat_packages: "{{ redhat_packages|default({}) | combine({ item: '' }) }}"
+  with_items:
+  - 'redhat-packages.gpg.num_installed_packages'
+  when: gather_num_installed_packages_gpg
+
+- name: initialize redhat-packages.gpg.last_installed to dictionary
+  set_fact:
+    redhat_packages: "{{ redhat_packages|default({}) | combine({ item: '' }) }}"
+  with_items:
+  - 'redhat-packages.gpg.last_installed'
+  when: gather_last_installed_gpg
+
+- name: initialize redhat-packages.gpg.last_built to dictionary
+  set_fact:
+    redhat_packages: "{{ redhat_packages|default({}) | combine({ item: '' }) }}"
+  with_items:
+  - 'redhat-packages.gpg.last_built'
+  when: gather_last_built_gpg
+
 - name: gather redhat-packages fact data
-  raw: rpm -qa --qf "%{NAME}|%{VERSION}|%{RELEASE}|%{INSTALLTIME}|%{VENDOR}|%{BUILDTIME}|%{BUILDHOST}|%{SOURCERPM}|%{LICENSE}|%{PACKAGER}|%{INSTALLTIME:date}|%{BUILDTIME:date}\n"
+  raw: rpm -qa --qf "%{NAME}|%{VERSION}|%{RELEASE}|%{INSTALLTIME}|%{VENDOR}|%{BUILDTIME}|%{BUILDHOST}|%{SOURCERPM}|%{LICENSE}|%{PACKAGER}|%{INSTALLTIME:date}|%{BUILDTIME:date}|%{DSAHEADER:pgpsig}|%{RSAHEADER:pgpsig}|%{SIGGPG:pgpsig}|%{SIGPGP:pgpsig}|\n"
   register: redhat_packages_results
   ignore_errors: yes
-  when: have_rpm and gather_redhat_packages
+  when: have_rpm and (gather_redhat_packages or gather_redhat_packages_gpg)
 
 - name: add redhat-packages.results to dictionary
   set_fact:

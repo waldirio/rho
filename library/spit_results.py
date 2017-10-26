@@ -168,7 +168,7 @@ def safe_ansible_property(ansible_vars, fact_name, prop):
 
 JBOSS_EAP_INSTALLED_VERSIONS = 'jboss.eap.installed-versions'
 JBOSS_EAP_DEPLOY_DATES = 'jboss.eap.deploy-dates'
-JBOSS_EAP_RUNNING_VERSIONS = 'jboss.eap.running-versions'
+JBOSS_EAP_RUNNING_PATHS = 'jboss.eap.running-paths'
 
 FIND_WARNING = 'find: WARNING: Hard link count is wrong for /proc: this may' \
     ' be a bug in your filesystem driver.'
@@ -249,11 +249,11 @@ def process_jboss_versions(fact_names, host_vars):
     if JBOSS_EAP_DEPLOY_DATES in fact_names:
         val[JBOSS_EAP_DEPLOY_DATES] = (
             empty_output_message('; '.join(deploy_dates), 'jboss'))
-    if JBOSS_EAP_RUNNING_VERSIONS in fact_names:
-        val[JBOSS_EAP_RUNNING_VERSIONS] = (
+    if JBOSS_EAP_RUNNING_PATHS in fact_names:
+        val[JBOSS_EAP_RUNNING_PATHS] = (
             empty_output_message(
                 stdout_err(safe_ansible_property(host_vars,
-                                                 JBOSS_EAP_RUNNING_VERSIONS,
+                                                 JBOSS_EAP_RUNNING_PATHS,
                                                  'stdout'),
                            FIND_WARNING, GENERIC_ERROR),
                 'running jboss'))
@@ -518,6 +518,187 @@ def escape_characters(data):
     return data
 
 
+# pylint: disable=no-self-use
+def determine_pkg_facts(rh_packages):
+    """Gets the last installed and last build packages from the list
+
+    :param rh_packages: the filtered list of red hat packages
+    :returns: tuple of last installed and last built
+    """
+    last_installed = None
+    last_built = None
+    max_install_time = float("-inf")
+    max_build_time = float("-inf")
+    is_red_hat = 'Y' if rh_packages else 'N'
+
+    for pkg in rh_packages:
+        if pkg.install_time > max_install_time:
+            max_install_time = pkg.install_time
+            last_installed = pkg
+            if pkg.build_time > max_build_time:
+                max_build_time = pkg.build_time
+                last_built = pkg
+
+    last_installed_val = (last_installed.details_install()
+                          if last_installed else 'none')
+    last_built_val = (last_built.details_built() if last_built else 'none')
+    return is_red_hat, last_installed_val, last_built_val
+
+
+# pylint: disable=too-many-locals, too-many-branches, too-many-statements
+def handle_redhat_packages(facts, data):
+    """ Process the output of redhat-packages.results
+    and supply the appropriate output information
+    """
+    if 'redhat-packages.results' in data:
+        installed_packages = [PkgInfo(line, "|")
+                              for line in data['redhat-packages.results']]
+        rh_packages = list(filter(PkgInfo.is_red_hat_pkg,
+                                  installed_packages))
+
+        rh_gpg_packages = list(filter(PkgInfo.is_gpg_red_hat_pkg,
+                                      installed_packages))
+
+        rhpkg_prefix = 'redhat-packages.'
+        gpg_prefix = rhpkg_prefix + 'gpg.'
+        is_rhpkg_str = rhpkg_prefix + 'is_redhat'
+        num_rh_str = rhpkg_prefix + 'num_rh_packages'
+        installed_pkg_str = rhpkg_prefix + 'num_installed_packages'
+        last_installed_str = rhpkg_prefix + 'last_installed'
+        last_built_str = rhpkg_prefix + 'last_built'
+        gpg_is_rhpkg_str = gpg_prefix + 'is_redhat'
+        gpg_num_rh_str = gpg_prefix + 'num_rh_packages'
+        gpg_installed_pkg_str = gpg_prefix + 'num_installed_packages'
+        gpg_last_installed_str = gpg_prefix + 'last_installed'
+        gpg_last_built_str = gpg_prefix + 'last_built'
+        is_rhpkg_in_facts = is_rhpkg_str in facts
+        num_rh_in_facts = num_rh_str in facts
+        installed_pkg_in_facts = installed_pkg_str in facts
+        last_installed_in_facts = last_installed_str in facts
+        last_built_in_facts = last_built_str in facts
+        gpg_is_rhpkg_in_facts = gpg_is_rhpkg_str in facts
+        gpg_num_rh_in_facts = gpg_num_rh_str in facts
+        gpg_installed_pkg_in_facts = gpg_installed_pkg_str in facts
+        gpg_last_installed_in_facts = gpg_last_installed_str in facts
+        gpg_last_built_in_facts = gpg_last_built_str in facts
+
+        if installed_pkg_in_facts:
+            data[installed_pkg_str] = (len(installed_packages))
+        if num_rh_in_facts:
+            data[num_rh_str] = len(rh_packages)
+        if gpg_installed_pkg_in_facts:
+            data[gpg_installed_pkg_str] = (len(installed_packages))
+        if gpg_num_rh_in_facts:
+            data[gpg_num_rh_str] = len(rh_gpg_packages)
+
+        if rh_packages:
+            is_red_hat, last_installed, last_built = \
+                determine_pkg_facts(rh_packages)
+            if is_rhpkg_in_facts:
+                data[is_rhpkg_str] = is_red_hat
+            if last_installed_in_facts:
+                data[last_installed_str] = last_installed
+            if last_built_in_facts:
+                data[last_built_str] = last_built
+
+        if rh_gpg_packages:
+            is_red_hat, last_installed, last_built = \
+                determine_pkg_facts(rh_gpg_packages)
+            if gpg_is_rhpkg_in_facts:
+                data[gpg_is_rhpkg_str] = is_red_hat
+            if gpg_last_installed_in_facts:
+                data[gpg_last_installed_str] = last_installed
+            if gpg_last_built_in_facts:
+                data[gpg_last_built_str] = last_built
+
+        del data['redhat-packages.results']
+    return data
+
+
+# pylint: disable=too-many-instance-attributes
+class PkgInfo(object):
+    """This is an inner class for RedhatPackagesRhoCmd
+    class and provides functionality to parse the
+    results of running the (only) command string
+    named 'get_package_info'. This is purely to
+    make the parsing cleaner and understandable.
+    """
+    RED_HAT_KEYS = ('199e2f91fd431d51', '5326810137017186',
+                    '45689c882fa658e0', '219180cddb42a60e',
+                    '7514f77d8366b0d9', '45689c882fa658e0')
+
+    def __init__(self, row, separator):
+        cols = row.split(separator)
+        if len(cols) < 14:
+            raise PkgInfoParseException()
+        else:
+            self.name = cols[0]
+            self.version = cols[1]
+            self.release = cols[2]
+            self.install_time = long(cols[3])
+            self.vendor = cols[4]
+            self.build_time = long(cols[5])
+            self.build_host = cols[6]
+            self.source_rpm = cols[7]
+            self.license = cols[8]
+            self.packager = cols[9]
+            self.install_date = cols[10]
+            self.build_date = cols[11]
+            self.is_red_hat = False
+            if ('redhat.com' in self.build_host and
+                    'fedora' not in self.build_host and
+                    'rhndev' not in self.build_host):
+                self.is_red_hat = True
+            gpgkeys = (cols[12], cols[13], cols[14], cols[15])
+            self.is_red_hat_gpg = False
+            for known_key in self.RED_HAT_KEYS:
+                for rpm_gpg_key in gpgkeys:
+                    if known_key in rpm_gpg_key:
+                        self.is_red_hat_gpg = True
+                        break
+                if self.is_red_hat_gpg:
+                    break
+
+            # Helper methods to help with recording data in
+            # requested fields.
+
+    def is_red_hat_pkg(self):
+        """Determines if package is a Red Hat package.
+        :returns: True if Red Hat, False otherwise
+        """
+        return self.is_red_hat
+
+    def is_gpg_red_hat_pkg(self):
+        """Determines if package is a Red Hat package with known GPG key.
+        :returns: True if Red Hat, False otherwise
+        """
+        return self.is_red_hat and self.is_red_hat_gpg
+
+    def details_built(self):
+        """Provides information on when the package was built
+        :returns: String including details and build date
+        """
+        return "%s Built: %s" % (self.details(), self.build_date)
+
+    def details_install(self):
+        """Provides information on when the package was installed.
+        :returns: String including installation date
+        """
+        return "%s Installed: %s" % (self.details(), self.install_date)
+
+    def details(self):
+        """Provides package details including name, version and release.
+        :returns: String including name, version and release
+        """
+        return "%s-%s-%s" % (self.name, self.version, self.release)
+
+
+class PkgInfoParseException(BaseException):
+    """Defining an exception for failing to parse package information
+    """
+    pass
+
+
 class Results(object):
     """The class Results contains the functionality to parse
     data passed in from the playbook and to output it in the
@@ -531,71 +712,6 @@ class Results(object):
         self.vals = module.params['vals']
         self.all_vars = module.params['all_vars']
         self.fact_names = module.params['fact_names']
-
-    # pylint: disable=too-many-instance-attributes
-    class PkgInfo(object):
-        """This is an inner class for RedhatPackagesRhoCmd
-        class and provides functionality to parse the
-        results of running the (only) command string
-        named 'get_package_info'. This is purely to
-        make the parsing cleaner and understandable.
-        """
-
-        def __init__(self, outer, row, separator):
-            self.outer = outer
-            cols = row.split(separator)
-            if len(cols) < 10:
-                raise outer.PkgInfoParseException()
-            else:
-                self.name = cols[0]
-                self.version = cols[1]
-                self.release = cols[2]
-                self.install_time = long(cols[3])
-                self.vendor = cols[4]
-                self.build_time = long(cols[5])
-                self.build_host = cols[6]
-                self.source_rpm = cols[7]
-                self.license = cols[8]
-                self.packager = cols[9]
-                self.install_date = cols[10]
-                self.build_date = cols[11]
-                self.is_red_hat = False
-                if ('redhat.com' in self.build_host and
-                        'fedora' not in self.build_host and
-                        'rhndev' not in self.build_host):
-                    self.is_red_hat = True
-
-                # Helper methods to help with recording data in
-                # requested fields.
-
-        def is_red_hat_pkg(self):
-            """Determines if package is a Red Hat package.
-            :returns: True if Red Hat, False otherwise
-            """
-            return self.is_red_hat
-
-        def details_built(self):
-            """Provides information on when the package was built
-            :returns: String including details and build date
-            """
-            return "%s Built: %s" % (self.details(), self.build_date)
-
-        def details_install(self):
-            """Provides information on when the package was installed.
-            :returns: String including installation date
-            """
-            return "%s Installed: %s" % (self.details(), self.install_date)
-
-        def details(self):
-            """Provides package details including name, version and release.
-            :returns: String including name, version and release
-            """
-            return "%s-%s-%s" % (self.name, self.version, self.release)
-
-    class PkgInfoParseException(BaseException):
-        """Defining an exception for failing to parse package information
-        """
-        pass
 
     def handle_systemid(self, data):
         """Process the output of systemid.contents
@@ -618,68 +734,6 @@ class Results(object):
                     data['systemid.username'] = 'error'
 
             del data['systemid.contents']
-        return data
-
-    # pylint: disable=too-many-locals, too-many-branches
-    def handle_redhat_packages(self, data):
-        """ Process the output of redhat-packages.results
-        and supply the appropriate output information
-        """
-        if 'redhat-packages.results' in data:
-            installed_packages = [self.PkgInfo(self, line, "|")
-                                  for line in
-                                  data['redhat-packages.results']]
-            rh_packages = list(filter(self.PkgInfo.is_red_hat_pkg,
-                                      installed_packages))
-
-            rhpkg_prefix = 'redhat-packages.'
-            is_rhpkg_str = rhpkg_prefix + 'is_redhat'
-            num_rh_str = rhpkg_prefix + 'num_rh_packages'
-            installed_pkg_str = rhpkg_prefix + 'num_installed_packages'
-            last_installed_str = rhpkg_prefix + 'last_installed'
-            last_built_str = rhpkg_prefix + 'last_built'
-            is_rhpkg_in_facts = is_rhpkg_str in self.fact_names
-            num_rh_in_facts = num_rh_str in self.fact_names
-            installed_pkg_in_facts = installed_pkg_str in self.fact_names
-            last_installed_in_facts = last_installed_str in self.fact_names
-            last_built_in_facts = last_built_str in self.fact_names
-
-            if rh_packages:
-                last_installed = None
-                last_built = None
-                max_install_time = float("-inf")
-                max_build_time = float("-inf")
-                for pkg in rh_packages:
-                    if pkg.install_time > max_install_time:
-                        max_install_time = pkg.install_time
-                        last_installed = pkg
-                    if pkg.build_time > max_build_time:
-                        max_build_time = pkg.build_time
-                        last_built = pkg
-
-                is_red_hat = "Y" if rh_packages else "N"
-
-                if is_rhpkg_in_facts:
-                    data['redhat-packages.is_redhat'] = is_red_hat
-                if num_rh_in_facts:
-                    data['redhat-packages.num_rh_packages'] = len(rh_packages)
-                if installed_pkg_in_facts:
-                    data['redhat-packages.num_installed_packages'] = (
-                        len(installed_packages))
-                if last_installed_in_facts:
-                    data['redhat-packages.last_installed'] = (
-                        last_installed.details_install()
-                        if last_installed else 'none')
-                if last_built_in_facts:
-                    data['redhat-packages.last_built'] = (
-                        last_built.details_built() if last_built else 'none')
-            else:
-                if num_rh_in_facts:
-                    data['redhat-packages.num_rh_packages'] = len(rh_packages)
-                if installed_pkg_in_facts:
-                    data['redhat-packages.num_installed_packages'] \
-                        = len(installed_packages)
-            del data['redhat-packages.results']
         return data
 
     def write_to_csv(self):
@@ -706,7 +760,7 @@ class Results(object):
         # Process System ID.
         for data in self.vals:
             data = self.handle_systemid(data)
-            data = self.handle_redhat_packages(data)
+            data = handle_redhat_packages(self.fact_names, data)
             data = escape_characters(data)
 
         normalized_path = os.path.normpath(self.file_path)

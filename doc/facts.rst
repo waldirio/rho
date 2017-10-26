@@ -33,11 +33,16 @@
 - ``jboss.eap.jboss-user`` - Whether a user called 'jboss' exists
 - ``jboss.eap.packages`` - Installed RPMs that look like JBoss
 - ``jboss.eap.processes`` - Running processes that look like JBoss
-- ``jboss.eap.running-versions`` - List of running versions of JBoss EAP
+- ``jboss.eap.running-paths`` - Paths of running installs of JBoss EAP
 - ``jboss.fuse.activemq-ver`` - ActiveMQ version
 - ``jboss.fuse.camel-ver`` - Camel version
 - ``jboss.fuse.cxf-ver`` - CXF version
 - ``redhat-packages.certs`` - the list of Red Hat certificates found
+- ``redhat-packages.gpg.is_redhat`` - determines if package is a Red Hat package filtered by GPG keys
+- ``redhat-packages.gpg.last_installed`` - last installed package filtered by GPG keys
+- ``redhat-packages.gpg.last_built`` - last built package filtered by GPG keys
+- ``redhat-packages.gpg.num_rh_packages`` - number of Red Hat packages filtered by GPG keys
+- ``redhat-packages.gpg.num_installed_packages`` - number of installed packages filtered by GPG keys
 - ``redhat-packages.is_redhat`` - determines if package is a Red Hat package
 - ``redhat-packages.last_installed`` - last installed package
 - ``redhat-packages.last_built`` - last built package
