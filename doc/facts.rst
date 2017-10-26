@@ -33,7 +33,7 @@
 - ``jboss.eap.jboss-user`` - Whether a user called 'jboss' exists
 - ``jboss.eap.packages`` - Installed RPMs that look like JBoss
 - ``jboss.eap.processes`` - Running processes that look like JBoss
-- ``jboss.eap.running-versions`` - List of running versions of JBoss EAP
+- ``jboss.eap.running-paths`` - Paths of running installs of JBoss EAP
 - ``jboss.fuse.activemq-ver`` - ActiveMQ version
 - ``jboss.fuse.camel-ver`` - Camel version
 - ``jboss.fuse.cxf-ver`` - CXF version
