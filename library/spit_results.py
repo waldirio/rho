@@ -168,7 +168,7 @@ def safe_ansible_property(ansible_vars, fact_name, prop):
 
 JBOSS_EAP_INSTALLED_VERSIONS = 'jboss.eap.installed-versions'
 JBOSS_EAP_DEPLOY_DATES = 'jboss.eap.deploy-dates'
-JBOSS_EAP_RUNNING_VERSIONS = 'jboss.eap.running-versions'
+JBOSS_EAP_RUNNING_PATHS = 'jboss.eap.running-paths'
 
 FIND_WARNING = 'find: WARNING: Hard link count is wrong for /proc: this may' \
     ' be a bug in your filesystem driver.'
@@ -249,11 +249,11 @@ def process_jboss_versions(fact_names, host_vars):
     if JBOSS_EAP_DEPLOY_DATES in fact_names:
         val[JBOSS_EAP_DEPLOY_DATES] = (
             empty_output_message('; '.join(deploy_dates), 'jboss'))
-    if JBOSS_EAP_RUNNING_VERSIONS in fact_names:
-        val[JBOSS_EAP_RUNNING_VERSIONS] = (
+    if JBOSS_EAP_RUNNING_PATHS in fact_names:
+        val[JBOSS_EAP_RUNNING_PATHS] = (
             empty_output_message(
                 stdout_err(safe_ansible_property(host_vars,
-                                                 JBOSS_EAP_RUNNING_VERSIONS,
+                                                 JBOSS_EAP_RUNNING_PATHS,
                                                  'stdout'),
                            FIND_WARNING, GENERIC_ERROR),
                 'running jboss'))
