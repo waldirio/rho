@@ -157,27 +157,29 @@ If the scan user uses a password to sudo, one can be given with the
 commands. The sudo-with-password fundtionality can be tested by using
 the 'askpass' box in the Vagrantfile.
 
-JBoss-EAP and -Scan Variants
-----------------------------
+JBoss Lightweight and Heavyweight Scans
+---------------------------------------
 
-The JBoss EAP facts are divided into two groups. Rho scans for the
-following facts by default:
+The JBoss facts come in two kinds. Some facts attempt to detect JBoss
+by looking at the running process table, or at a small list of common
+installation paths. These facts are run in rho by default, and can be
+selected using `--facts jboss`. They are called the "lightweight
+scan".
 
-  - jboss.eap.running-versions
+The other set of facts uses `find` to search the entire filesystem on
+the machine being scanned. These are more thorough, because they can
+find an EAP installation even if it is in an unusual location and not
+running, but they also require much more I/O and computation on the
+scanned machine. These are called the "heavyweight scan". They are not
+run by default, but can be selected with `--facts all`. There is a
+danger that the heavyweight scan could interfere with a user
+application running on the scanned machine, especially if that
+application uses a lot of CPU or does a lot of I/O.
 
-The following facts are available, but Rho will only scan for them if
-requested using the `--facts` option:
-
-  - jboss.eap.installed-versions
-  - jboss.eap.deploy-dates
-
-The `installed-versions` and `deploy-dates` facts are computed by
-scanning the entire host filesystem with the `find` command. This can
-take a large amount of system resources and could potentially have a
-noticeable impact on the performance of running servers. The default
-facts are a good way to get clues about which systems might have JBoss
-installed before performing a resource-intensive scan, or even
-removing the need for a scan entirely.
+The distinction is meant to allow a tradeoff between performance and
+completeness. A reasonable approach would be to run the lightweight
+scan first, see if the results make sense, and decide whether to run
+the heavyweight scan on a host-by-host basis.
 
 Programs on Remote Machines
 ---------------------------
