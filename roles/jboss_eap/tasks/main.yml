@@ -10,9 +10,9 @@
       register: jboss_eap_id_jboss
       ignore_errors: yes
       when: '"jboss.eap.jboss-user" in facts_to_collect'
-    - name: check for common install directories
-      raw: test -d "{{ item }}"
-      register: jboss_eap_common_directories
+    - name: check for common install files and directories
+      raw: test -e "{{ item }}"
+      register: jboss_eap_common_files
       ignore_errors: yes
       with_items:
         - /app/jboss
@@ -30,7 +30,10 @@
         - /usr/log/jboss-as
         - /usr/share/jbossas
         - /var/log/jboss-as
-      when: '"jboss.eap.common-directories" in facts_to_collect'
+        - /opt/deploy/jboss/jbossas6/jboss-modules.jar
+        - /usr/share/java/jboss-modules.jar
+        - /usr/share/jbossas/jboss-modules.jar
+      when: '"jboss.eap.common-files" in facts_to_collect'
     - name: gather jboss.eap.processes
       raw: ps -A -f e | grep eap
       register: jboss.eap.processes

@@ -27,7 +27,7 @@
 - ``jboss.brms.drools-core-ver`` - Drools version
 - ``jboss.brms.kie-api-ver`` - KIE API version
 - ``jboss.brms.kie-war-ver`` - KIE runtime version
-- ``jboss.eap.common-directories`` - Presence of common directories for JBoss EAP
+- ``jboss.eap.common-files`` - Presence of common files and directories for JBoss EAP
 - ``jboss.eap.deploy-dates`` - List of deployment dates of JBoss EAP installations
 - ``jboss.eap.installed-versions`` - List of installed versions of JBoss EAP
 - ``jboss.eap.jboss-user`` - Whether a user called 'jboss' exists
