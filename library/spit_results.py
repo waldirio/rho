@@ -138,175 +138,6 @@ def safe_next(iterator):
     return next(iterator)
 
 
-def safe_ansible_property(ansible_vars, fact_name, prop):
-    """Get a property of the JSON output of an Ansible raw task.
-
-    Handles missing and skipped tasks safely.
-
-    Usage:
-      output = safe_ansible_property(ansible_vars,
-                                     'jboss.eap.jar-ver',
-                                     'stdout')
-      if output:
-        further_processing(output)
-
-    :param ansible_vars: the raw vars dictionary from Ansible.
-    :param fact_name: the fact to retrieve.
-    :param prop: the property to return.
-    :returns: the property, or None if not available.
-    """
-
-    if fact_name not in ansible_vars:
-        return 'error (fact not found)'
-
-    output = ansible_vars[fact_name]
-    if 'skipped' in output and output['skipped'] is True:
-        return 'error (fact was skipped)'
-
-    return output[prop]
-
-
-JBOSS_EAP_INSTALLED_VERSIONS = 'jboss.eap.installed-versions'
-JBOSS_EAP_DEPLOY_DATES = 'jboss.eap.deploy-dates'
-JBOSS_EAP_RUNNING_PATHS = 'jboss.eap.running-paths'
-
-FIND_WARNING = 'find: WARNING: Hard link count is wrong for /proc: this may' \
-    ' be a bug in your filesystem driver.'
-GENERIC_ERROR = 'error'
-
-
-# JBoss versions are processed separately from other *-ver data
-# because they merge data from two input facts and include deploy
-# dates as well as version strings.
-def process_jboss_versions(fact_names, host_vars):
-    """Get JBoss version information from the host_vars.
-
-    :param fact_names: the set of fact names the user requested.
-    :param host_vars: the host vars from Ansible.
-    :returns: a dict of key-value pairs to output.
-    """
-
-    lines = []
-    val = {}
-
-    # host_vars is not used after this function (data that we return
-    # is copied to host_vals instead), so by not adding
-    # jboss.eap.jar_ver and jboss.eap.run_jar_ver to val, we are
-    # implicitly removing them from the output.
-    lines.extend(safe_ansible_property(host_vars,
-                                       'jboss.eap.jar-ver',
-                                       'stdout_lines') or [])
-    lines.extend(safe_ansible_property(host_vars,
-                                       'jboss.eap.run-jar-ver',
-                                       'stdout_lines') or [])
-
-    jboss_releases = []
-    deploy_dates = []
-    for line in lines:
-        if line:
-            line_format = line.split('**')
-            version = line_format[0]
-            deploy_date = line_format[-1]
-            deploy_dates.append(deploy_date)
-            if version in EAP_CLASSIFICATIONS:
-                jboss_releases.append(EAP_CLASSIFICATIONS[version])
-            elif version.strip():
-                jboss_releases.append('Unknown-Release: ' + version)
-
-    def stdout_err(val, err_msg, replace):
-        """Look for know warnings/errors that aren't triggering failures for
-        the running command and replace with a more friendly message
-
-        :param val: The input message to check
-        :param err_msg: the message to check for
-        :param replace: the replace message
-        :returns: the appropriate message
-        """
-        # pylint: disable=len-as-condition
-        if len(val) > 0 and val.find(err_msg) > 0:
-            return replace
-        return val
-
-    def empty_output_message(val, name):
-        """Give the right error message for missing data.
-
-        For data that depends on having Java.
-
-        :param val: a value. Considered missing if falsey.
-        :param name: the thing we were searching for.
-        :returns: the val if true, otherwise a useful error message.
-        """
-
-        if val:
-            return val
-        if not host_vars['have_java']:
-            return 'N/A (java not found)'
-        return '({0} not found)'.format(name)
-
-    if JBOSS_EAP_INSTALLED_VERSIONS in fact_names:
-        val[JBOSS_EAP_INSTALLED_VERSIONS] = (
-            empty_output_message('; '.join(jboss_releases), 'jboss'))
-    if JBOSS_EAP_DEPLOY_DATES in fact_names:
-        val[JBOSS_EAP_DEPLOY_DATES] = (
-            empty_output_message('; '.join(deploy_dates), 'jboss'))
-    if JBOSS_EAP_RUNNING_PATHS in fact_names:
-        val[JBOSS_EAP_RUNNING_PATHS] = (
-            empty_output_message(
-                stdout_err(safe_ansible_property(host_vars,
-                                                 JBOSS_EAP_RUNNING_PATHS,
-                                                 'stdout'),
-                           FIND_WARNING, GENERIC_ERROR),
-                'running jboss'))
-
-    return val
-
-
-def classify_releases(lines, classifications):
-    """Classify release strings using a dictionary."""
-
-    releases = []
-    for line in lines:
-        if line:
-            if line in classifications:
-                releases.append(classifications[line])
-            else:
-                releases.append('Unknown-Release: ' + line)
-
-    return '; '.join(releases)
-
-
-def process_addon_versions(fact_names, host_vars):
-    """Classify release strings for JBoss BRMS and FUSE.
-
-    :param fact_names: the set of fact names that the user requested.
-    :param host_vars: the host vars from Ansible.
-    :returns: a dict of key-value pairs to output.
-    """
-
-    result = {}
-
-    def classify(key, fact_names, classifications):
-        """Classify a particular key."""
-
-        if key in fact_names:
-            lines = safe_ansible_property(host_vars, key, 'stdout_lines') or []
-            classes = classify_releases(lines, classifications)
-            if classes:
-                result[key] = classes
-            else:
-                result[key] = '({0} not found)'.format(key)
-
-    classify('jboss.brms.kie-api-ver', fact_names, BRMS_CLASSIFICATIONS)
-    classify('jboss.brms.drools-core-ver', fact_names, BRMS_CLASSIFICATIONS)
-    classify('jboss.brms.kie-war-ver', fact_names, BRMS_CLASSIFICATIONS)
-
-    classify('jboss.fuse.activemq-ver', fact_names, FUSE_CLASSIFICATIONS)
-    classify('jboss.fuse.camel-ver', fact_names, FUSE_CLASSIFICATIONS)
-    classify('jboss.fuse.cxf-ver', fact_names, FUSE_CLASSIFICATIONS)
-
-    return result
-
-
 def raw_output_present(fact_names, host_vars, this_fact, this_var, command):
     """Basic sanity checks for processing an Ansible raw command.
 
@@ -347,6 +178,152 @@ def raw_output_present(fact_names, host_vars, this_fact, this_var, command):
             None)
 
     return None, raw_output
+
+
+JBOSS_EAP_INSTALLED_VERSIONS = 'jboss.eap.installed-versions'
+JBOSS_EAP_DEPLOY_DATES = 'jboss.eap.deploy-dates'
+JBOSS_EAP_RUNNING_PATHS = 'jboss.eap.running-paths'
+
+FIND_WARNING = 'find: WARNING: Hard link count is wrong for /proc: this may' \
+    ' be a bug in your filesystem driver.'
+GENERIC_ERROR = 'error'
+
+
+# JBoss versions are processed separately from other *-ver data
+# because they merge data from two input facts and include deploy
+# dates as well as version strings.
+def process_jboss_versions(fact_names, host_vars):
+    """Get JBoss version information from the host_vars.
+
+    :param fact_names: the set of fact names the user requested.
+    :param host_vars: the host vars from Ansible.
+    :returns: a dict of key-value pairs to output.
+    """
+
+    lines = []
+    val = {}
+
+    # host_vars is not used after this function (data that we return
+    # is copied to host_vals instead), so by not adding
+    # jboss.eap.jar_ver and jboss.eap.run_jar_ver to val, we are
+    # implicitly removing them from the output.
+    err, output = raw_output_present(fact_names, host_vars,
+                                     'jboss.eap.jar-ver',
+                                     'jboss.eap.jar-ver',
+                                     'scan for jboss-modules.jar')
+    if err is not None:
+        return err
+    lines.extend(output['stdout_lines'])
+
+    err, output = raw_output_present(fact_names, host_vars,
+                                     'jboss.eap.run-jar-ver',
+                                     'jboss.eap.run-jar-ver',
+                                     'scan for running JBoss EAP')
+    if err is not None:
+        return err
+    lines.extend(output['stdout_lines'])
+
+    jboss_releases = []
+    deploy_dates = []
+    for line in lines:
+        if line:
+            line_format = line.split('**')
+            version = line_format[0]
+            deploy_date = line_format[-1]
+            deploy_dates.append(deploy_date)
+            if version in EAP_CLASSIFICATIONS:
+                jboss_releases.append(EAP_CLASSIFICATIONS[version])
+            elif version.strip():
+                jboss_releases.append('Unknown-Release: ' + version)
+
+    def empty_output_message(val, name):
+        """Give the right error message for missing data.
+
+        For data that depends on having Java.
+
+        :param val: a value. Considered missing if falsey.
+        :param name: the thing we were searching for.
+        :returns: the val if true, otherwise a useful error message.
+        """
+
+        if val:
+            return val
+        if not host_vars['have_java']:
+            return 'N/A (java not found)'
+        return '({0} not found)'.format(name)
+
+    if JBOSS_EAP_INSTALLED_VERSIONS in fact_names:
+        val[JBOSS_EAP_INSTALLED_VERSIONS] = (
+            empty_output_message('; '.join(jboss_releases), 'jboss'))
+    if JBOSS_EAP_DEPLOY_DATES in fact_names:
+        val[JBOSS_EAP_DEPLOY_DATES] = (
+            empty_output_message('; '.join(deploy_dates), 'jboss'))
+    if JBOSS_EAP_RUNNING_PATHS in fact_names:
+        err, output = raw_output_present(fact_names, host_vars,
+                                         JBOSS_EAP_RUNNING_PATHS,
+                                         JBOSS_EAP_RUNNING_PATHS,
+                                         'running EAP scan')
+        if err is not None:
+            val.update(err)
+        elif FIND_WARNING in output['stdout']:
+            val[JBOSS_EAP_RUNNING_PATHS] = GENERIC_ERROR
+        else:
+            val[JBOSS_EAP_RUNNING_PATHS] = empty_output_message(
+                output['stdout'], 'running EAP scan')
+
+    return val
+
+
+def classify_releases(lines, classifications):
+    """Classify release strings using a dictionary."""
+
+    releases = []
+    for line in lines:
+        if line:
+            if line in classifications:
+                releases.append(classifications[line])
+            else:
+                releases.append('Unknown-Release: ' + line)
+
+    return '; '.join(releases)
+
+
+def process_addon_versions(fact_names, host_vars):
+    """Classify release strings for JBoss BRMS and FUSE.
+
+    :param fact_names: the set of fact names that the user requested.
+    :param host_vars: the host vars from Ansible.
+    :returns: a dict of key-value pairs to output.
+    """
+
+    result = {}
+
+    def classify(key, fact_names, classifications):
+        """Classify a particular key."""
+
+        if key in fact_names:
+            err, output = raw_output_present(fact_names, host_vars,
+                                             key, key, key)
+            if err is not None:
+                result.update(err)
+                return
+
+            classes = classify_releases(output['stdout_lines'],
+                                        classifications)
+            if classes:
+                result[key] = classes
+            else:
+                result[key] = '({0} not found)'.format(key)
+
+    classify('jboss.brms.kie-api-ver', fact_names, BRMS_CLASSIFICATIONS)
+    classify('jboss.brms.drools-core-ver', fact_names, BRMS_CLASSIFICATIONS)
+    classify('jboss.brms.kie-war-ver', fact_names, BRMS_CLASSIFICATIONS)
+
+    classify('jboss.fuse.activemq-ver', fact_names, FUSE_CLASSIFICATIONS)
+    classify('jboss.fuse.camel-ver', fact_names, FUSE_CLASSIFICATIONS)
+    classify('jboss.fuse.cxf-ver', fact_names, FUSE_CLASSIFICATIONS)
+
+    return result
 
 
 JBOSS_EAP_JBOSS_USER = 'jboss.eap.jboss-user'
