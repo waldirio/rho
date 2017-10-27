@@ -383,14 +383,19 @@ def process_jboss_eap_common_files(fact_names, host_vars):
     out_list = []
     for item in items:
         directory = item['item']
-        if 'rc' not in item:
-            out_list.append('Error: "test -e {0}" not run'.format(directory))
-        elif item['rc'] == 0:
-            out_list.append('{0} found'.format(directory))
-        else:
-            out_list.append('{0} not found'.format(directory))
 
-    return {JBOSS_EAP_COMMON_FILES: ';'.join(out_list)}
+        if 'rc' in item and item['rc'] == 0:
+            out_list.append(directory)
+
+        # If 'rc' is in item but is nonzero, the directory wasn't
+        # present. If 'rc' isn't in item, there was an error and the
+        # test wasn't run. Unfortunately, we don't have the ability to
+        # get logs out of spit_results, so we'll have to hope the
+        # scan_log is enough to debug any problems we have. :(
+
+    return {JBOSS_EAP_COMMON_FILES:
+            ';'.join(('{0} found'.format(directory)
+                      for directory in out_list))}
 
 
 JBOSS_EAP_PROCESSES = 'jboss.eap.processes'
