@@ -135,8 +135,6 @@ class TestProcessJbossCommonFiles(unittest.TestCase):
                     {'item': 'dir3',
                      'rc': 0}]}),
             {'jboss.eap.common-files':
-             'Error: "test -e dir1" not run;'
-             'dir2 not found;'
              'dir3 found'})
 
 
