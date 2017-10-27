@@ -144,11 +144,17 @@
 
 - name: gather etc_release data based on redhat_release_found_release
   set_fact: etc_release_name="{{ redhat_release_found_release['stdout_lines'][0].split('release')[0] }}"
-  when: '"etc_release.name" in facts_to_collect and redhat_release_found["stdout_lines"][0] == "Y"'
+  when:
+    - '"etc_release.name" in facts_to_collect'
+    - 'redhat_release_found["stdout_lines"][0] == "Y"'
+    - '"release" in redhat_release_found_release["stdout_lines"][0]'
 
 - name: gather etc_release.version based on redhat_release_found_release
   set_fact: etc_release_version="{{ redhat_release_found_release['stdout_lines'][0].split('release')[1] }}"
-  when: '"etc_release.version" in facts_to_collect and redhat_release_found["stdout_lines"][0] == "Y"'
+  when:
+    - '"etc_release.version" in facts_to_collect'
+    - 'redhat_release_found["stdout_lines"][0] == "Y"'
+    - '"release" in redhat_release_found_release["stdout_lines"][0]'
 
 - name: gather etc_release.release based on redhat_release_found_release
   set_fact: etc_release_release="{{ redhat_release_found_release['stdout_lines'][0] }}"
@@ -162,11 +168,17 @@
 
 - name: gather etc_release.name based on etc_release_found
   set_fact: etc_release_name="{{ etc_release_found_release['stdout_lines'][0].split('release')[0] }}"
-  when: '"etc_release.name" in facts_to_collect and etc_release_found["stdout_lines"][0] == "Y"'
+  when:
+    - '"etc_release.name" in facts_to_collect'
+    - 'etc_release_found["stdout_lines"][0] == "Y"'
+    - '"release" in etc_release_found_release["stdout_lines"][0]'
 
 - name: gather etc_release.version based on etc_release_found
   set_fact: etc_release_version="{{ etc_release_found_release['stdout_lines'][0].split('release')[1] }}"
-  when: '"etc_release.version" in facts_to_collect and etc_release_found["stdout_lines"][0] == "Y"'
+  when:
+    - '"etc_release.version" in facts_to_collect'
+    - 'etc_release_found["stdout_lines"][0] == "Y"'
+    - '"release" in etc_release_found_release["stdout_lines"][0]'
 
 - name: gather etc_release.release based on etc_release_found
   set_fact: etc_release_release="{{ etc_release_found_release['stdout_lines'][0] }}"
@@ -180,11 +192,17 @@
 
 - name: gather etc_release.name based on SuSE_release_found
   set_fact: etc_release_name="{{ SuSE_release_found_release['stdout_lines'][0].split('release')[0] }}"
-  when: '"etc_release.name" in facts_to_collect and SuSE_release_found["stdout_lines"][0] == "Y"'
+  when:
+    - '"etc_release.name" in facts_to_collect'
+    - 'SuSE_release_found["stdout_lines"][0] == "Y"'
+    - '"release" in SuSE_release_found_release["stdout_lines"][0]'
 
 - name: gather etc_release.version based on SuSE_release_found
   set_fact: etc_release_version="{{ SuSE_release_found_release['stdout_lines'][0].split('release')[1] }}"
-  when: '"etc_release.version" in facts_to_collect and SuSE_release_found["stdout_lines"][0] == "Y"'
+  when:
+    - '"etc_release.version" in facts_to_collect'
+    - 'SuSE_release_found["stdout_lines"][0] == "Y"'
+    - '"release" in SuSE_release_found_release["stdout_lines"][0]'
 
 - name: gather etc_release.release based on SuSE_release_found
   set_fact: etc_release_release="{{ SuSE_release_found_release['stdout_lines'][0] }}"
@@ -198,11 +216,17 @@
 
 - name: gather etc_release.name based on mandriva_release_found
   set_fact: etc_release_name="{{ mandriva_release_found_release['stdout_lines'][0].split('release')[0] }}"
-  when: '"etc_release.name" in facts_to_collect and mandriva_release_found["stdout_lines"][0] == "Y"'
+  when:
+    - '"etc_release.name" in facts_to_collect'
+    - 'mandriva_release_found["stdout_lines"][0] == "Y"'
+    - '"release" in mandriva_release_found_release["stdout_lines"][0]'
 
 - name: gather etc_release.version based on mandriva_release_found
   set_fact: etc_release_version="{{ mandriva_release_found_release['stdout_lines'][0].split('release')[1] }}"
-  when: '"etc_release.version" in facts_to_collect and mandriva_release_found["stdout_lines"][0] == "Y"'
+  when:
+    - '"etc_release.version" in facts_to_collect'
+    - 'mandriva_release_found["stdout_lines"][0] == "Y"'
+    - '"release" in mandriva_release_found_release["stdout_lines"][0]'
 
 - name: gather etc_release.release based on mandriva_release_found
   set_fact: etc_release_release="{{ mandriva_release_found_release['stdout_lines'][0] }}"
@@ -216,11 +240,17 @@
 
 - name: gather etc_release.name based on enterprise_release_found
   set_fact: etc_release_name="{{ enterprise_release_found_release['stdout_lines'][0].split('release')[0] }}"
-  when: '"etc_release.name" in facts_to_collect and enterprise_release_found["stdout_lines"][0] == "Y"'
+  when:
+    - '"etc_release.name" in facts_to_collect'
+    - 'enterprise_release_found["stdout_lines"][0] == "Y"'
+    - '"release" in enterprise_release_found_release["stdout_lines"][0]'
 
 - name: gather etc_release.version based on enterprise_release_found
   set_fact: etc_release_version="{{ enterprise_release_found_release['stdout_lines'][0].split('release')[1] }}"
-  when: '"etc_release.version" in facts_to_collect and enterprise_release_found["stdout_lines"][0] == "Y"'
+  when:
+    - '"etc_release.version" in facts_to_collect'
+    - 'enterprise_release_found["stdout_lines"][0] == "Y"'
+    - '"release" in enterprise_release_found_release["stdout_lines"][0]'
 
 - name: gather etc_release.release based on enterprise_release_found
   set_fact: etc_release_release="{{ enterprise_release_found_release['stdout_lines'][0] }}"
@@ -234,11 +264,17 @@
 
 - name: gather etc_release.name based on sun_release_found
   set_fact: etc_release_name="{{ sun_release_found_release['stdout_lines'][0].split('release')[0] }}"
-  when: '"etc_release.name" in facts_to_collect and sun_release_found["stdout_lines"][0] == "Y"'
+  when:
+    - '"etc_release.name" in facts_to_collect'
+    - 'sun_release_found["stdout_lines"][0] == "Y"'
+    - '"release" in sun_release_found_release["stdout_lines"][0]'
 
 - name: gather etc_release.version based on sun_release_found
   set_fact: etc_release_version="{{ sun_release_found_release['stdout_lines'][0].split('release')[1] }}"
-  when: '"etc_release.version" in facts_to_collect and sun_release_found["stdout_lines"][0] == "Y"'
+  when:
+    - '"etc_release.version" in facts_to_collect'
+    - 'sun_release_found["stdout_lines"][0] == "Y"'
+    - '"release" in sun_release_found_release["stdout_lines"][0]'
 
 - name: gather etc_release.release based on sun_release_found
   set_fact: etc_release_release="{{ sun_release_found_release['stdout_lines'][0] }}"
@@ -252,11 +288,17 @@
 
 - name: gather etc_release.name based on slackware_release_found
   set_fact: etc_release_name="{{ slackware_release_found_release['stdout_lines'][0].split('release')[0] }}"
-  when: '"etc_release.name" in facts_to_collect and slackware_release_found["stdout_lines"][0] == "Y"'
+  when:
+    - '"etc_release.name" in facts_to_collect'
+    - 'slackware_release_found["stdout_lines"][0] == "Y"'
+    - '"release" in slackware_release_found_release["stdout_lines"][0]'
 
 - name: gather etc_release.version based on slackware_release_found
   set_fact: etc_release_version="{{ slackware_release_found_release['stdout_lines'][0].split('release')[1] }}"
-  when: '"etc_release.version" in facts_to_collect and slackware_release_found["stdout_lines"][0] == "Y"'
+  when:
+    - '"etc_release.version" in facts_to_collect'
+    - 'slackware_release_found["stdout_lines"][0] == "Y"'
+    - '"release" in slackware_release_found_release["stdout_lines"][0]'
 
 - name: gather etc_release.release based on slackware_release_found
   set_fact: etc_release_release="{{ slackware_release_found_release['stdout_lines'][0] }}"
@@ -270,11 +312,17 @@
 
 - name: gather etc_release.name based on ovs_release_found
   set_fact: etc_release_name="{{ ovs_release_found_release['stdout_lines'][0].split('release')[0] }}"
-  when: '"etc_release.name" in facts_to_collect and ovs_release_found["stdout_lines"][0] == "Y"'
+  when:
+    - '"etc_release.name" in facts_to_collect'
+    - 'ovs_release_found["stdout_lines"][0] == "Y"'
+    - '"release" in ovs_release_found_release["stdout_lines"][0]'
 
 - name: gather etc_release.version based on ovs_release_found
   set_fact: etc_release_version="{{ ovs_release_found_release['stdout_lines'][0].split('release')[1] }}"
-  when: '"etc_release.version" in facts_to_collect and ovs_release_found["stdout_lines"][0] == "Y"'
+  when:
+    - '"etc_release.version" in facts_to_collect'
+    - 'ovs_release_found["stdout_lines"][0] == "Y"'
+    - '"release" in ovs_release_found_release["stdout_lines"][0]'
 
 - name: gather etc_release.release based on ovs_release_found
   set_fact: etc_release_release="{{ ovs_release_found_release['stdout_lines'][0] }}"
@@ -288,11 +336,17 @@
 
 - name: gather etc_release.name based on arch_release_found
   set_fact: etc_release_name="{{ arch_release_found_release['stdout_lines'][0].split('release')[0] }}"
-  when: '"etc_release.name" in facts_to_collect and arch_release_found["stdout_lines"][0] == "Y"'
+  when:
+    - '"etc_release.name" in facts_to_collect'
+    - 'arch_release_found["stdout_lines"][0] == "Y"'
+    - '"release" in arch_release_found_release["stdout_lines"][0]'
 
 - name: gather etc_release.version based on arch_release_found
   set_fact: etc_release_version="{{ arch_release_found_release['stdout_lines'][0].split('release')[1] }}"
-  when: '"etc_release.version" in facts_to_collect and arch_release_found["stdout_lines"][0] == "Y"'
+  when:
+    - '"etc_release.version" in facts_to_collect'
+    - 'arch_release_found["stdout_lines"][0] == "Y"'
+    - '"release" in arch_release_found_release["stdout_lines"][0]'
 
 - name: gather etc_release.release based on arch_release_found
   set_fact: etc_release_release="{{ arch_release_found_release['stdout_lines'][0] }}"
