@@ -533,14 +533,6 @@ def handle_redhat_packages(facts, data):
     and supply the appropriate output information
     """
     if 'redhat-packages.results' in data:
-        installed_packages = [PkgInfo(line, "|")
-                              for line in data['redhat-packages.results']]
-        rh_packages = list(filter(PkgInfo.is_red_hat_pkg,
-                                  installed_packages))
-
-        rh_gpg_packages = list(filter(PkgInfo.is_gpg_red_hat_pkg,
-                                      installed_packages))
-
         rhpkg_prefix = 'redhat-packages.'
         gpg_prefix = rhpkg_prefix + 'gpg.'
         is_rhpkg_str = rhpkg_prefix + 'is_redhat'
@@ -563,6 +555,21 @@ def handle_redhat_packages(facts, data):
         gpg_installed_pkg_in_facts = gpg_installed_pkg_str in facts
         gpg_last_installed_in_facts = gpg_last_installed_str in facts
         gpg_last_built_in_facts = gpg_last_built_str in facts
+        installed_packages = None
+        try:
+            installed_packages = [PkgInfo(line, "|")
+                                  for line in data['redhat-packages.results']]
+        except PkgInfoParseException:
+            # facts are already initialized as empty strings
+            # just remove the results field
+            del data['redhat-packages.results']
+            return data
+
+        rh_packages = list(filter(PkgInfo.is_red_hat_pkg,
+                                  installed_packages))
+
+        rh_gpg_packages = list(filter(PkgInfo.is_gpg_red_hat_pkg,
+                                      installed_packages))
 
         if installed_pkg_in_facts:
             data[installed_pkg_str] = (len(installed_packages))
