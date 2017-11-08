@@ -1,7 +1,7 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 Name: rho
-Version: 0.0.29
+Version: 0.0.30
 Release: 1%{?dist}
 Summary: An SSH system profiler
 
@@ -65,6 +65,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/ansible/%{name}/roles/*
 
 %changelog
+* Wed Nov 8 2017 Noah Lavine <nlavine@redhat.com> 0.0.30-1
+- Enhancements to capture presence of EAP from init subscriptions
+- Enhancements to find common EAP files using locate command
 * Thu Nov 2 2017 Noah Lavine <nlavine@redhat.com> 0.0.29-1
 - Split JBoss scanning into full and lightweight scans; lightweight scan is
   active by default. (nlavine@redhat.com)

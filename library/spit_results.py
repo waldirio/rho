@@ -491,6 +491,106 @@ def process_jboss_eap_packages(fact_names, host_vars):
             '{0} JBoss-related packages found'.format(num_packages)}
 
 
+JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR = 'jboss.eap.locate-jboss-modules-jar'
+
+
+def process_jboss_eap_locate(fact_names, host_vars):
+    """Process the results of 'locate jboss-modules.jar'.
+
+    :returns: a dict of key, value pairs to add to the output.
+    """
+
+    err, output = raw_output_present(fact_names, host_vars,
+                                     JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR,
+                                     'jboss_eap_locate_jboss_modules_jar',
+                                     'locate jboss-modules.jar')
+    if err is not None:
+        return err
+
+    if not output['rc'] and output['stdout_lines']:
+        return {JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR:
+                ';'.join(output['stdout_lines'])}
+
+    if output['rc'] and not output['stdout_lines']:
+        return {JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR:
+                'jboss-modules.jar not found'}
+
+    return {JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR:
+            "Error code {0} running 'locate jboss-modules.jar': {1}".format(
+                output['rc'], output['stdout'])}
+
+
+JBOSS_EAP_INIT_FILES = 'jboss.eap.init-files'
+
+
+def process_jboss_eap_init_files(fact_names, host_vars):
+    """Look for jboss and EAP in init system output.
+
+    :returns: a dict of key, value pairs to add to the output.
+    """
+
+    # The init system changed between RHEL 6 and RHEL 7. 'chkconfig'
+    # should work on RHEL 6, and 'systemctl list-unit-files' should
+    # work on RHEL 7.
+    err, chkconfig = raw_output_present(fact_names, host_vars,
+                                        JBOSS_EAP_INIT_FILES,
+                                        'jboss_eap_chkconfig',
+                                        'chkconfig')
+    if err is not None:
+        return err
+
+    err, systemctl = raw_output_present(fact_names, host_vars,
+                                        JBOSS_EAP_INIT_FILES,
+                                        'jboss_eap_systemctl_unit_files',
+                                        'systemctl list-unit-files')
+    if err is not None:
+        return err
+
+    if chkconfig['rc'] and systemctl['rc']:
+        return {JBOSS_EAP_INIT_FILES:
+                'Error: all init system checks failed.'}
+
+    # On a RHEL 6 system, chkconfig will return a list of available
+    # services and systemctl will error. On a RHEL 7 system, systemctl
+    # will return a list of system services and chkconfig will return
+    # a shorter list of services and a warning message to go look at
+    # systemctl. However, users may well choose to run JBoss under the
+    # old init system on RHEL 7 due to familiarity or lack of need to
+    # change, so we look in all available output.
+
+    def find_services(lines, method):
+        """Find system services matching 'jboss' or 'eap'
+
+        :returns: a list of the services, as strings, with the method.
+        """
+
+        output = []
+        for line in lines:
+            if not line:
+                continue
+
+            service = line.split()[0]
+            if 'jboss' in service or 'eap' in service:
+                output.append('{0} ({1})'.format(service, method))
+
+        return output
+
+    found_services = []
+    if not chkconfig['rc']:
+        found_services.extend(find_services(chkconfig['stdout_lines'],
+                                            'chkconfig'))
+    if not systemctl['rc']:
+        found_services.extend(find_services(systemctl['stdout_lines'],
+                                            'systemctl'))
+
+    if found_services:
+        return {JBOSS_EAP_INIT_FILES:
+                '; '.join(found_services)}
+
+    return {JBOSS_EAP_INIT_FILES:
+            "No services found matching 'jboss' or 'eap'."}
+
+
 def escape_characters(data):
     """ Processes input data values and strips out any newlines or commas
     """
@@ -745,6 +845,8 @@ class Results(object):
             host_vals.update(process_jboss_eap_common_files(keys, host_vars))
             host_vals.update(process_jboss_eap_processes(keys, host_vars))
             host_vals.update(process_jboss_eap_packages(keys, host_vars))
+            host_vals.update(process_jboss_eap_locate(keys, host_vars))
+            host_vals.update(process_jboss_eap_init_files(keys, host_vars))
 
         # Process System ID.
         for data in self.vals:

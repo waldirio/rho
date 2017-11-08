@@ -165,9 +165,15 @@ new_fact('jboss.eap.common-files',
 new_fact('jboss.eap.deploy-dates',
          'List of deployment dates of JBoss EAP installations',
          is_default=False)
+new_fact('jboss.eap.init-files',
+         'Find system services that look JBoss-related',
+         is_default=True)
 new_fact('jboss.eap.installed-versions',
          'List of installed versions of JBoss EAP',
          is_default=False)
+new_fact('jboss.eap.locate-jboss-modules-jar',
+         'Use locate to find jboss-modules.jar',
+         is_default=True, categories=[JBOSS_FACTS])
 new_fact('jboss.eap.jboss-user', "Whether a user called 'jboss' exists",
          is_default=True, categories=[JBOSS_FACTS])
 new_fact('jboss.eap.packages', 'Installed RPMs that look like JBoss',

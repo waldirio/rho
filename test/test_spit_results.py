@@ -283,3 +283,94 @@ class TestProcessRPMPackages(unittest.TestCase):
         self.assertEqual(results['redhat-packages.gpg.last_installed'], '')
         self.assertIn('redhat-packages.gpg.last_built', results)
         self.assertEqual(results['redhat-packages.gpg.last_built'], '')
+
+
+class TestProcessJbossLocateJbossModulesJar(unittest.TestCase):
+    def run_expect_well_formed(self, output):
+        val = spit_results.process_jboss_eap_locate(
+            [spit_results.JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR],
+            {'jboss_eap_locate_jboss_modules_jar': output})
+
+        self.assertIsInstance(val, dict)
+        self.assertEqual(len(val), 1)
+        self.assertIn(spit_results.JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR, val)
+
+        return val[spit_results.JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR]
+
+    # Most of the error handling is in
+    # spit_results.raw_output_present, which is tested elsewhere, so
+    # we don't need to repeat those tests here.
+
+    def test_success(self):
+        self.assertEqual(
+            self.run_expect_well_formed(
+                {'rc': 0, 'stdout_lines': ['a', 'b', 'c']}),
+            'a;b;c')
+
+    def test_not_found(self):
+        self.assertEqual(
+            self.run_expect_well_formed(
+                {'rc': 1, 'stdout_lines': []}),
+            'jboss-modules.jar not found')
+
+    def test_bad_output(self):
+        self.assertEqual(
+            self.run_expect_well_formed(
+                {'rc': 1, 'stdout': "Command 'locate' not found",
+                 'stdout_lines': ["Command 'locate' not found"]}),
+            "Error code 1 running 'locate jboss-modules.jar': "
+            "Command 'locate' not found")
+
+
+class TestProcessJbossEapInitFiles(unittest.TestCase):
+    def run_func(self, chkconfig, systemctl):
+        val = spit_results.process_jboss_eap_init_files(
+            [spit_results.JBOSS_EAP_INIT_FILES],
+            {'jboss_eap_chkconfig': chkconfig,
+             'jboss_eap_systemctl_unit_files': systemctl})
+
+        self.assertIsInstance(val, dict)
+        self.assertEqual(len(val), 1)
+        self.assertIn(spit_results.JBOSS_EAP_INIT_FILES, val)
+
+        return val[spit_results.JBOSS_EAP_INIT_FILES]
+
+    def test_both_error(self):
+        self.assertEqual(self.run_func({'rc': 1, 'stdout_lines': []},
+                                       {'rc': 1, 'stdout_lines': []}),
+                         'Error: all init system checks failed.')
+
+    def test_just_chkconfig(self):
+        self.assertEqual(
+            self.run_func({'rc': 0,
+                           'stdout_lines': ['foo', 'jboss bar', 'baz']},
+                          {'rc': 1,
+                           'stdout_lines': []}),
+            'jboss (chkconfig)')
+
+    def test_just_systemctl(self):
+        self.assertEqual(
+            self.run_func({'rc': 0,
+                           'stdout_lines': ['foo', 'bar']},
+                          {'rc': 0,
+                           'stdout_lines': ['baz', 'eap narwhal',
+                                            '', 'panda']}),
+            'eap (systemctl)')
+
+    def test_merge_results(self):
+        self.assertEqual(
+            self.run_func({'rc': 0,
+                           'stdout_lines': ['apple', 'bird', 'eap7']},
+                          {'rc': 0,
+                           'stdout_lines': ['puma', 'tiger',
+                                            'jboss-as-standalone']}),
+            'eap7 (chkconfig); '
+            'jboss-as-standalone (systemctl)')
+
+    def test_nothing_found(self):
+        self.assertEqual(
+            self.run_func({'rc': 0,
+                           'stdout_lines': ['Paul', 'George']},
+                          {'rc': 0,
+                           'stdout_lines': ['John', 'Ringo']}),
+            "No services found matching 'jboss' or 'eap'.")
