@@ -34,10 +34,10 @@ class CliCommand(object):
         self.passphrase = None
         self.args = None
         self.options = None
-        self.verbosity = 0
+        self.verbosity = 1
 
         self.parser.add_option(
-            "-v", dest="verbosity", action="count",
+            "-v", dest="verbosity", action="count", default=1,
             help=_("Verbose mode. Use up to -vvvv for more verbosity."))
 
     def _validate_options(self):
