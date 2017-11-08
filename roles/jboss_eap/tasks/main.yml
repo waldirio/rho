@@ -51,7 +51,7 @@
       ignore_errors: yes
       when: '"jboss.eap.locate-jboss-modules-jar" in facts_to_collect'
     - name: look for jboss systemd service
-      raw: systemctl list-unit-files
+      raw: systemctl list-unit-files --no-pager
       register: jboss_eap_systemctl_unit_files
       ignore_errors: yes
       become: true
