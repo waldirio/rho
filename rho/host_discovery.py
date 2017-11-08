@@ -114,6 +114,7 @@ def create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
 
     my_env = os.environ.copy()
     my_env["ANSIBLE_HOST_KEY_CHECKING"] = "False"
+    my_env["ANSIBLE_NOCOLOR"] = "True"
     # Don't pass ansible_verbosity here as adding too much
     # verbosity can break our parsing of Ansible's output. This is
     # a temporary fix - a better solution would be less-fragile

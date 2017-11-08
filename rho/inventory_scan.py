@@ -127,8 +127,13 @@ def inventory_scan(hosts_yml_path, facts_to_collect, report_path,
 
     print('Running:', cmd_string)
 
+    my_env = os.environ.copy()
+    my_env["ANSIBLE_HOST_KEY_CHECKING"] = "False"
+    my_env["ANSIBLE_NOCOLOR"] = "True"
+
     process = ansible_utils.run_with_vault(
         cmd_string, vault_pass,
+        env=my_env,
         log_path=log_path,
         log_to_stdout=True,
         ansible_verbosity=verbosity)
