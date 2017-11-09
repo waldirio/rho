@@ -23,6 +23,8 @@ from ansible.errors import AnsibleError
 from rho.translation import _ as t
 
 PROMPT = "Please enter your rho vault password: "
+ERROR_PROMPT = 'Error: The vault password cannot be empty. '\
+    'Please provide a non-empty password.'
 
 
 def represent_none(self, _):
@@ -52,7 +54,12 @@ def read_vault_password(vault_password_file):
 
 def get_vault_password(prompt=PROMPT):
     """Requests the users password from the command line """
-    return getpass("\033[01;36m" + prompt + "\033[0m")
+    vault_password = ''
+    while vault_password == '':
+        vault_password = getpass("\033[01;36m" + prompt + "\033[0m")
+        if vault_password == '':
+            print(ERROR_PROMPT)
+    return vault_password
 
 
 def get_vault_and_password(vaultfile=None, prompt=PROMPT):
