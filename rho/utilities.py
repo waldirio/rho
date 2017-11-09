@@ -119,6 +119,9 @@ def tail_and_follow(path, ansible_verbosity):
                 print_line = truncate
                 plabook_started = True
                 truncated = False
+            elif 'FAILED!' in line or 'module_stderr' in line:
+                print(line)
+                print_line = truncate if truncate > 3 else 4
             elif print_line > 0:
                 line_len = len(line)
                 char_truncate = truncate * 100
