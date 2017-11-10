@@ -354,7 +354,7 @@ The following options are available for every Rho command.
 
 ``-v``
 
-  Enables the verbose mode. The ``-vv`` option increases verbosity to show more information. The ``-vvv`` option enables connection debugging.
+  Enables the verbose mode. The ``-vvv`` option increases verbosity to show more information. The ``-vvvv`` option enables connection debugging.
 
 Examples
 --------

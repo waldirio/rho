@@ -859,4 +859,4 @@ class CliCommandsTests(unittest.TestCase):
         # not actually do anything.
         command.main()
 
-        self.assertEqual(command.verbosity, 3)
+        self.assertEqual(command.verbosity, 2)
