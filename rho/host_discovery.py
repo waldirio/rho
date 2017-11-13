@@ -9,13 +9,16 @@
 
 """Discover hosts on a network."""
 
+from __future__ import print_function
 from collections import defaultdict
 import os
 import re
 
 from rho import ansible_utils
 from rho.translation import _
-from rho.utilities import log, str_to_ascii, PING_INVENTORY_PATH, PING_LOG_PATH
+from rho.utilities import (log, str_to_ascii, PING_INVENTORY_PATH,
+                           PING_LOG_PATH,
+                           tail_discovery_scan)
 
 
 def process_ping_output(out_lines):
@@ -122,7 +125,7 @@ def create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
     ansible_utils.run_with_vault(cmd_string, vault_pass,
                                  log_path=PING_LOG_PATH,
                                  env=my_env,
-                                 log_to_stdout=True,
+                                 log_to_stdout=tail_discovery_scan,
                                  ansible_verbosity=0)
 
     with open(PING_LOG_PATH, 'r') as ping_log:
@@ -141,7 +144,7 @@ def create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
         print(_('Failed to connect with auth "%s" to %d systems.') %
               (credential.get('name'), num_failed))
     if num_success > 0 or num_failed > 0:
-        print()
+        print('')
 
     return list(success_hosts), success_port_map, success_auth_map, \
         list(failed_hosts)

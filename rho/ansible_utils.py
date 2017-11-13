@@ -86,7 +86,7 @@ def log_yaml_inventory(label, inventory):
 
 # pylint: disable=too-many-arguments
 def run_with_vault(cmd_string, vault_pass, env=None, log_path=None,
-                   log_to_stdout=True, ansible_verbosity=0):
+                   log_to_stdout=None, ansible_verbosity=0):
     """Runs ansible command allowing for password to be provided after
     process triggered.
 
@@ -97,8 +97,8 @@ def run_with_vault(cmd_string, vault_pass, env=None, log_path=None,
     :param env: the environment to run the subprocess in.
     :param log_path: a path to write the process's log to. Defaults to
         'XDG_DATA_HOME/rho/ansible_log'.
-    :param log_to_stdout: if True, write Ansible's log to stdout. Defaults to
-        True.
+    :param log_to_stdout: if not None, write Ansible's log to stdout using
+        the provided function as a filter. Defaults to None.
     :param ansible_verbosity: the number of v's of Ansible verbosity.
     :returns: the popen.spawn object for the process.
     """
@@ -123,8 +123,10 @@ def run_with_vault(cmd_string, vault_pass, env=None, log_path=None,
             child = pexpect.spawn(cmd_string, timeout=None,
                                   env=env)
 
-            if log_to_stdout:
-                utilities.threaded_tailing(log_path, ansible_verbosity)
+            if log_to_stdout is not None:
+                utilities.threaded_tailing(path=log_path,
+                                           output_filter=log_to_stdout,
+                                           ansible_verbosity=ansible_verbosity)
 
             child.expect('Vault password:')
             child.sendline(vault_pass)

@@ -69,7 +69,7 @@ class TestTailing(unittest.TestCase):
     def test_threaded_tailing(self):
         follow_list_out = six.StringIO()
         with redirect_stdout(follow_list_out):
-            utilities.threaded_tailing(TMP_FOLLOW, 3)
+            utilities.threaded_tailing(TMP_FOLLOW, utilities.tail_host_scan, 3)
             time.sleep(2)
             self.assertEqual(follow_list_out.getvalue(), 'follow\n')
 

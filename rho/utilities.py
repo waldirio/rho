@@ -84,22 +84,68 @@ def setup_logging(verbosity):
     log.addHandler(stderr_handler)
 
 
-def threaded_tailing(path, ansible_verbosity=0):
+def threaded_tailing(path, output_filter, ansible_verbosity=0):
     """Follow and provide output using a thread
 
     :param path: path to file to follow
+    :param output_filter: The function to handle the output filtering
     :param ansible_verbosity: the verbosity level
     """
-    thread = threading.Thread(
-        target=tail_and_follow, args=(path, ansible_verbosity))
+    thread = threading.Thread(target=output_filter,
+                              args=(path, ansible_verbosity))
     thread.daemon = True
     thread.start()
 
 
-def tail_and_follow(path, ansible_verbosity):
-    """Follow and provide output
+# pylint: disable=unused-argument
+def tail_discovery_scan(path, ansible_verbosity):
+    """Follow and provide discovery scan output
 
-    :param path: tuple containing thepath to file to follow
+    :param path: tuple containing the path to file to follow
+    :param ansible_verbosity: the verbosity level
+    """
+    hosts_processed = 0
+    hosts_successful = 0
+    hosts_unreachable = 0
+    hosts_failed = 0
+    if len(path) > 0:  # pylint: disable=len-as-condition
+        # pylint: disable=no-member
+        for line in sh.tail('-f', '-n', '+0', path, _iter=True):
+            print_status = False
+            line = line.strip('\n')
+            if 'SUCCESS' in line:
+                hosts_successful += 1
+                hosts_processed += 1
+                print_status = True
+            elif 'FAILED' in line:
+                hosts_failed += 1
+                hosts_processed += 1
+                print_status = True
+            elif 'UNREACHABLE' in line:
+                hosts_unreachable += 1
+                hosts_processed += 1
+                print_status = True
+
+            # Display every 5 processed
+            if hosts_processed % 5 == 0 and print_status:
+                print(_('%d hosts processed with the current credential. ' %
+                        hosts_processed))
+                if hosts_successful > 0:
+                    print(_('%d hosts connected successfully with '
+                            'the current credential.' % hosts_successful))
+                if hosts_failed > 0:
+                    print(_('%d hosts failed to connect with the '
+                            'current credential.' % hosts_failed))
+                if hosts_unreachable > 0:
+                    print(_('%d hosts were unreachable.' % hosts_unreachable))
+
+                print('\n')
+
+
+def tail_host_scan(path, ansible_verbosity):
+    """Follow and provide host scan output
+
+    :param path: tuple containing the path to file to follow
     :param ansible_verbosity: the verbosity level
     """
     if len(path) > 0:  # pylint: disable=len-as-condition

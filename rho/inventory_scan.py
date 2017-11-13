@@ -135,7 +135,7 @@ def inventory_scan(hosts_yml_path, facts_to_collect, report_path,
         cmd_string, vault_pass,
         env=my_env,
         log_path=log_path,
-        log_to_stdout=True,
+        log_to_stdout=utilities.tail_host_scan,
         ansible_verbosity=verbosity)
 
     return process.exitstatus == 0 and process.signalstatus is None
