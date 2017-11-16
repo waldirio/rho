@@ -874,6 +874,10 @@ class Results(object):
 
             # Write the data
             for data in self.vals:
+                # Add blanks for any missing facts
+                for fact in keys:
+                    if fact not in data:
+                        data[fact] = ''
                 writer.writerow(data)
 
 

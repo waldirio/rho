@@ -1,7 +1,7 @@
 ---
 
 - name: store facts from all hosts in a variable
-  set_fact: host_fact={{hostvars[item]["connection"] | combine(hostvars[item]["uname"]) | combine(hostvars[item]["date"])  | combine(hostvars[item]["file_contents"])  | combine(hostvars[item]["dmi"])  | combine(hostvars[item]["subman"])  | combine(hostvars[item]["redhat_release"])  | combine(hostvars[item]["cpu"])  | combine(hostvars[item]["virt"])  | combine(hostvars[item]["virt_what"])  | combine(hostvars[item]["etc_release"])  | combine(hostvars[item]["redhat_packages"]) }}
+  set_fact: host_fact={{hostvars[item]["connection"]|default({}) | combine(hostvars[item]["uname"]|default({})) | combine(hostvars[item]["date"]|default({}))  | combine(hostvars[item]["file_contents"]|default({}))  | combine(hostvars[item]["dmi"]|default({}))  | combine(hostvars[item]["subman"]|default({}))  | combine(hostvars[item]["redhat_release"]|default({}))  | combine(hostvars[item]["cpu"]|default({}))  | combine(hostvars[item]["virt"]|default({}))  | combine(hostvars[item]["virt_what"]|default({}))  | combine(hostvars[item]["etc_release"]|default({}))  | combine(hostvars[item]["redhat_packages"]|default({})) }}
   with_items: "{{groups.alpha}}"
   register: host_facts
 

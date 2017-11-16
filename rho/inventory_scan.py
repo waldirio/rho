@@ -97,7 +97,7 @@ def inventory_scan(hosts_yml_path, facts_to_collect, report_path,
 
     :returns: True if scan completed successfully, False if not.
     """
-
+    success = False
     hosts_yml = base_name + utilities.PROFILE_HOSTS_SUFIX
     hosts_yml_path = utilities.get_config_path(hosts_yml)
 
@@ -138,4 +138,10 @@ def inventory_scan(hosts_yml_path, facts_to_collect, report_path,
         log_to_stdout=utilities.tail_host_scan,
         ansible_verbosity=verbosity)
 
-    return process.exitstatus == 0 and process.signalstatus is None
+    if process.exitstatus == 0 and process.signalstatus is None:
+        success = True
+    elif (process.exitstatus == 4 and process.signalstatus is None and
+          os.path.isfile(report_path)):
+        success = True
+
+    return success
