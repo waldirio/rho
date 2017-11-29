@@ -26,6 +26,7 @@
     - jboss_eap_scan
     - brms
     - fuse
+    - jboss_fuse_on_karaf
 
 
 - name: write facts first to a variable and then to csv locally

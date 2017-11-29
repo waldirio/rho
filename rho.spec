@@ -1,7 +1,7 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 Name: rho
-Version: 0.0.30
+Version: 0.0.31
 Release: 1%{?dist}
 Summary: An SSH system profiler
 
@@ -47,7 +47,6 @@ install -D -p -m 644 doc/rho.1 $RPM_BUILD_ROOT%{_mandir}/man1/rho.1
 
 mkdir -p %{buildroot}%{_datadir}/ansible/%{name}
 cp rho_playbook.yml %{buildroot}%{_datadir}/ansible/%{name}
-cp -rp library %{buildroot}%{_datadir}/ansible/%{name}/
 cp -rp roles %{buildroot}%{_datadir}/ansible/%{name}/
 
 %clean
@@ -61,10 +60,13 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man1/rho.1.gz
 %dir %{_datadir}/ansible/%{name}
 %{_datadir}/ansible/%{name}/rho_playbook.yml
-%{_datadir}/ansible/%{name}/library/*
 %{_datadir}/ansible/%{name}/roles/*
 
 %changelog
+* Wed Nov 29 2017 Noah Lavine <nlavine@redhat.com> 0.0.31-1
+- Enhancements to capture presence of JBoss Fuse from init subscriptions
+- Enhancements to find common JBoss Fuse files using locate command
+- Enhancements to find common JBoss BRMS files using locate command
 * Wed Nov 8 2017 Noah Lavine <nlavine@redhat.com> 0.0.30-1
 - Enhancements to capture presence of EAP from init subscriptions
 - Enhancements to find common EAP files using locate command

@@ -71,3 +71,30 @@
 - name: set have_virt_what
   set_fact:
     have_virt_what: "{{ have_virt_what_raw.rc == 0 }}"
+
+- name: gather have_locate
+  raw: command -v locate
+  register: have_locate
+  ignore_errors: yes
+
+- name: set have_locate
+  set_fact:
+    have_locate: "{{ have_locate.rc == 0 }}"
+
+- name: gather have_systemctl
+  raw: command -v systemctl
+  register: have_systemctl
+  ignore_errors: yes
+
+- name: set have_systemctl
+  set_fact:
+    have_systemctl: "{{ have_systemctl.rc == 0 }}"
+
+- name: gather have_chkconfig
+  raw: command -v chkconfig
+  register: have_chkconfig
+  ignore_errors: yes
+
+- name: set have_chkconfig
+  set_fact:
+    have_chkconfig: "{{ have_chkconfig.rc == 0 }}"

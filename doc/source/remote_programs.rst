@@ -42,19 +42,23 @@ like those provided by bash.
   - sort
   - echo
 - jboss.eap.*
+  - **chkconfig (used if present)**
   - find
-  - grep
+  - grep / egrep
   - **java**
   - sed
   - stat
   - df
   - tail
+  - locate
   - ls
   - sort
   - id
   - test
   - ps
   - **rpm**
+  - **systemctl (used if present)**
+  - xargs
 - redhat_packages
   - **rpm**
 - redhat_release.*

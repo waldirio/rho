@@ -1,5 +1,4 @@
-#
-# Copyright (c) 2009 Red Hat, Inc.
+# Copyright (c) 2017 Red Hat, Inc.
 #
 # This software is licensed to you under the GNU General Public License,
 # version 2 (GPLv2). There is NO WARRANTY for this software, express or
@@ -7,19 +6,17 @@
 # FOR A PARTICULAR PURPOSE. You should have received a copy of GPLv2
 # along with this software; if not, see
 # http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
-#
 
-# pylint: disable=R0903
+"""Postprocessing for facts coming from our Ansible playbook."""
 
-"""Module responsible for displaying results of rho report"""
+# pylint: disable=too-many-lines
 
-import csv
-import os
-import json
+import os.path
 import sys
 import xml
-# pylint: disable=import-error
-from ansible.module_utils.basic import AnsibleModule
+
+from rho import utilities
+from rho.utilities import log
 
 # for parsing systemid
 if sys.version_info > (3,):
@@ -112,30 +109,6 @@ FUSE_CLASSIFICATIONS = {
     'redhat-610379': 'Fuse-6.1.0',
     'redhat-60024': 'Fuse-6.0.0',
 }
-
-
-def iteritems(dictionary):
-    """Iterate over a dictionary's (key, value) pairs using Python 2 or 3.
-
-    :param dictionary: the dictionary to iterate over.
-    """
-
-    if sys.version_info[0] == 2:
-        return dictionary.iteritems()
-
-    return dictionary.items()
-
-
-def safe_next(iterator):
-    """Get the next item from an iterator, in Python 2 or 3.
-
-    :param iterator: the iterator.
-    """
-
-    if sys.version_info[0] == 2:
-        return iterator.next()
-
-    return next(iterator)
 
 
 def raw_output_present(fact_names, host_vars, this_fact, this_var, command):
@@ -261,7 +234,7 @@ def process_jboss_versions(fact_names, host_vars):
     if JBOSS_EAP_RUNNING_PATHS in fact_names:
         err, output = raw_output_present(fact_names, host_vars,
                                          JBOSS_EAP_RUNNING_PATHS,
-                                         JBOSS_EAP_RUNNING_PATHS,
+                                         'jboss_eap_running_paths',
                                          'running EAP scan')
         if err is not None:
             val.update(err)
@@ -354,7 +327,8 @@ def process_id_u_jboss(fact_names, host_vars):
     # nonzero error code means "not found", because then we would give
     # false negatives if the user didn't have permission to read
     # /etc/passwd (or other errors).
-    if output['stdout_lines'] == ['id: jboss: no such user']:
+    if (output['stdout_lines'] == ['id: jboss: no such user'] or
+            output['stdout_lines'] == ['id: jboss: No such user']):
         return {JBOSS_EAP_JBOSS_USER: 'No user "jboss" found'}
 
     return {JBOSS_EAP_JBOSS_USER:
@@ -500,6 +474,10 @@ def process_jboss_eap_locate(fact_names, host_vars):
     :returns: a dict of key, value pairs to add to the output.
     """
 
+    if not host_vars['have_locate']:
+        return {JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR:
+                'N/A (locate not found)'}
+
     err, output = raw_output_present(fact_names, host_vars,
                                      JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR,
                                      'jboss_eap_locate_jboss_modules_jar',
@@ -591,11 +569,356 @@ def process_jboss_eap_init_files(fact_names, host_vars):
             "No services found matching 'jboss' or 'eap'."}
 
 
+JBOSS_EAP_EAP_HOME = 'jboss.eap.eap-home'
+# Files that live in an EAP_HOME directory.
+JBOSS_EAP_INDICATOR_FILES = ['appclient', 'standalone', 'JBossEULA.txt',
+                             'modules', 'jboss-modules.jar', 'version.txt']
+
+
+def process_indicator_files(indicator_files, ls_out):
+    """Process the output of a with_items ls from Ansible."""
+
+    ls_results = {}
+    for item in ls_out['results']:
+        directory = item['item']
+        if item['rc']:
+            ls_results[directory] = "Error in 'ls'"
+            continue
+
+        files = item['stdout_lines']
+        found_in_dir = [filename for filename in indicator_files
+                        if filename in files]
+        if found_in_dir:
+            ls_results[directory] = (
+                directory + ' contains ' + ','.join(found_in_dir))
+        else:
+            ls_results[directory] = 'No indicator files found'
+
+    return ls_results
+
+
+def process_cat_results(filename, cat_out):
+    """Process the output of a with_items cat from Ansible."""
+
+    cat_results = {}
+    for item in cat_out['results']:
+        directory = item['item']
+        if item['rc']:
+            cat_results[directory] = "Error in 'cat {0}'".format(filename)
+        else:
+            cat_results[directory] = item['stdout'].strip()
+
+    return cat_results
+
+
+def process_jboss_eap_home(fact_names, host_vars):
+    """Find the EAP_HOME directory of a JBoss installation, if possible."""
+
+    err, ls_out = raw_output_present(fact_names, host_vars,
+                                     JBOSS_EAP_EAP_HOME,
+                                     'eap_home_candidates_ls',
+                                     'ls -1 EAP_HOME candidate directories')
+    if err is not None:
+        return err
+
+    err, cat_out = raw_output_present(fact_names, host_vars,
+                                      JBOSS_EAP_EAP_HOME,
+                                      'eap_home_candidates_version_txt',
+                                      'cat EAP_HOME/version.txt for candidate '
+                                      'EAP_HOMEs')
+    if err is not None:
+        return err
+
+    ls_results = process_indicator_files(JBOSS_EAP_INDICATOR_FILES, ls_out)
+    cat_results = process_cat_results('version.txt', cat_out)
+
+    eap_homes = ls_results.keys()
+    assert eap_homes == cat_results.keys()
+
+    return {JBOSS_EAP_EAP_HOME:
+            '; '.join([directory +
+                       ': ' + ls_results[directory] +
+                       ', ' + cat_results[directory]
+                       for directory in eap_homes])}
+
+
+JBOSS_FUSE_FUSE_ON_EAP = 'jboss.fuse.fuse-on-eap'
+JBOSS_FUSE_BIN_INDICATOR_FILES = ['fuseconfig.sh', 'fusepatch.sh']
+
+
+def process_fuse_on_eap(fact_names, host_vars):
+    """Find JBoss Fuse when it is layered on top of JBoss EAP."""
+
+    if JBOSS_FUSE_FUSE_ON_EAP not in fact_names:
+        return {}
+
+    err, ls_bin = raw_output_present(fact_names, host_vars,
+                                     JBOSS_FUSE_FUSE_ON_EAP,
+                                     'eap_home_candidates_bin',
+                                     'ls $EAP_HOME/bin')
+    if err:
+        return err
+
+    err, layers_conf = raw_output_present(fact_names, host_vars,
+                                          JBOSS_FUSE_FUSE_ON_EAP,
+                                          'eap_home_candidates_layers_conf',
+                                          'cat $EAP_HOME/modules/layers.conf')
+    if err:
+        return err
+
+    err, ls_layers = raw_output_present(fact_names, host_vars,
+                                        JBOSS_FUSE_FUSE_ON_EAP,
+                                        'eap_home_candidates_layers',
+                                        'ls $EAP_HOME/modules/system/layers')
+    if err:
+        return err
+
+    ls_bin_results = process_indicator_files(
+        JBOSS_FUSE_BIN_INDICATOR_FILES, ls_bin)
+    layers_conf_results = process_cat_results('layers.conf', layers_conf)
+    ls_layers_results = process_indicator_files(['fuse'], ls_layers)
+
+    eap_homes = ls_bin_results.keys()
+    assert eap_homes == layers_conf_results.keys() == ls_layers_results.keys()
+
+    return {JBOSS_FUSE_FUSE_ON_EAP:
+            '; '.join([
+                ('{0}: /bin={1}, /modules/layers.conf={2},'
+                 ' /modules/system/layers={3}').format(
+                     eap_home,
+                     ls_bin_results[eap_home],
+                     layers_conf_results[eap_home],
+                     ls_layers_results[eap_home])
+                for eap_home in eap_homes])}
+
+
+JBOSS_FUSE_ON_KARAF_KARAF_HOME = 'jboss.fuse-on-karaf.karaf-home'
+
+
+def process_karaf_home(fact_names, host_vars):
+    """Process karaf_home indicators to detect Fuse-on-Karaf."""
+
+    if JBOSS_FUSE_ON_KARAF_KARAF_HOME not in fact_names:
+        return {}
+
+    if 'karaf_homes' not in host_vars:
+        return {JBOSS_FUSE_ON_KARAF_KARAF_HOME:
+                'Error: fact karaf_homes not collected.'}
+    karaf_homes = host_vars['karaf_homes']
+
+    err, bin_fuse = raw_output_present(fact_names, host_vars,
+                                       JBOSS_FUSE_ON_KARAF_KARAF_HOME,
+                                       'karaf_home_bin_fuse',
+                                       'ls -1 KARAF_HOME/bin/fuse')
+    if err is not None:
+        return err
+
+    err, system_org_jboss = raw_output_present(
+        fact_names, host_vars,
+        JBOSS_FUSE_ON_KARAF_KARAF_HOME,
+        'karaf_home_system_org_jboss',
+        'ls -1 KARAF_HOME/system/org/jboss')
+    if err is not None:
+        return err
+
+    system_org_jboss_results = process_indicator_files(['fuse'],
+                                                       system_org_jboss)
+
+    bin_fuse_results = {
+        result['item']: ('/bin/fuse exists'
+                         if result['rc'] == 0
+                         else '/bin/fuse not found')
+        for result in bin_fuse['results']}
+
+    assert list(system_org_jboss_results.keys()) == karaf_homes
+    assert list(bin_fuse_results.keys()) == karaf_homes
+
+    return {JBOSS_FUSE_ON_KARAF_KARAF_HOME:
+            '; '.join(['{0}: {1}; {2}'.format(
+                karaf_home,
+                bin_fuse_results[karaf_home],
+                system_org_jboss_results[karaf_home])
+                       for karaf_home in karaf_homes])}  # noqa
+
+
+JBOSS_FUSE_INIT_FILES = 'jboss.fuse.init-files'
+
+
+def process_fuse_init_files(fact_names, host_vars):
+    """Process facts for jboss.fuse.init-files
+
+    Note: these facts are included because they can be useful, but the
+    filters are very susceptible to letting through lines which a
+    human could easily tell are false positives, but we don't handle
+    that automatically.
+    """
+
+    err, systemctl_out = raw_output_present(
+        fact_names, host_vars,
+        JBOSS_FUSE_INIT_FILES,
+        'jboss_fuse_systemctl_unit_files',
+        'systemctl list-unit-files | grep fuse')
+    if err is not None:
+        return err
+
+    err, chkconfig_out = raw_output_present(fact_names, host_vars,
+                                            JBOSS_FUSE_INIT_FILES,
+                                            'jboss_fuse_chkconfig',
+                                            'chkconfig | grep fuse')
+    if err is not None:
+        return err
+
+    return {JBOSS_FUSE_INIT_FILES:
+            'systemctl: {0}; chkconfig: {1}'.format(
+                '; '.join(systemctl_out['stdout_lines']),
+                '; '.join(chkconfig_out['stdout_lines']))}
+
+
+def classify_kie_file(pathname):
+    """Classify a kie-api-* file.
+
+    :param pathname: the path to the file
+    :returns: a BRMS version string, or None if not a Red Hat kie file.
+    """
+
+    # os.path.basename behaves differently if the last part of the
+    # path ends in a /, so normalize.
+    if pathname.endswith('/'):
+        pathname = pathname[:-1]
+
+    basename = os.path.basename(pathname)
+
+    version_string = utilities.strip_suffix(
+        utilities.strip_prefix(basename, 'kie-api-'),
+        '.jar')
+
+    if version_string in BRMS_CLASSIFICATIONS:
+        return BRMS_CLASSIFICATIONS[version_string]
+
+    if 'redhat' in version_string:
+        return version_string
+
+    return None
+
+
+JBOSS_BRMS = 'jboss.brms'
+UNKNOWN_BASE = 'unknown base directory'
+
+
+# pylint: disable=too-many-locals, too-many-branches
+def process_brms_output(fact_names, host_vars):
+    """Process facts for jboss.brms."""
+
+    business_central_candidates = host_vars['business_central_candidates']
+    kie_server_candidates = host_vars['kie_server_candidates']
+
+    err, manifest_mf_out = raw_output_present(
+        fact_names, host_vars,
+        JBOSS_BRMS,
+        'jboss_brms_manifest_mf',
+        'cat {{ base_directory }}/META-INF/MANIFEST.MF')
+    if err is not None:
+        return err
+
+    err, kie_in_business_central_out = raw_output_present(
+        fact_names, host_vars,
+        JBOSS_BRMS,
+        'jboss_brms_kie_in_business_central',
+        'ls -1 {{ base_directory }}/WEB-INF/lib/kie-api*')
+    if err is not None:
+        return err
+
+    err, locate_kie_api_out = raw_output_present(
+        fact_names, host_vars,
+        JBOSS_BRMS,
+        'jboss_brms_locate_kie_api',
+        "locate --basename 'kie-api*'")
+    if err is not None:
+        return err
+
+    base_directories = set(business_central_candidates + kie_server_candidates)
+
+    # manifest_mfs maps directory name to MANIFEST.MF contents
+    manifest_mfs = {}
+    for result in manifest_mf_out['results']:
+        manifest_mfs[result['item']] = result['stdout']
+    if sorted(list(manifest_mfs.keys())) != sorted(list(base_directories)):
+        log.error('Bad manifest keys: %s, %s',
+                  manifest_mfs.keys(), base_directories)
+
+    # Dud entry here matches the UNKNOWN_BASE member of
+    # kie_versions_by_directory, which is where we keep kie-api files
+    # that aren't in a base directory we recognize.
+    manifest_mfs[UNKNOWN_BASE] = ''
+
+    kie_files = set(locate_kie_api_out['stdout_lines'])
+
+    for result in kie_in_business_central_out['results']:
+        if result['rc']:
+            continue
+
+        for filename in result['stdout_lines']:
+            kie_files.add(filename)
+
+    find_kie_api_out = host_vars.get('jboss.brms.kie-api-ver')
+    if find_kie_api_out and 'stdout_lines' in find_kie_api_out:
+        for filename in find_kie_api_out['stdout_lines']:
+            kie_files.add(filename)
+
+    # These loops could be implemented as a single pass through both
+    # lists if we pre-sorted them. Waiting to see if anyone cares
+    # about the performance of this code before optimizing.
+    kie_versions_by_directory = {}
+    for directory in base_directories:
+        versions_in_dir = set()
+        for filename in list(kie_files):
+            if filename.startswith(directory):
+                kie_files.remove(filename)
+                category = classify_kie_file(filename)
+                if category:
+                    versions_in_dir.add(category)
+                # Deliberately drop files if their category is falsey,
+                # because it means that they are not Red Hat files.
+        kie_versions_by_directory[directory] = versions_in_dir
+    versions_in_dir = set()
+    for filename in list(kie_files):
+        category = classify_kie_file(filename)
+        if category:
+            versions_in_dir.add(category)
+    kie_versions_by_directory[UNKNOWN_BASE] = versions_in_dir
+
+    def format_directory_result(directory, manifest, kie_versions):
+        """Format output for a single directory."""
+
+        return (directory +
+                ': ' +
+                ('Red Hat manifest ' if 'Red Hat' in manifest else '') +
+                'kie-api versions ' +
+                '(' + '; '.join(kie_versions) + ')')  # noqa
+
+    directories_for_output = [
+        directory
+        for directory in base_directories
+        if ('Red Hat' in manifest_mfs[directory] or
+            kie_versions_by_directory[directory])]
+    if kie_versions_by_directory[UNKNOWN_BASE]:
+        directories_for_output.append(UNKNOWN_BASE)
+
+    return {JBOSS_BRMS:
+            '; '.join(
+                [format_directory_result(
+                    directory,
+                    manifest_mfs[directory],
+                    kie_versions_by_directory[directory])
+                 for directory in directories_for_output] +
+                list(kie_files))}
+
+
 def escape_characters(data):
     """ Processes input data values and strips out any newlines or commas
     """
     for key in data:
-        if isinstance(data[key], str):
+        if utilities.is_stringlike(data[key]):
             data[key] = data[key].replace('\r\n', ' ').replace(',', ' ')
     return data
 
@@ -788,119 +1111,25 @@ class PkgInfoParseException(BaseException):
     pass
 
 
-class Results(object):
-    """The class Results contains the functionality to parse
-    data passed in from the playbook and to output it in the
-    csv format in the file path specified.
+def handle_systemid(fact_names, data):
+    """Process the output of systemid.contents
+    and supply the appropriate output information
     """
+    if 'systemid.contents' in data:
+        blob = data['systemid.contents']
+        id_in_facts = 'SysId_systemid.system_id' in fact_names
+        username_in_facts = 'SysId_systemid.username' in fact_names
+        try:
+            systemid = xmlrpclib.loads(blob)[0][0]
+            if id_in_facts and 'system_id'in systemid:
+                data['systemid.system_id'] = systemid['system_id']
+            if username_in_facts and 'usnername' in systemid:
+                data['systemid.username'] = systemid['usnername']
+        except xml.parsers.expat.ExpatError:
+            if id_in_facts:
+                data['systemid.system_id'] = 'error'
+            if username_in_facts:
+                data['systemid.username'] = 'error'
 
-    def __init__(self, module):
-        self.module = module
-        self.name = module.params['name']
-        self.file_path = module.params['file_path']
-        self.vals = module.params['vals']
-        self.all_vars = module.params['all_vars']
-        self.fact_names = module.params['fact_names']
-
-    def handle_systemid(self, data):
-        """Process the output of systemid.contents
-        and supply the appropriate output information
-        """
-        if 'systemid.contents' in data:
-            blob = data['systemid.contents']
-            id_in_facts = 'SysId_systemid.system_id' in self.fact_names
-            username_in_facts = 'SysId_systemid.username' in self.fact_names
-            try:
-                systemid = xmlrpclib.loads(blob)[0][0]
-                if id_in_facts and 'system_id'in systemid:
-                    data['systemid.system_id'] = systemid['system_id']
-                if username_in_facts and 'usnername' in systemid:
-                    data['systemid.username'] = systemid['usnername']
-            except xml.parsers.expat.ExpatError:
-                if id_in_facts:
-                    data['systemid.system_id'] = 'error'
-                if username_in_facts:
-                    data['systemid.username'] = 'error'
-
-            del data['systemid.contents']
-        return data
-
-    def write_to_csv(self):
-        """Output report data to file in csv format"""
-        # Make sure the controller expanded the default option.
-        assert self.fact_names != ['default']
-
-        keys = set(self.fact_names)
-
-        # Special processing for JBoss facts.
-        for _, host_vars in iteritems(self.all_vars):
-            uuid = host_vars['connection']['connection.uuid']
-            host_vals = safe_next((vals
-                                   for vals in self.vals
-                                   if vals['connection.uuid'] == uuid))
-
-            host_vals.update(process_jboss_versions(keys, host_vars))
-            host_vals.update(process_addon_versions(keys, host_vars))
-            host_vals.update(process_id_u_jboss(keys, host_vars))
-            host_vals.update(process_jboss_eap_common_files(keys, host_vars))
-            host_vals.update(process_jboss_eap_processes(keys, host_vars))
-            host_vals.update(process_jboss_eap_packages(keys, host_vars))
-            host_vals.update(process_jboss_eap_locate(keys, host_vars))
-            host_vals.update(process_jboss_eap_init_files(keys, host_vars))
-
-        # Process System ID.
-        for data in self.vals:
-            data = self.handle_systemid(data)
-            data = handle_redhat_packages(self.fact_names, data)
-            data = escape_characters(data)
-
-        normalized_path = os.path.normpath(self.file_path)
-        with open(normalized_path, 'w') as write_file:
-            # Construct the CSV writer
-            writer = csv.DictWriter(
-                write_file, sorted(keys), delimiter=',')
-
-            # Write a CSV header if necessary
-            file_size = os.path.getsize(normalized_path)
-            if file_size == 0:
-                # handle Python 2.6 not having writeheader method
-                if sys.version_info[0] == 2 and sys.version_info[1] <= 6:
-                    headers = {}
-                    for fields in writer.fieldnames:
-                        headers[fields] = fields
-                    writer.writerow(headers)
-                else:
-                    writer.writeheader()
-
-            # Write the data
-            for data in self.vals:
-                # Add blanks for any missing facts
-                for fact in keys:
-                    if fact not in data:
-                        data[fact] = ''
-                writer.writerow(data)
-
-
-def main():
-    """Function to trigger collection of results and write
-    them to csv file
-    """
-
-    fields = {
-        "name": {"required": True, "type": "str"},
-        "file_path": {"required": True, "type": "str"},
-        "vals": {"required": True, "type": "list"},
-        "all_vars": {"required": True, "type": "dict"},
-        "fact_names": {"required": True, "type": "list"}
-    }
-
-    module = AnsibleModule(argument_spec=fields)
-
-    results = Results(module=module)
-    results.write_to_csv()
-    vals = json.dumps(results.vals)
-    module.exit_json(changed=False, meta=vals)
-
-
-if __name__ == '__main__':
-    main()
+        del data['systemid.contents']
+    return data

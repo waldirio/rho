@@ -500,6 +500,26 @@ def iteritems(dictionary):
     return dictionary.items()
 
 
+if sys.version_info[0] == 2:
+    def is_stringlike(obj):
+        """Check if an object is a string.
+
+        This function is for Python 2 and 3 compatibility.
+        """
+
+        # pylint for python 3 complains that unicode is undefined.
+        # pylint: disable=undefined-variable
+        return isinstance(obj, (str, unicode))  # noqa
+else:
+    def is_stringlike(obj):
+        """Check if an object is a string.
+
+        This function is for Python 2 and 3 compatibility.
+        """
+
+        return isinstance(obj, str)
+
+
 def write_csv_data(keys, data, path):
     """ Write csv data with input fieldnames a dictionary of data and the file
     path to write to.
@@ -551,3 +571,33 @@ def check_path_validity(path_list):
         if not os.path.isabs(a_path):
             invalid_paths.append(a_path)
     return invalid_paths
+
+
+def strip_prefix(string, prefix):
+    """Remove a prefix from a string, if present.
+
+    :param string: the string to operate on.
+    :param prefix: the prefix to remove.
+
+    :returns: string without prefix, if prefix was present.
+    """
+
+    if string.startswith(prefix):
+        return string[len(prefix):]
+
+    return string
+
+
+def strip_suffix(string, suffix):
+    """Remove a suffix from a string, if present.
+
+    :param string: the string to operate on.
+    :param suffix: the suffix to remove.
+
+    :returns: string without suffix, if suffix was present.
+    """
+
+    if string.endswith(suffix):
+        return string[:-len(suffix)]
+
+    return string

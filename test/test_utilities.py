@@ -167,6 +167,9 @@ class TestCIDRToAnsible(unittest.TestCase):
             '192.168.[0:1].[0:255]')
 
 
+# Have to skip these tests until pytest bug
+# https://github.com/pytest-dev/pytest/issues/2977 is fixed.
+@unittest.skip
 class TestSetupLogging(unittest.TestCase):
     def test_default_level(self):
         utilities.setup_logging(None)

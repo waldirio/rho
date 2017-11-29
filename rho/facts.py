@@ -156,6 +156,8 @@ new_fact('etc_release.version', 'release version',
          is_default=True, categories=[RHEL_FACTS])
 new_fact('instnum.instnum', 'installation number',
          is_default=True, categories=[RHEL_FACTS])
+new_fact('jboss.brms', 'general BRMS information',
+         is_default=True, categories=[JBOSS_FACTS])
 new_fact('jboss.brms.drools-core-ver', 'Drools version', is_default=False)
 new_fact('jboss.brms.kie-api-ver', 'KIE API version', is_default=False)
 new_fact('jboss.brms.kie-war-ver', 'KIE runtime version', is_default=False)
@@ -165,6 +167,9 @@ new_fact('jboss.eap.common-files',
 new_fact('jboss.eap.deploy-dates',
          'List of deployment dates of JBoss EAP installations',
          is_default=False)
+new_fact('jboss.eap.eap-home',
+         'Find EAP_HOME directories of JBoss EAP installations',
+         is_default=True, categories=[JBOSS_FACTS])
 new_fact('jboss.eap.init-files',
          'Find system services that look JBoss-related',
          is_default=True, categories=[JBOSS_FACTS])
@@ -185,6 +190,12 @@ new_fact('jboss.eap.running-paths', 'Paths of running installs of JBoss EAP',
 new_fact('jboss.fuse.activemq-ver', 'ActiveMQ version', is_default=False)
 new_fact('jboss.fuse.camel-ver', 'Camel version', is_default=False)
 new_fact('jboss.fuse.cxf-ver', 'CXF version', is_default=False)
+new_fact('jboss.fuse.fuse-on-eap', 'Fuse on EAP',
+         is_default=True, categories=[JBOSS_FACTS])
+new_fact('jboss.fuse.init-files', 'Fuse-related init files',
+         is_default=True, categories=[JBOSS_FACTS])
+new_fact('jboss.fuse-on-karaf.karaf-home', 'Karaf home',
+         is_default=True, categories=[JBOSS_FACTS])
 new_fact('redhat-packages.certs', 'the list of Red Hat certificates found',
          is_default=True, categories=[RHEL_FACTS])
 new_fact('redhat-packages.gpg.is_redhat',

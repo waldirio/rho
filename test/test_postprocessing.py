@@ -7,75 +7,24 @@
 # along with this software; if not, see
 # http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
 
-"""Unit tests for library/spit_results.py."""
+"""Unit tests for fact postprocessing"""
 
-import os
 import unittest
-import mock
-from library import spit_results
+from rho import postprocessing
 
-# pylint: disable=missing-docstring, no-self-use
-
-TMP_TEST_REPORT = "/tmp/test_report.csv"
-
-
-class TestSpitResults(unittest.TestCase):
-
-    def setUp(self):
-        if os.path.isfile(TMP_TEST_REPORT):
-            os.remove(TMP_TEST_REPORT)
-
-    @mock.patch("library.spit_results.AnsibleModule", autospec=True)
-    def test__main__success(self, ansible_mod_cls):
-        mod_obj = ansible_mod_cls.return_value
-        pkg_line = """
-        pciutils|3.5.1|2.el7|1500397509|Red Hat, Inc.|1491250625|
-        x86-038.build.eng.bos.redhat.com|pciutils-3.5.1-2.el7.src.rpm|
-        GPLv2+|Red Hat, Inc. <http://bugzilla.redhat.com/bugzilla>|
-        Tue 18 Jul 2017 01:05:09 PM EDT|Mon 03 Apr 2017 04:17:05 PM EDT|||||
-        """
-        args = {
-            "name": "foo",
-            "file_path": TMP_TEST_REPORT,
-            "vals": [{'connection.uuid': '1',
-                      'systemid.contents': '',
-                      'redhat-packages.results': [pkg_line]}],
-            "all_vars": {'host1':
-                         {'fact1': 'value1',
-                          'fact2': 'value2',
-                          'res': {'fact3': 'value3'},
-                          'connection': {'connection.uuid': '1'},
-                          'jboss.jar-ver':
-                          {'stdout_lines':
-                           ['1.5.4.Final-redhat-1**2017-08-03']}}},
-            "fact_names": ['fact1', 'connection.uuid',
-                           'systemid.username',
-                           'redhat-packages.last_built',
-                           'jboss.deploy-dates', 'jboss.installed-versions']
-        }
-        mod_obj.params = args
-        spit_results.main()
-        expected_arguments_spec = {
-            "name": {"required": True, "type": "str"},
-            "file_path": {"required": True, "type": "str"},
-            "vals": {"required": True, "type": "list"},
-            "all_vars": {"required": True, "type": "dict"},
-            "fact_names": {"required": True, "type": "list"}
-        }
-
-        assert(mock.call(argument_spec=expected_arguments_spec) ==
-               ansible_mod_cls.call_args)
+# pylint: disable=missing-docstring
 
 
 class TestProcessIdUJboss(unittest.TestCase):
-    def run_func(self, output):
-        return spit_results.process_id_u_jboss(
+    @staticmethod
+    def run_func(output):
+        return postprocessing.process_id_u_jboss(
             ['jboss.eap.jboss-user'],
             {'jboss_eap_id_jboss': output})
 
     def test_fact_not_requested(self):
         self.assertEqual(
-            spit_results.process_id_u_jboss([], None),
+            postprocessing.process_id_u_jboss([], None),
             {})
 
     def test_wrongly_skipped(self):
@@ -105,18 +54,19 @@ class TestProcessIdUJboss(unittest.TestCase):
 
 
 class TestProcessJbossCommonFiles(unittest.TestCase):
-    def run_func(self, output):
-        return spit_results.process_jboss_eap_common_files(
+    @staticmethod
+    def run_func(output):
+        return postprocessing.process_jboss_eap_common_files(
             ['jboss.eap.common-files'],
             {'jboss_eap_common_files': output})
 
     def test_fact_not_requested(self):
         self.assertEqual(
-            spit_results.process_jboss_eap_common_files([], {}),
+            postprocessing.process_jboss_eap_common_files([], {}),
             {})
 
     def test_not_in_host_vars(self):
-        res = spit_results.process_jboss_eap_common_files(
+        res = postprocessing.process_jboss_eap_common_files(
             ['jboss.eap.common-files'], {})
 
         self.assertTrue(
@@ -139,8 +89,9 @@ class TestProcessJbossCommonFiles(unittest.TestCase):
 
 
 class TestProcessJbossEapProcesses(unittest.TestCase):
-    def run_func(self, output):
-        return spit_results.process_jboss_eap_processes(
+    @staticmethod
+    def run_func(output):
+        return postprocessing.process_jboss_eap_processes(
             ['jboss.eap.processes'],
             {'jboss.eap.processes': output})
 
@@ -156,8 +107,9 @@ class TestProcessJbossEapProcesses(unittest.TestCase):
 
 
 class TestProcessJbossEapPackages(unittest.TestCase):
-    def run_func(self, output):
-        return spit_results.process_jboss_eap_packages(
+    @staticmethod
+    def run_func(output):
+        return postprocessing.process_jboss_eap_packages(
             ['jboss.eap.packages'],
             {'jboss.eap.packages': output})
 
@@ -205,7 +157,7 @@ class TestProcessRPMPackages(unittest.TestCase):
                  'redhat-packages.gpg.num_rh_packages',
                  'redhat-packages.gpg.last_installed',
                  'redhat-packages.gpg.last_built']
-        results = spit_results.handle_redhat_packages(facts, data)
+        results = postprocessing.handle_redhat_packages(facts, data)
         self.assertIn('redhat-packages.num_installed_packages', results)
         self.assertEqual(results['redhat-packages.num_installed_packages'], 3)
         self.assertIn('redhat-packages.is_redhat', results)
@@ -260,7 +212,7 @@ class TestProcessRPMPackages(unittest.TestCase):
                  'redhat-packages.gpg.num_rh_packages',
                  'redhat-packages.gpg.last_installed',
                  'redhat-packages.gpg.last_built']
-        results = spit_results.handle_redhat_packages(facts, data)
+        results = postprocessing.handle_redhat_packages(facts, data)
         self.assertIn('redhat-packages.num_installed_packages', results)
         self.assertEqual(results['redhat-packages.num_installed_packages'], '')
         self.assertIn('redhat-packages.is_redhat', results)
@@ -287,18 +239,19 @@ class TestProcessRPMPackages(unittest.TestCase):
 
 class TestProcessJbossLocateJbossModulesJar(unittest.TestCase):
     def run_expect_well_formed(self, output):
-        val = spit_results.process_jboss_eap_locate(
-            [spit_results.JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR],
-            {'jboss_eap_locate_jboss_modules_jar': output})
+        val = postprocessing.process_jboss_eap_locate(
+            [postprocessing.JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR],
+            {'jboss_eap_locate_jboss_modules_jar': output,
+             'have_locate': True})
 
         self.assertIsInstance(val, dict)
         self.assertEqual(len(val), 1)
-        self.assertIn(spit_results.JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR, val)
+        self.assertIn(postprocessing.JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR, val)
 
-        return val[spit_results.JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR]
+        return val[postprocessing.JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR]
 
     # Most of the error handling is in
-    # spit_results.raw_output_present, which is tested elsewhere, so
+    # postprocessing.raw_output_present, which is tested elsewhere, so
     # we don't need to repeat those tests here.
 
     def test_success(self):
@@ -322,18 +275,88 @@ class TestProcessJbossLocateJbossModulesJar(unittest.TestCase):
             "Command 'locate' not found")
 
 
+class TestProcessJbossEapHome(unittest.TestCase):
+    def test_one_dir(self):
+        ls_result = [
+            'appclient', 'docs', 'installation', 'LICENSE.txt', 'standalone',
+            'welcome-content', 'bin', 'domain', 'JBossEULA.txt', 'modules',
+            'Uninstaller', 'bundles', 'icons', 'jboss-modules.jar',
+            'SHA256SUM', 'version.txt']
+        cat_result = (
+            'Red Hat JBoss Enterprise Application Platform - Version 6.4.0.GA')
+
+        result = postprocessing.process_jboss_eap_home(
+            [postprocessing.JBOSS_EAP_EAP_HOME],
+            {'eap_home_candidates_ls': {
+                'results': [
+                    {'item': 'eap_home', 'rc': 0,
+                     'stdout_lines': ls_result}]},
+             'eap_home_candidates_version_txt': {
+                 'results': [
+                     {'item': 'eap_home', 'rc': 0,
+                      'stdout': cat_result}]}})
+
+        self.assertIn(postprocessing.JBOSS_EAP_EAP_HOME, result)
+        dir_result = result[postprocessing.JBOSS_EAP_EAP_HOME]
+
+        # pylint: disable=line-too-long
+        self.assertEqual(dir_result,
+                         'eap_home: eap_home contains appclient,standalone,JBossEULA.txt,modules,jboss-modules.jar,version.txt, Red Hat JBoss Enterprise Application Platform - Version 6.4.0.GA')  # noqa
+
+
+class TestProcessFuseOnEap(unittest.TestCase):
+    def test_success(self):
+        ls_bin = ['fuseconfig.sh', 'fusepatch.sh']
+        layers_conf = '#Tue Oct 24 16:22:35 EDT 2017\nlayers=fuse,soa\n'
+        ls_layers = ['base', 'fuse', 'soa']
+
+        result = postprocessing.process_fuse_on_eap(
+            [postprocessing.JBOSS_FUSE_FUSE_ON_EAP],
+            {'eap_home_candidates_bin': {
+                'results': [
+                    {'item': 'eap_home', 'rc': 0,
+                     'stdout_lines': ls_bin}]},
+             'eap_home_candidates_layers_conf': {
+                 'results': [
+                     {'item': 'eap_home', 'rc': 0,
+                      'stdout': layers_conf}]},
+             'eap_home_candidates_layers': {
+                 'results': [
+                     {'item': 'eap_home', 'rc': 0,
+                      'stdout_lines': ls_layers}]}})
+
+        self.assertIn(postprocessing.JBOSS_FUSE_FUSE_ON_EAP, result)
+        dir_result = result[postprocessing.JBOSS_FUSE_FUSE_ON_EAP]
+
+        # pylint: disable=line-too-long
+        self.assertEqual(dir_result,
+                         'eap_home: /bin=eap_home contains fuseconfig.sh,fusepatch.sh, /modules/layers.conf=#Tue Oct 24 16:22:35 EDT 2017\nlayers=fuse,soa, /modules/system/layers=eap_home contains fuse')  # noqa
+
+
+class TestEscapeCharacters(unittest.TestCase):
+    def test_string(self):
+        data = {'key': 'abc\r\nde,f'}
+        postprocessing.escape_characters(data)
+        self.assertEqual(data['key'], 'abc de f')
+
+    def test_unicode(self):
+        data = {'key': u'abc\r\nde,f'}
+        postprocessing.escape_characters(data)
+        self.assertEqual(data['key'], u'abc de f')
+
+
 class TestProcessJbossEapInitFiles(unittest.TestCase):
     def run_func(self, chkconfig, systemctl):
-        val = spit_results.process_jboss_eap_init_files(
-            [spit_results.JBOSS_EAP_INIT_FILES],
+        val = postprocessing.process_jboss_eap_init_files(
+            [postprocessing.JBOSS_EAP_INIT_FILES],
             {'jboss_eap_chkconfig': chkconfig,
              'jboss_eap_systemctl_unit_files': systemctl})
 
         self.assertIsInstance(val, dict)
         self.assertEqual(len(val), 1)
-        self.assertIn(spit_results.JBOSS_EAP_INIT_FILES, val)
+        self.assertIn(postprocessing.JBOSS_EAP_INIT_FILES, val)
 
-        return val[spit_results.JBOSS_EAP_INIT_FILES]
+        return val[postprocessing.JBOSS_EAP_INIT_FILES]
 
     def test_both_error(self):
         self.assertEqual(self.run_func({'rc': 1, 'stdout_lines': []},
@@ -374,3 +397,50 @@ class TestProcessJbossEapInitFiles(unittest.TestCase):
                           {'rc': 0,
                            'stdout_lines': ['John', 'Ringo']}),
             "No services found matching 'jboss' or 'eap'.")
+
+
+class TestProcessKarafHome(unittest.TestCase):
+    def run_expect_well_formed(self, karaf_homes, bin_fuse, system_org_jboss):
+        val = postprocessing.process_karaf_home(
+            [postprocessing.JBOSS_FUSE_ON_KARAF_KARAF_HOME],
+            {'karaf_homes': karaf_homes,
+             'karaf_home_bin_fuse': bin_fuse,
+             'karaf_home_system_org_jboss': system_org_jboss})
+
+        self.assertIsInstance(val, dict)
+        self.assertEqual(len(val), 1)
+        self.assertIn(postprocessing.JBOSS_FUSE_ON_KARAF_KARAF_HOME, val)
+
+        return val[postprocessing.JBOSS_FUSE_ON_KARAF_KARAF_HOME]
+
+    def test_one_homedir(self):
+        karaf_home = '/karaf-home'
+        bin_fuse = {'results':
+                    [{'rc': 0, 'item': karaf_home, 'stdout': 'bin/fuse'}]}
+        system_org_jboss = {'results':
+                            [{'rc': 0, 'item': karaf_home, 'stdout_lines': [
+                                'foo', 'bar', 'fuse']}]}
+
+        self.assertEqual(
+            self.run_expect_well_formed(
+                [karaf_home], bin_fuse, system_org_jboss),
+            '/karaf-home: /bin/fuse exists; /karaf-home contains fuse')
+
+
+class TestProcessFuseInitFiles(unittest.TestCase):
+    def test_success(self):
+        val = postprocessing.process_fuse_init_files(
+            [postprocessing.JBOSS_FUSE_INIT_FILES],
+            {'jboss_fuse_systemctl_unit_files': {
+                'rc': 0, 'stdout_lines': ['foo', 'bar']},
+             'jboss_fuse_chkconfig': {
+                 'rc': 0, 'stdout_lines': ['baz', 'bot']}})
+
+        self.assertIsInstance(val, dict)
+        self.assertEqual(len(val), 1)
+        self.assertIn(postprocessing.JBOSS_FUSE_INIT_FILES, val)
+
+        out = val[postprocessing.JBOSS_FUSE_INIT_FILES]
+
+        self.assertEqual(out,
+                         'systemctl: foo; bar; chkconfig: baz; bot')
