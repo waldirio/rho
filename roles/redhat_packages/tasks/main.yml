@@ -145,7 +145,7 @@
   when: gather_certs
 
 - name: gather redhat-packages.certs fact
-  raw: ls /etc/pki/product/ | grep '.pem'
+  raw: ls /etc/pki/product/ 2> /dev/null| grep '.pem'
   register: redhat_packages_certs_cmd
   ignore_errors: yes
   when: gather_certs

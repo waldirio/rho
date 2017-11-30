@@ -337,12 +337,12 @@ class TestEscapeCharacters(unittest.TestCase):
     def test_string(self):
         data = {'key': 'abc\r\nde,f'}
         postprocessing.escape_characters(data)
-        self.assertEqual(data['key'], 'abc de f')
+        self.assertEqual(data['key'], b'abc de f')
 
     def test_unicode(self):
         data = {'key': u'abc\r\nde,f'}
         postprocessing.escape_characters(data)
-        self.assertEqual(data['key'], u'abc de f')
+        self.assertEqual(data['key'], b'abc de f')
 
 
 class TestProcessJbossEapInitFiles(unittest.TestCase):

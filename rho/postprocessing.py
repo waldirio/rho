@@ -11,6 +11,7 @@
 
 # pylint: disable=too-many-lines
 
+from __future__ import print_function
 import os.path
 import sys
 import xml
@@ -919,7 +920,11 @@ def escape_characters(data):
     """
     for key in data:
         if utilities.is_stringlike(data[key]):
-            data[key] = data[key].replace('\r\n', ' ').replace(',', ' ')
+            value = data[key].replace('\r\n', ' ').replace(',', ' ')
+            try:
+                data[key] = value.encode('unicode_escape')
+            except UnicodeEncodeError:
+                data[key] = ''
     return data
 
 
