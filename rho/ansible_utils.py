@@ -93,7 +93,7 @@ class AnsibleProcessException(Exception):
 # pylint: disable=too-many-arguments
 def run_with_vault(cmd_string, vault_pass, env=None, log_path=None,
                    log_to_stdout=None, ansible_verbosity=0,
-                   print_before_run=False):
+                   print_before_run=False, error_on_failure=True):
     """Runs ansible command allowing for password to be provided after
     process triggered.
 
@@ -177,7 +177,10 @@ def run_with_vault(cmd_string, vault_pass, env=None, log_path=None,
         print('Error: unexpected Ansible output')
         sys.exit(1)
 
-    if child.exitstatus or child.signalstatus:
-        raise AnsibleProcessException(
-            'Ansible process failed with status %s, signal status %s' %
-            (child.exitstatus, child.signalstatus))
+    if (child.exitstatus != 0 and child.exitstatus != 4) or child.signalstatus:
+        if error_on_failure is False and child.exitstatus == 2:
+            pass
+        else:
+            raise AnsibleProcessException(
+                'Ansible process failed with status %s, signal status %s' %
+                (child.exitstatus, child.signalstatus))

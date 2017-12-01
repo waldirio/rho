@@ -126,7 +126,7 @@ def create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
                                  log_path=PING_LOG_PATH,
                                  env=my_env,
                                  log_to_stdout=tail_discovery_scan,
-                                 ansible_verbosity=0)
+                                 ansible_verbosity=0, error_on_failure=False)
 
     with open(PING_LOG_PATH, 'r') as ping_log:
         success_hosts, failed_hosts = process_ping_output(ping_log)
