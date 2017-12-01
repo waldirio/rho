@@ -16,13 +16,21 @@
       when: 'have_locate and "jboss.brms" in facts_to_collect'
 
 # Combine the above with any EAP_HOME directories we've found
+    - name: create list if eap_home_candidates is not empty
+      set_fact:
+        business_central_candidates_eap: "{{ [] }}"
+        kie_server_candidates_eap: "{{ [] }}"
+      when: '"jboss.brms" in facts_to_collect'
 
+    - name: create list if eap_home_candidates is not empty
+      set_fact:
+        business_central_candidates_eap: "{{ eap_home_candidates | zip_longest([], fillvalue='/standalone/deployments/business-central.war') | map('join') | list }}"
+        kie_server_candidates_eap: "{{ eap_home_candidates | zip_longest([], fillvalue='/standalone/deployments/kie-server.war') | map('join') | list }}"
+      when: 'eap_home_candidates is defined and "jboss.brms" in facts_to_collect'
     - name: combine special directory candidates into single list
       set_fact:
-        business_central_candidates: "{{ (jboss_brms_business_central_candidates.get('stdout_lines', []) +
-                                          (eap_home_candidates | map('format', '%s/standalone/deployments/business-central.war') | list)) | unique }}"
-        kie_server_candidates: "{{ (jboss_brms_kie_server_candidates.get('stdout_lines', []) +
-                                    (eap_home_candidates | map('format', '%s/standalone/deployments/kie-server.war') | list)) | unique }}"
+        business_central_candidates: "{{ jboss_brms_business_central_candidates.get('stdout_lines', []) + business_central_candidates_eap | unique }}"
+        kie_server_candidates: "{{ jboss_brms_kie_server_candidates.get('stdout_lines', []) + kie_server_candidates_eap | unique }}"
       when: '"jboss.brms" in facts_to_collect'
 
     - name: cat MANIFEST.MF files

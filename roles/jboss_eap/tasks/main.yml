@@ -9,7 +9,7 @@
       when: 'have_java and ("jboss.eap.running-paths" in facts_to_collect or "jboss.eap.eap-home" in facts_to_collect or "jboss.fuse.fuse-on-eap" in facts_to_collect)'
 
     - name: use locate to look for jboss-modules.jar
-      raw: locate jboss-modules.jar | xargs -n 1 dirname
+      raw: locate jboss-modules.jar | xargs -n 1 dirname 2> /dev/null
       register: jboss_eap_locate_jboss_modules_jar
       ignore_errors: yes
       when: 'have_locate and ("jboss.eap.locate-jboss-modules-jar" in facts_to_collect or "jboss.eap.eap-home" in facts_to_collect or "jboss.fuse.fuse-on-eap" in facts_to_collect)'
