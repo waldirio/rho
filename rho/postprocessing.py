@@ -154,6 +154,11 @@ def raw_output_present(fact_names, host_vars, this_fact, this_var, command):
     return None, raw_output
 
 
+# MR is "machine readable". User-friendly string-based fact FOO has a
+# machine-friendly representation at fact_dict[FOO + MR]. (Only some
+# facts have MR representations so far.)
+MR = '-mr'
+
 JBOSS_EAP_INSTALLED_VERSIONS = 'jboss.eap.installed-versions'
 JBOSS_EAP_DEPLOY_DATES = 'jboss.eap.deploy-dates'
 JBOSS_EAP_RUNNING_PATHS = 'jboss.eap.running-paths'
@@ -166,6 +171,7 @@ GENERIC_ERROR = 'error'
 # JBoss versions are processed separately from other *-ver data
 # because they merge data from two input facts and include deploy
 # dates as well as version strings.
+# pylint: disable=too-many-branches
 def process_jboss_versions(fact_names, host_vars):
     """Get JBoss version information from the host_vars.
 
@@ -229,9 +235,11 @@ def process_jboss_versions(fact_names, host_vars):
     if JBOSS_EAP_INSTALLED_VERSIONS in fact_names:
         val[JBOSS_EAP_INSTALLED_VERSIONS] = (
             empty_output_message('; '.join(jboss_releases), 'jboss'))
+        val[JBOSS_EAP_INSTALLED_VERSIONS + MR] = jboss_releases
     if JBOSS_EAP_DEPLOY_DATES in fact_names:
         val[JBOSS_EAP_DEPLOY_DATES] = (
             empty_output_message('; '.join(deploy_dates), 'jboss'))
+        val[JBOSS_EAP_DEPLOY_DATES + MR] = deploy_dates
     if JBOSS_EAP_RUNNING_PATHS in fact_names:
         err, output = raw_output_present(fact_names, host_vars,
                                          JBOSS_EAP_RUNNING_PATHS,
@@ -244,6 +252,8 @@ def process_jboss_versions(fact_names, host_vars):
         else:
             val[JBOSS_EAP_RUNNING_PATHS] = empty_output_message(
                 output['stdout'], 'running EAP scan')
+            if host_vars['have_java']:
+                val[JBOSS_EAP_RUNNING_PATHS + MR] = output['stdout']
 
     return val
 
@@ -321,7 +331,8 @@ def process_id_u_jboss(fact_names, host_vars):
         return err
 
     if output['rc'] == 0:
-        return {JBOSS_EAP_JBOSS_USER: "User 'jboss' present"}
+        return {JBOSS_EAP_JBOSS_USER: "User 'jboss' present",
+                JBOSS_EAP_JBOSS_USER + MR: True}
 
     # Don't output a definitive "not found" unless we see an error
     # string that we recognize. We don't want to assume that any
@@ -330,7 +341,8 @@ def process_id_u_jboss(fact_names, host_vars):
     # /etc/passwd (or other errors).
     if (output['stdout_lines'] == ['id: jboss: no such user'] or
             output['stdout_lines'] == ['id: jboss: No such user']):
-        return {JBOSS_EAP_JBOSS_USER: 'No user "jboss" found'}
+        return {JBOSS_EAP_JBOSS_USER: 'No user "jboss" found',
+                JBOSS_EAP_JBOSS_USER + MR: False}
 
     return {JBOSS_EAP_JBOSS_USER:
             'Error: unexpected output from "id -u jboss": %s' % output}
@@ -370,7 +382,8 @@ def process_jboss_eap_common_files(fact_names, host_vars):
 
     return {JBOSS_EAP_COMMON_FILES:
             ';'.join(('{0} found'.format(directory)
-                      for directory in out_list))}
+                      for directory in out_list)),
+            JBOSS_EAP_COMMON_FILES + MR: out_list}
 
 
 JBOSS_EAP_PROCESSES = 'jboss.eap.processes'
@@ -413,7 +426,8 @@ def process_jboss_eap_processes(fact_names, host_vars):
     # pgrep exists with status 0 if it finds processes matching its
     # pattern, and status 1 if not.
     if output['rc']:
-        return {JBOSS_EAP_PROCESSES: 'No EAP processes found'}
+        return {JBOSS_EAP_PROCESSES: 'No EAP processes found',
+                JBOSS_EAP_PROCESSES + MR: 0}
 
     num_procs = len(output['stdout_lines'])
 
@@ -427,7 +441,8 @@ def process_jboss_eap_processes(fact_names, host_vars):
                 num_procs)}
 
     return {JBOSS_EAP_PROCESSES:
-            '{0} EAP processes found'.format(num_procs - 2)}
+            '{0} EAP processes found'.format(num_procs - 2),
+            JBOSS_EAP_PROCESSES + MR: num_procs - 2}
 
 
 JBOSS_EAP_PACKAGES = 'jboss.eap.packages'
@@ -463,7 +478,8 @@ def process_jboss_eap_packages(fact_names, host_vars):
     num_packages = len(output['stdout_lines'])
 
     return {JBOSS_EAP_PACKAGES:
-            '{0} JBoss-related packages found'.format(num_packages)}
+            '{0} JBoss-related packages found'.format(num_packages),
+            JBOSS_EAP_PACKAGES + MR: num_packages}
 
 
 JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR = 'jboss.eap.locate-jboss-modules-jar'
@@ -488,7 +504,9 @@ def process_jboss_eap_locate(fact_names, host_vars):
 
     if not output['rc'] and output['stdout_lines']:
         return {JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR:
-                ';'.join(output['stdout_lines'])}
+                ';'.join(output['stdout_lines']),
+                JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR + MR:
+                output['stdout_lines']}
 
     if output['rc'] and not output['stdout_lines']:
         return {JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR:
@@ -564,7 +582,9 @@ def process_jboss_eap_init_files(fact_names, host_vars):
 
     if found_services:
         return {JBOSS_EAP_INIT_FILES:
-                '; '.join(found_services)}
+                '; '.join(found_services),
+                JBOSS_EAP_INIT_FILES + MR:
+                found_services}
 
     return {JBOSS_EAP_INIT_FILES:
             "No services found matching 'jboss' or 'eap'."}
@@ -580,6 +600,7 @@ def process_indicator_files(indicator_files, ls_out):
     """Process the output of a with_items ls from Ansible."""
 
     ls_results = {}
+    ls_results_mr = {}
     for item in ls_out['results']:
         directory = item['item']
         if item['rc']:
@@ -592,24 +613,29 @@ def process_indicator_files(indicator_files, ls_out):
         if found_in_dir:
             ls_results[directory] = (
                 directory + ' contains ' + ','.join(found_in_dir))
+            ls_results_mr[directory] = found_in_dir
         else:
             ls_results[directory] = 'No indicator files found'
+            ls_results_mr[directory] = []
 
-    return ls_results
+    return ls_results, ls_results_mr
 
 
 def process_cat_results(filename, cat_out):
     """Process the output of a with_items cat from Ansible."""
 
     cat_results = {}
+    cat_results_mr = {}
     for item in cat_out['results']:
         directory = item['item']
         if item['rc']:
             cat_results[directory] = "Error in 'cat {0}'".format(filename)
         else:
-            cat_results[directory] = item['stdout'].strip()
+            file_contents = item['stdout'].strip()
+            cat_results[directory] = file_contents
+            cat_results_mr[directory] = 'Red Hat' in file_contents
 
-    return cat_results
+    return cat_results, cat_results_mr
 
 
 def process_jboss_eap_home(fact_names, host_vars):
@@ -630,17 +656,61 @@ def process_jboss_eap_home(fact_names, host_vars):
     if err is not None:
         return err
 
-    ls_results = process_indicator_files(JBOSS_EAP_INDICATOR_FILES, ls_out)
-    cat_results = process_cat_results('version.txt', cat_out)
+    ls_results, ls_results_mr = process_indicator_files(
+        JBOSS_EAP_INDICATOR_FILES, ls_out)
+    cat_results, cat_results_mr = process_cat_results('version.txt', cat_out)
 
     eap_homes = ls_results.keys()
     assert eap_homes == cat_results.keys()
+
+    # The MR results are a list of all of the directories that are
+    # likely EAP_HOME directories.
+    results_mr = [directory
+                  for directory in eap_homes
+                  if ls_results_mr[directory] or cat_results_mr[directory]]
 
     return {JBOSS_EAP_EAP_HOME:
             '; '.join([directory +
                        ': ' + ls_results[directory] +
                        ', ' + cat_results[directory]
-                       for directory in eap_homes])}
+                       for directory in eap_homes]),
+            JBOSS_EAP_EAP_HOME + MR: results_mr}
+
+
+JBOSS_EAP_SUMMARY = 'jboss.eap.summary'
+
+
+def generate_eap_summary(facts):
+    """Generate a single summary fact about whether the machine has EAP."""
+
+    installed_versions = facts.get(JBOSS_EAP_INSTALLED_VERSIONS + MR)
+    deploy_dates = facts.get(JBOSS_EAP_DEPLOY_DATES + MR)
+    running_paths = facts.get(JBOSS_EAP_RUNNING_PATHS + MR)
+    jboss_user = facts.get(JBOSS_EAP_JBOSS_USER + MR)
+    common_files = facts.get(JBOSS_EAP_COMMON_FILES + MR)
+    eap_processes = facts.get(JBOSS_EAP_PROCESSES + MR)
+    packages = facts.get(JBOSS_EAP_PACKAGES + MR)
+    modules_jar = facts.get(JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR + MR)
+    init_files = facts.get(JBOSS_EAP_INIT_FILES + MR)
+    eap_home = facts.get(JBOSS_EAP_EAP_HOME + MR)
+
+    # pylint: disable=too-many-boolean-expressions
+    if (installed_versions or
+            deploy_dates or
+            running_paths or
+            packages or
+            modules_jar or
+            eap_home):  # noqa (indent)
+        return {JBOSS_EAP_SUMMARY: 'Yes, EAP installation present'}
+
+    if (jboss_user or
+            common_files or
+            eap_processes or
+            init_files):  # noqa (indent)
+        return {JBOSS_EAP_SUMMARY:
+                'Maybe - an EAP installation may be present'}
+
+    return {JBOSS_EAP_SUMMARY: 'No EAP installation detected'}
 
 
 JBOSS_FUSE_FUSE_ON_EAP = 'jboss.fuse.fuse-on-eap'
@@ -674,10 +744,10 @@ def process_fuse_on_eap(fact_names, host_vars):
     if err:
         return err
 
-    ls_bin_results = process_indicator_files(
+    ls_bin_results, _ = process_indicator_files(
         JBOSS_FUSE_BIN_INDICATOR_FILES, ls_bin)
-    layers_conf_results = process_cat_results('layers.conf', layers_conf)
-    ls_layers_results = process_indicator_files(['fuse'], ls_layers)
+    layers_conf_results, _ = process_cat_results('layers.conf', layers_conf)
+    ls_layers_results, _ = process_indicator_files(['fuse'], ls_layers)
 
     eap_homes = ls_bin_results.keys()
     assert eap_homes == layers_conf_results.keys() == ls_layers_results.keys()
@@ -722,8 +792,8 @@ def process_karaf_home(fact_names, host_vars):
     if err is not None:
         return err
 
-    system_org_jboss_results = process_indicator_files(['fuse'],
-                                                       system_org_jboss)
+    system_org_jboss_results, _ = process_indicator_files(['fuse'],
+                                                          system_org_jboss)
 
     bin_fuse_results = {
         result['item']: ('/bin/fuse exists'
