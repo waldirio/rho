@@ -18,7 +18,7 @@ from rho import ansible_utils
 from rho.translation import _
 from rho.utilities import (log, str_to_ascii, PING_INVENTORY_PATH,
                            PING_LOG_PATH,
-                           tail_discovery_scan)
+                           process_discovery_scan)
 
 
 def process_ping_output(out_lines):
@@ -125,7 +125,7 @@ def create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
     ansible_utils.run_with_vault(cmd_string, vault_pass,
                                  log_path=PING_LOG_PATH,
                                  env=my_env,
-                                 log_to_stdout=tail_discovery_scan,
+                                 log_to_stdout=process_discovery_scan,
                                  ansible_verbosity=0, error_on_failure=False)
 
     with open(PING_LOG_PATH, 'r') as ping_log:
