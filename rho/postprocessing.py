@@ -880,8 +880,10 @@ UNKNOWN_BASE = 'unknown base directory'
 def process_brms_output(fact_names, host_vars):
     """Process facts for jboss.brms."""
 
-    business_central_candidates = host_vars['business_central_candidates']
-    kie_server_candidates = host_vars['kie_server_candidates']
+    business_central_candidates = host_vars.get(
+        'business_central_candidates', [])
+    kie_server_candidates = host_vars.get(
+        'kie_server_candidates', [])
 
     err, manifest_mf_out = raw_output_present(
         fact_names, host_vars,
