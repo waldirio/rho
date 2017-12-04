@@ -208,6 +208,14 @@ def inventory_scan(hosts_yml_path, facts_to_collect, report_path,
         postprocessing.handle_systemid(facts_to_collect, this_host)
         postprocessing.handle_redhat_packages(facts_to_collect, this_host)
         postprocessing.escape_characters(this_host)
+        this_host.update(postprocessing.generate_eap_summary(this_host))
+
+        # After all of the facts have been generated, remove -mr facts
+        # which were for machine use only.
+        keys = list(this_host.keys())
+        for key in keys:
+            if key[-3:] == '-mr':
+                del this_host[key]
 
         facts_out.append(this_host)
 

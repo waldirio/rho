@@ -187,6 +187,8 @@ new_fact('jboss.eap.processes', 'Running processes that look like JBoss',
          is_default=True, categories=[JBOSS_FACTS])
 new_fact('jboss.eap.running-paths', 'Paths of running installs of JBoss EAP',
          is_default=True, categories=[JBOSS_FACTS])
+new_fact('jboss.eap.summary', 'Summary of JBoss EAP information',
+         is_default=True, categories=[JBOSS_FACTS])
 new_fact('jboss.fuse.activemq-ver', 'ActiveMQ version', is_default=False)
 new_fact('jboss.fuse.camel-ver', 'Camel version', is_default=False)
 new_fact('jboss.fuse.cxf-ver', 'CXF version', is_default=False)
