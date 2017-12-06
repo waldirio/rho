@@ -6,6 +6,8 @@
 
 - name: collect all requested facts
   hosts: all
+  vars:
+    ansible_ssh_common_args: '-o ServerAliveInterval=10'
   gather_facts: no
   strategy: free
   roles:

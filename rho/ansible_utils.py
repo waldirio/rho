@@ -90,10 +90,10 @@ class AnsibleProcessException(Exception):
     pass
 
 
-# pylint: disable=too-many-arguments
+# pylint: disable=too-many-arguments,too-many-branches,too-many-statements
 def run_with_vault(cmd_string, vault_pass, env=None, log_path=None,
                    log_to_stdout=None, ansible_verbosity=0,
-                   print_before_run=False):
+                   print_before_run=False, error_on_failure=True):
     """Runs ansible command allowing for password to be provided after
     process triggered.
 
@@ -117,7 +117,7 @@ def run_with_vault(cmd_string, vault_pass, env=None, log_path=None,
     # single Python file object. We want to send it to a file and
     # maybe also stdout. The solution is to have pexpect log to the
     # file and then use 'tail -f' to copy that to stdout.
-
+    tail_process = None
     if not log_path:
         log_path = ANSIBLE_LOG_PATH
 
@@ -136,9 +136,9 @@ def run_with_vault(cmd_string, vault_pass, env=None, log_path=None,
                                   env=env)
 
             if log_to_stdout is not None:
-                utilities.threaded_tailing(path=log_path,
-                                           output_filter=log_to_stdout,
-                                           ansible_verbosity=ansible_verbosity)
+                tail_process = utilities.tail_log(log_path,
+                                                  ansible_verbosity,
+                                                  log_to_stdout)
 
             child.expect('Vault password:')
             child.sendline(vault_pass)
@@ -172,12 +172,21 @@ def run_with_vault(cmd_string, vault_pass, env=None, log_path=None,
 
     except pexpect.EOF:
         print('Error: unexpected Ansible output')
+        if tail_process is not None:
+            tail_process.terminate()
         sys.exit(1)
     except pexpect.TIMEOUT:
         print('Error: unexpected Ansible output')
+        if tail_process is not None:
+            tail_process.terminate()
         sys.exit(1)
 
-    if child.exitstatus or child.signalstatus:
-        raise AnsibleProcessException(
-            'Ansible process failed with status %s, signal status %s' %
-            (child.exitstatus, child.signalstatus))
+    if tail_process is not None:
+        tail_process.terminate()
+    if (child.exitstatus != 0 and child.exitstatus != 4) or child.signalstatus:
+        if error_on_failure is False and child.exitstatus == 2:
+            pass
+        else:
+            raise AnsibleProcessException(
+                'Ansible process failed with status %s, signal status %s' %
+                (child.exitstatus, child.signalstatus))

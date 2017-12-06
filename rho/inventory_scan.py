@@ -143,7 +143,7 @@ def inventory_scan(hosts_yml_path, facts_to_collect, report_path,
             cmd_string, vault_pass,
             env=my_env,
             log_path=log_path,
-            log_to_stdout=utilities.tail_host_scan,
+            log_to_stdout=utilities.process_host_scan,
             ansible_verbosity=verbosity,
             print_before_run=True)
     except ansible_utils.AnsibleProcessException as ex:

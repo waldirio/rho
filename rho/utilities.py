@@ -17,7 +17,6 @@ import os
 import re
 import sys
 import tempfile
-import threading
 from shutil import move
 import sh
 from xdg.BaseDirectory import xdg_data_home, xdg_config_home
@@ -84,101 +83,101 @@ def setup_logging(verbosity):
     log.addHandler(stderr_handler)
 
 
-def threaded_tailing(path, output_filter, ansible_verbosity=0):
-    """Follow and provide output using a thread
+def process_discovery_scan(line):
+    """Process the output of a discovery scan.
 
-    :param path: path to file to follow
-    :param output_filter: The function to handle the output filtering
-    :param ansible_verbosity: the verbosity level
+    :param line: a line from the discovery scan_log
     """
-    thread = threading.Thread(target=output_filter,
-                              args=(path, ansible_verbosity))
-    thread.daemon = True
-    thread.start()
+    hosts_processed = int(os.environ.get('RHO_HOST_PROCESSED', '0'))
+    hosts_successful = int(os.environ.get('RHO_HOST_SUCCESSFUL', '0'))
+    hosts_unreachable = int(os.environ.get('RHO_HOST_UNREACHABLE', '0'))
+    hosts_failed = int(os.environ.get('RHO_HOST_FAILED', '0'))
+
+    print_status = False
+    line = line.strip('\n')
+    if 'SUCCESS' in line:
+        hosts_successful += 1
+        hosts_processed += 1
+        os.environ['RHO_HOST_SUCCESSFUL'] = str(hosts_successful)
+        os.environ['RHO_HOST_PROCESSED'] = str(hosts_processed)
+        print_status = True
+    elif 'FAILED' in line:
+        hosts_failed += 1
+        hosts_processed += 1
+        os.environ['RHO_HOST_FAILED'] = str(hosts_failed)
+        os.environ['RHO_HOST_PROCESSED'] = str(hosts_processed)
+        print_status = True
+    elif 'UNREACHABLE' in line:
+        hosts_unreachable += 1
+        hosts_processed += 1
+        os.environ['RHO_HOST_UNREACHABLE'] = str(hosts_unreachable)
+        os.environ['RHO_HOST_PROCESSED'] = str(hosts_processed)
+        print_status = True
+
+    # Display every 5 processed
+    if hosts_processed % 5 == 0 and print_status:
+        print(_('%d hosts processed with the current credential. ' %
+                hosts_processed))
+        if hosts_successful > 0:
+            print(_('%d hosts connected successfully with '
+                    'the current credential.' % hosts_successful))
+        if hosts_failed > 0:
+            print(_('%d hosts failed to connect with the '
+                    'current credential.' % hosts_failed))
+        if hosts_unreachable > 0:
+            print(_('%d hosts were unreachable.' % hosts_unreachable))
+
+        print('\n')
 
 
-# pylint: disable=unused-argument
-def tail_discovery_scan(path, ansible_verbosity):
-    """Follow and provide discovery scan output
+def process_host_scan(line):
+    """Process the output of a discovery scan.
 
-    :param path: tuple containing the path to file to follow
-    :param ansible_verbosity: the verbosity level
+    :param line: a line from the discovery scan_log
     """
-    hosts_processed = 0
-    hosts_successful = 0
-    hosts_unreachable = 0
-    hosts_failed = 0
-    if len(path) > 0:  # pylint: disable=len-as-condition
-        # pylint: disable=no-member
-        for line in sh.tail('-f', '-n', '+0', path, _iter=True):
-            print_status = False
-            line = line.strip('\n')
-            if 'SUCCESS' in line:
-                hosts_successful += 1
-                hosts_processed += 1
-                print_status = True
-            elif 'FAILED' in line:
-                hosts_failed += 1
-                hosts_processed += 1
-                print_status = True
-            elif 'UNREACHABLE' in line:
-                hosts_unreachable += 1
-                hosts_processed += 1
-                print_status = True
+    ansible_verbosity = int(os.environ.get('ANSIBLE_VERBOSITY', '1'))
+    truncate = 1
+    if ansible_verbosity:
+        truncate = ansible_verbosity
 
-            # Display every 5 processed
-            if hosts_processed % 5 == 0 and print_status:
-                print(_('%d hosts processed with the current credential. ' %
-                        hosts_processed))
-                if hosts_successful > 0:
-                    print(_('%d hosts connected successfully with '
-                            'the current credential.' % hosts_successful))
-                if hosts_failed > 0:
-                    print(_('%d hosts failed to connect with the '
-                            'current credential.' % hosts_failed))
-                if hosts_unreachable > 0:
-                    print(_('%d hosts were unreachable.' % hosts_unreachable))
-
-                print('\n')
+    print_line = truncate
+    playbook_started = False
+    truncated = False
+    line = line.strip('\n')
+    if line.startswith('TASK') or line.startswith('PLAY'):
+        print(line)
+        print_line = truncate
+        playbook_started = True
+        truncated = False
+    elif 'FAILED!' in line or 'module_stderr' in line:
+        print(line)
+        print_line = truncate if truncate > 3 else 4
+    elif print_line > 0:
+        line_len = len(line)
+        char_truncate = truncate * 100
+        if line_len > char_truncate:
+            print(line[0:char_truncate] + '...')
+        else:
+            print(line)
+        print_line = print_line - 1
+    elif print_line == 0 and not truncated and playbook_started:
+        print(_('-- output truncated --'))
+        truncated = True
 
 
-def tail_host_scan(path, ansible_verbosity):
+def tail_log(path, ansible_verbosity, process_output):
     """Follow and provide host scan output
 
     :param path: tuple containing the path to file to follow
     :param ansible_verbosity: the verbosity level
+    :param process_output: the method to process the output
     """
     if len(path) > 0:  # pylint: disable=len-as-condition
-        truncate = 1
-        if ansible_verbosity:
-            truncate = ansible_verbosity
-
-        print_line = truncate
-        plabook_started = False
-        truncated = False
-
+        os.environ['ANSIBLE_VERBOSITY'] = str(ansible_verbosity)
         # pylint: disable=no-member
-        for line in sh.tail('-f', '-n', '+0', path, _iter=True):
-            line = line.strip('\n')
-            if line.startswith('TASK') or line.startswith('PLAY'):
-                print(line)
-                print_line = truncate
-                plabook_started = True
-                truncated = False
-            elif 'FAILED!' in line or 'module_stderr' in line:
-                print(line)
-                print_line = truncate if truncate > 3 else 4
-            elif print_line > 0:
-                line_len = len(line)
-                char_truncate = truncate * 100
-                if line_len > char_truncate:
-                    print(line[0:char_truncate] + '...')
-                else:
-                    print(line)
-                print_line = print_line - 1
-            elif print_line == 0 and not truncated and plabook_started:
-                print(_('-- output truncated --'))
-                truncated = True
+        process = sh.tail('-f', '-n', '+0', path, _out=process_output,
+                          _bg=True, _bg_exc=False)
+        return process
 
 
 def ensure_config_dir_exists():
