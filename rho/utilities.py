@@ -88,24 +88,30 @@ def process_discovery_scan(line):
 
     :param line: a line from the discovery scan_log
     """
-    hosts_processed = 0
-    hosts_successful = 0
-    hosts_unreachable = 0
-    hosts_failed = 0
+    hosts_processed = int(os.environ.get('RHO_HOST_PROCESSED', '0'))
+    hosts_successful = int(os.environ.get('RHO_HOST_SUCCESSFUL', '0'))
+    hosts_unreachable = int(os.environ.get('RHO_HOST_UNREACHABLE', '0'))
+    hosts_failed = int(os.environ.get('RHO_HOST_FAILED', '0'))
 
     print_status = False
     line = line.strip('\n')
     if 'SUCCESS' in line:
         hosts_successful += 1
         hosts_processed += 1
+        os.environ['RHO_HOST_SUCCESSFUL'] = str(hosts_successful)
+        os.environ['RHO_HOST_PROCESSED'] = str(hosts_processed)
         print_status = True
     elif 'FAILED' in line:
         hosts_failed += 1
         hosts_processed += 1
+        os.environ['RHO_HOST_FAILED'] = str(hosts_failed)
+        os.environ['RHO_HOST_PROCESSED'] = str(hosts_processed)
         print_status = True
     elif 'UNREACHABLE' in line:
         hosts_unreachable += 1
         hosts_processed += 1
+        os.environ['RHO_HOST_UNREACHABLE'] = str(hosts_unreachable)
+        os.environ['RHO_HOST_PROCESSED'] = str(hosts_processed)
         print_status = True
 
     # Display every 5 processed
