@@ -36,13 +36,15 @@ class TestProcessIdUJboss(unittest.TestCase):
     def test_user_found(self):
         self.assertEqual(
             self.run_func({'rc': 0, 'stdout_lines': []}),
-            {'jboss.eap.jboss-user': "User 'jboss' present"})
+            {'jboss.eap.jboss-user': "User 'jboss' present",
+             'jboss.eap.jboss-user-mr': True})
 
     def test_no_such_user(self):
         self.assertEqual(
             self.run_func({'rc': 1,
                            'stdout_lines': ['id: jboss: no such user']}),
-            {'jboss.eap.jboss-user': 'No user "jboss" found'})
+            {'jboss.eap.jboss-user': 'No user "jboss" found',
+             'jboss.eap.jboss-user-mr': False})
 
     def test_unknown_error(self):
         res = self.run_func({'rc': 1,
@@ -84,8 +86,8 @@ class TestProcessJbossCommonFiles(unittest.TestCase):
                      'rc': 1},
                     {'item': 'dir3',
                      'rc': 0}]}),
-            {'jboss.eap.common-files':
-             'dir3 found'})
+            {'jboss.eap.common-files': 'dir3 found',
+             'jboss.eap.common-files-mr': ['dir3']})
 
 
 class TestProcessJbossEapProcesses(unittest.TestCase):
@@ -98,12 +100,14 @@ class TestProcessJbossEapProcesses(unittest.TestCase):
     def test_no_processes(self):
         self.assertEqual(
             self.run_func({'rc': 1, 'stdout_lines': []}),
-            {'jboss.eap.processes': 'No EAP processes found'})
+            {'jboss.eap.processes': 'No EAP processes found',
+             'jboss.eap.processes-mr': 0})
 
     def test_found_processes(self):
         self.assertEqual(
             self.run_func({'rc': 0, 'stdout_lines': [1, 2, 3]}),
-            {'jboss.eap.processes': '1 EAP processes found'})
+            {'jboss.eap.processes': '1 EAP processes found',
+             'jboss.eap.processes-mr': 1})
 
 
 class TestProcessJbossEapPackages(unittest.TestCase):
@@ -121,12 +125,14 @@ class TestProcessJbossEapPackages(unittest.TestCase):
     def test_found_packages(self):
         self.assertEqual(
             self.run_func({'rc': 0, 'stdout_lines': ['a', 'b', 'c']}),
-            {'jboss.eap.packages': '3 JBoss-related packages found'})
+            {'jboss.eap.packages': '3 JBoss-related packages found',
+             'jboss.eap.packages-mr': 3})
 
     def test_no_packages(self):
         self.assertEqual(
             self.run_func({'rc': 0, 'stdout_lines': []}),
-            {'jboss.eap.packages': '0 JBoss-related packages found'})
+            {'jboss.eap.packages': '0 JBoss-related packages found',
+             'jboss.eap.packages-mr': 0})
 
 
 class TestProcessRPMPackages(unittest.TestCase):
@@ -245,7 +251,7 @@ class TestProcessJbossLocateJbossModulesJar(unittest.TestCase):
              'have_locate': True})
 
         self.assertIsInstance(val, dict)
-        self.assertEqual(len(val), 1)
+        self.assertTrue(1 <= len(val) <= 2)
         self.assertIn(postprocessing.JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR, val)
 
         return val[postprocessing.JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR]
@@ -353,7 +359,7 @@ class TestProcessJbossEapInitFiles(unittest.TestCase):
              'jboss_eap_systemctl_unit_files': systemctl})
 
         self.assertIsInstance(val, dict)
-        self.assertEqual(len(val), 1)
+        self.assertTrue(1 <= len(val) <= 2)
         self.assertIn(postprocessing.JBOSS_EAP_INIT_FILES, val)
 
         return val[postprocessing.JBOSS_EAP_INIT_FILES]
