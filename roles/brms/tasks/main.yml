@@ -26,9 +26,8 @@
       set_fact:
         business_central_candidates_eap: "{{ business_central_candidates_eap + [item + '/standalone/deployments/business-central.war'] }}"
         kie_server_candidates_eap: "{{ kie_server_candidates_eap + [item + '/standalone/deployments/kie-server.war'] }}"
-      when: 'eap_home_candidates is defined'
       with_items: "{{ eap_home_candidates }}"
-      when: '"jboss.brms" in facts_to_collect'
+      when: 'eap_home_candidates is defined and "jboss.brms" in facts_to_collect'
 
     - name: combine special directory candidates into single list
       set_fact:

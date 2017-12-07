@@ -22,7 +22,8 @@ from rho.vault import get_vault_and_password
 from rho.utilities import (
     multi_arg, _read_in_file, iteritems,
     PROFILE_HOSTS_SUFIX,
-    PROFILE_HOST_AUTH_MAPPING_SUFFIX
+    PROFILE_HOST_AUTH_MAPPING_SUFFIX,
+    log
 )
 from rho import host_discovery
 from rho import inventory_scan
@@ -221,19 +222,24 @@ class ScanCommand(CliCommand):
         # used and does not need to be rerun.
         if not self.options.cache:
             success_hosts = []
+            unreachalbe_hosts = []
             success_port_map = {}
             auth_map = {}
             remaining_hosts = profile_ranges
             cred_names = [cred.get('name') for cred in profile_auth_list]
             creds_str = ', '.join(cred_names)
+            log.info('Connection discovery will be perform with the following'
+                     ' auth credentials: %s', creds_str)
             print(_('Connection discovery will be perform with the following'
                     ' auth credentials: %s' % (creds_str)))
             print(_('Note: Any ssh-agent connection setup for a target host '
                     'will be used as a fallback if it exists.'))
             print()
             for cred_item in profile_auth_list:
+                log.info('Discovery starting with credential %s.',
+                         cred_item.get('name'))
                 success_hosts_, success_port_map_, \
-                    auth_map_, remaining_hosts_ = \
+                    auth_map_, remaining_hosts_, unreachalbe_hosts_ = \
                     host_discovery.create_ping_inventory(
                         vault, vault_pass,
                         remaining_hosts,
@@ -242,15 +248,19 @@ class ScanCommand(CliCommand):
                         self.verbosity)
                 success_hosts = success_hosts + success_hosts_
                 remaining_hosts = remaining_hosts_
+                unreachalbe_hosts = unreachalbe_hosts_
                 success_port_map.update(success_port_map_)
                 auth_map.update(auth_map_)
+                log.info('Discovery with credential %s completed.',
+                         cred_item.get('name'))
             if not success_hosts:
                 print(_('All auths are invalid for this profile'))
                 sys.exit(1)
 
             num_success = len(success_hosts)
             num_failed = len(remaining_hosts)
-            num_total = num_success + num_failed
+            num_unreachable = len(unreachalbe_hosts)
+            num_total = num_success + num_failed + num_unreachable
             if num_failed > 0:
                 with NamedTemporaryFile(mode='w', delete=False) as failed_temp:
                     for failed in remaining_hosts:
@@ -265,6 +275,8 @@ class ScanCommand(CliCommand):
                             % (failed_hosts)))
                 print()
 
+            log.info('Scan will be performed against %d of %d systems.',
+                     num_success, num_total)
             print(_('Scan will be performed against %d of %d systems.' %
                     (num_success, num_total)))
             print()
@@ -280,6 +292,7 @@ class ScanCommand(CliCommand):
                   "Please run without using --cache with the profile first.")
             sys.exit(1)
 
+        log.info('Host scan starting for profile %s.', profile)
         inventory_scan.inventory_scan(
             hosts_yml_path, self.facts_to_collect, report_path, vault_pass,
             profile, forks=forks, scan_dirs=self.options.scan_dirs,
@@ -290,6 +303,7 @@ class ScanCommand(CliCommand):
             self.options.profile + PROFILE_HOST_AUTH_MAPPING_SUFFIX
         host_auth_mapping_path = \
             utilities.get_config_path(host_auth_mapping)
+        log.info('Host scan completed for profile %s.', profile)
         print(_("Scanning has completed. The mapping has been"
                 " stored in file '" + host_auth_mapping_path +
                 "'. The facts have been stored in '" +
