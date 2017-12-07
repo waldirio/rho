@@ -42,12 +42,19 @@
       ignore_errors: yes
       when: 'have_locate and "jboss.fuse-on-karaf.karaf-home" in facts_to_collect'
 
+    - name: Use find to look for karaf.jar
+      raw: find {{scan_dirs}} -xdev -type f -name karaf.jar 2> /dev/null | sed -n -e 's/\(.*\)lib\/karaf\.jar$/\1/p' | xargs -n 1 realpath  2> /dev/null | sort -u
+      register: karaf_find_karaf_jar
+      ignore_errors: yes
+      when: '"jboss.fuse-on-karaf.find-karaf-jar" in facts_to_collect'
+
 # Combine the outputs of the above into a single fact
 
     - name: combine KARAF_HOME candidates into single list
       set_fact:
           karaf_homes: "{{ (karaf_running_processes.get('stdout_lines', []) +
-                            karaf_locate_karaf_jar.get('stdout_lines', [])) | unique }}"
+                            karaf_locate_karaf_jar.get('stdout_lines', []) +
+                            karaf_find_karaf_jar.get('stdout_lines', [])) | unique }}"
       ignore_errors: yes
       when: '"jboss.fuse-on-karaf.karaf-home" in facts_to_collect'
 

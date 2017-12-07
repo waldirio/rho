@@ -303,9 +303,9 @@ def process_addon_versions(fact_names, host_vars):
     classify('jboss.brms.drools-core-ver', fact_names, BRMS_CLASSIFICATIONS)
     classify('jboss.brms.kie-war-ver', fact_names, BRMS_CLASSIFICATIONS)
 
-    classify('jboss.fuse.activemq-ver', fact_names, FUSE_CLASSIFICATIONS)
-    classify('jboss.fuse.camel-ver', fact_names, FUSE_CLASSIFICATIONS)
-    classify('jboss.fuse.cxf-ver', fact_names, FUSE_CLASSIFICATIONS)
+    classify('jboss.activemq-ver', fact_names, FUSE_CLASSIFICATIONS)
+    classify('jboss.camel-ver', fact_names, FUSE_CLASSIFICATIONS)
+    classify('jboss.cxf-ver', fact_names, FUSE_CLASSIFICATIONS)
 
     return result
 
@@ -680,8 +680,11 @@ def process_jboss_eap_home(fact_names, host_vars):
 JBOSS_EAP_SUMMARY = 'jboss.eap.summary'
 
 
-def generate_eap_summary(facts):
+def generate_eap_summary(facts_to_collect, facts):
     """Generate a single summary fact about whether the machine has EAP."""
+
+    if JBOSS_EAP_SUMMARY not in facts_to_collect:
+        return {}
 
     installed_versions = facts.get(JBOSS_EAP_INSTALLED_VERSIONS + MR)
     deploy_dates = facts.get(JBOSS_EAP_DEPLOY_DATES + MR)
@@ -711,6 +714,44 @@ def generate_eap_summary(facts):
                 'Maybe - an EAP installation may be present'}
 
     return {JBOSS_EAP_SUMMARY: 'No EAP installation detected'}
+
+
+JBOSS_EAP_FIND_JBOSS_MODULES_JAR = 'jboss.eap.find-jboss-modules-jar'
+
+
+def process_find_jboss_modules_jar(fact_names, host_vars):
+    """Process the output of 'find jboss-modules.jar'"""
+
+    if JBOSS_EAP_FIND_JBOSS_MODULES_JAR not in fact_names:
+        return {}
+
+    err, out = raw_output_present(fact_names, host_vars,
+                                  JBOSS_EAP_FIND_JBOSS_MODULES_JAR,
+                                  'jboss_eap_find_jboss_modules_jar',
+                                  'find jboss-modules.jar')
+    if err is not None:
+        return err
+
+    return {JBOSS_EAP_FIND_JBOSS_MODULES_JAR: '; '.join(out['stdout_lines'])}
+
+
+FIND_KARAF_JAR = 'jboss.fuse-on-karaf.find-karaf-jar'
+
+
+def process_find_karaf_jar(fact_names, host_vars):
+    """Process the output of 'find karaf.jar'"""
+
+    if FIND_KARAF_JAR not in fact_names:
+        return {}
+
+    err, out = raw_output_present(fact_names, host_vars,
+                                  FIND_KARAF_JAR,
+                                  'karaf_find_karaf_jar',
+                                  'find karaf.jar')
+    if err is not None:
+        return err
+
+    return {FIND_KARAF_JAR: '; '.join(out['stdout_lines'])}
 
 
 JBOSS_FUSE_FUSE_ON_EAP = 'jboss.fuse.fuse-on-eap'
