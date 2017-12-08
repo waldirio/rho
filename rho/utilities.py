@@ -91,6 +91,7 @@ def process_discovery_scan(line):
     :param line: a line from the discovery scan_log
     """
     log_path = os.environ.get('RHO_ANSIBLE_LOG', None)
+    rho_cred = os.environ.get('RHO_CREDENTIAL_NAME', '')
     hosts_processed = int(os.environ.get('RHO_HOST_PROCESSED', '0'))
     hosts_successful = int(os.environ.get('RHO_HOST_SUCCESSFUL', '0'))
     hosts_unreachable = int(os.environ.get('RHO_HOST_UNREACHABLE', '0'))
@@ -123,14 +124,14 @@ def process_discovery_scan(line):
             with open(log_path, 'ab') as logfile:
                 logfile.write('******* %s *******' % (str(datetime.now())))
                 logfile.flush()
-        print(_('%d hosts processed with the current credential. ' %
-                hosts_processed))
+        print(_('%d hosts processed with credential %s. ' %
+                (hosts_processed, rho_cred)))
         if hosts_successful > 0:
             print(_('%d hosts connected successfully with '
-                    'the current credential.' % hosts_successful))
+                    'credential %s.' % (hosts_successful, rho_cred)))
         if hosts_failed > 0:
-            print(_('%d hosts failed to connect with the '
-                    'current credential.' % hosts_failed))
+            print(_('%d hosts failed to connect with '
+                    'credential %s.' % (hosts_failed, rho_cred)))
         if hosts_unreachable > 0:
             print(_('%d hosts were unreachable.' % hosts_unreachable))
 
@@ -172,16 +173,20 @@ def process_host_scan(line):
         truncated = True
 
 
-def tail_log(path, ansible_verbosity, process_output):
+def tail_log(path, ansible_verbosity, process_output, env=None):
     """Follow and provide host scan output
 
     :param path: tuple containing the path to file to follow
     :param ansible_verbosity: the verbosity level
     :param process_output: the method to process the output
+    :param env: the enviroment to add to tail process
     """
     if len(path) > 0:  # pylint: disable=len-as-condition
         os.environ['ANSIBLE_VERBOSITY'] = str(ansible_verbosity)
         os.environ['RHO_ANSIBLE_LOG'] = path
+        if env is not None and isinstance(env, dict):
+            for key, value in iteritems(env):
+                os.environ[key] = str(value)
         # pylint: disable=no-member
         process = sh.tail('-f', '-n', '+0', path, _out=process_output,
                           _bg=True, _bg_exc=False)

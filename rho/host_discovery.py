@@ -123,6 +123,7 @@ def create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
     my_env = os.environ.copy()
     my_env["ANSIBLE_HOST_KEY_CHECKING"] = "False"
     my_env["ANSIBLE_NOCOLOR"] = "True"
+    log_env = {'RHO_CREDENTIAL_NAME': credential.get('name')}
     # Don't pass ansible_verbosity here as adding too much
     # verbosity can break our parsing of Ansible's output. This is
     # a temporary fix - a better solution would be less-fragile
@@ -131,6 +132,7 @@ def create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
                                  log_path=PING_LOG_PATH,
                                  env=my_env,
                                  log_to_stdout=process_discovery_scan,
+                                 log_to_stdout_env=log_env,
                                  ansible_verbosity=0, error_on_failure=False)
 
     with open(PING_LOG_PATH, 'r') as ping_log:
