@@ -287,7 +287,7 @@ class ScanCommand(CliCommand):
                                                  success_port_map, auth_map,
                                                  hosts_yml_path)
 
-        elif os.path.isfile(hosts_yml_path):
+        elif os.path.isfile(hosts_yml_path) is False:
             print("Profile '" + profile + "' has not been processed. " +
                   "Please run without using --cache with the profile first.")
             sys.exit(1)
