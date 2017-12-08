@@ -118,6 +118,7 @@ def create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
     cmd_string = 'ansible alpha -m raw' \
                  ' -i ' + PING_INVENTORY_PATH \
                  + ' --ask-vault-pass -f ' + forks \
+                 + ' --ssh-common-args="-o ServerAliveInterval=10"' \
                  + ' -a \'echo "Hello"\''
 
     my_env = os.environ.copy()
