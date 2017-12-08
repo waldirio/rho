@@ -15,7 +15,10 @@ from __future__ import print_function
 import os
 import sys
 import time
+import platform
 from tempfile import NamedTemporaryFile
+from ansible import __version__ as ansible_version
+from rho import __version__ as rho_version
 from rho import utilities
 from rho.clicommand import CliCommand
 from rho.vault import get_vault_and_password
@@ -217,6 +220,14 @@ class ScanCommand(CliCommand):
         if not profile_found:
             print(_("Invalid profile. Create profile first"))
             sys.exit(1)
+
+        # log data about current version of rho and system data
+        log.info('Version information - rho: %s; ansible: %s; python: %s.',
+                 rho_version, ansible_version, sys.version)
+
+        log.info('System information - platform: '
+                 '%s; machine: %s; processor: %s.', platform.platform(),
+                 platform.machine(), platform.processor())
 
         # cache is used when the profile/auth mapping has been previously
         # used and does not need to be rerun.
