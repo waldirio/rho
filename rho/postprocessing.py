@@ -680,8 +680,10 @@ def process_jboss_eap_home(fact_names, host_vars):
 JBOSS_EAP_SUMMARY = 'jboss.eap.summary'
 
 
-def generate_eap_summary(facts):
+def generate_eap_summary(facts_to_collect, facts):
     """Generate a single summary fact about whether the machine has EAP."""
+    if JBOSS_EAP_SUMMARY not in facts_to_collect:
+        return {}
 
     installed_versions = facts.get(JBOSS_EAP_INSTALLED_VERSIONS + MR)
     deploy_dates = facts.get(JBOSS_EAP_DEPLOY_DATES + MR)
