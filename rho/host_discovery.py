@@ -34,6 +34,7 @@ def process_ping_output(out_lines):
 
     success_hosts = set()
     failed_hosts = set()
+    unreachable_hosts = set()
 
     # Ansible output has the format
     # host | UNREACHABLE! => {
@@ -53,12 +54,13 @@ def process_ping_output(out_lines):
         elif len(pieces) == 3 and pieces[1].strip() == 'FAILED':
             failed_hosts.add(pieces[0].strip())
         elif len(pieces) == 2 and pieces[1].strip().startswith('UNREACHABLE'):
-            failed_hosts.add(pieces[0].strip())
+            unreachable_hosts.add(pieces[0].strip())
 
-    log.debug('Ping log reached hosts: %s', success_hosts)
-    log.debug('Ping log did not reached hosts: %s', failed_hosts)
+    log.info('Ping log reached hosts: %s', success_hosts)
+    log.info('Ping log failed hosts: %s', failed_hosts)
+    log.info('Ping log unreachable hosts: %s', unreachable_hosts)
 
-    return success_hosts, failed_hosts
+    return success_hosts, failed_hosts, unreachable_hosts
 
 
 # Creates the inventory for pinging all hosts and records
@@ -86,6 +88,7 @@ def create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
     # pylint: disable=too-many-locals
     success_hosts = set()
     failed_hosts = set()
+    unreachable_hosts = set()
     success_port_map = defaultdict()
     success_auth_map = defaultdict(list)
     hosts_dict = {}
@@ -107,17 +110,25 @@ def create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
     vault.dump_as_yaml_to_file(yml_dict, PING_INVENTORY_PATH)
     ansible_utils.log_yaml_inventory('Ping inventory', yml_dict)
 
+    log.info('Attempting connection discovery with auth "%s".',
+             credential.get('name'))
     print(_('Attempting connection discovery with auth "%s".' %
             (credential.get('name'))))
 
     cmd_string = 'ansible alpha -m raw' \
                  ' -i ' + PING_INVENTORY_PATH \
                  + ' --ask-vault-pass -f ' + forks \
+                 + ' --ssh-common-args="-o ServerAliveInterval=10"' \
                  + ' -a \'echo "Hello"\''
 
     my_env = os.environ.copy()
     my_env["ANSIBLE_HOST_KEY_CHECKING"] = "False"
     my_env["ANSIBLE_NOCOLOR"] = "True"
+    log_env = {'RHO_CREDENTIAL_NAME': credential.get('name'),
+               'RHO_HOST_PROCESSED': '0',
+               'RHO_HOST_SUCCESSFUL': '0',
+               'RHO_HOST_UNREACHABLE': '0',
+               'RHO_HOST_FAILED': '0'}
     # Don't pass ansible_verbosity here as adding too much
     # verbosity can break our parsing of Ansible's output. This is
     # a temporary fix - a better solution would be less-fragile
@@ -126,10 +137,12 @@ def create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
                                  log_path=PING_LOG_PATH,
                                  env=my_env,
                                  log_to_stdout=process_discovery_scan,
+                                 log_to_stdout_env=log_env,
                                  ansible_verbosity=0, error_on_failure=False)
 
     with open(PING_LOG_PATH, 'r') as ping_log:
-        success_hosts, failed_hosts = process_ping_output(ping_log)
+        success_hosts, failed_hosts, unreachable_hosts = \
+            process_ping_output(ping_log)
 
     for host in success_hosts:
         success_auth_map[host].append(credential)
@@ -137,14 +150,22 @@ def create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
 
     num_success = len(success_hosts)
     num_failed = len(failed_hosts)
+    num_unreachable = len(unreachable_hosts)
     if num_success > 0:
+        log.info('Connection succeeded with auth "%s" to %d systems.',
+                 credential.get('name'), num_success)
         print(_('Connection succeeded with auth "%s" to %d systems.') %
               (credential.get('name'), num_success))
     if num_failed > 0:
         print(_('Failed to connect with auth "%s" to %d systems.') %
               (credential.get('name'), num_failed))
-    if num_success > 0 or num_failed > 0:
+        log.info('Failed to connect with auth "%s" to %d systems.',
+                 credential.get('name'), num_failed)
+    if num_unreachable > 0:
+        print(_('Found %d unreachable systems.') % (num_unreachable))
+        log.info('Found %d unreachable systems.', num_unreachable)
+    if num_success > 0 or num_failed > 0 or num_unreachable > 0:
         print('')
 
     return list(success_hosts), success_port_map, success_auth_map, \
-        list(failed_hosts)
+        list(failed_hosts), list(unreachable_hosts)

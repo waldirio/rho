@@ -19,7 +19,7 @@ class TestProcessPingOutput(unittest.TestCase):
 
     def test_process_ping_output(self):
         """The output of a three-host scan"""
-        success, failed = host_discovery.process_ping_output([
+        success, failed, unreachable = host_discovery.process_ping_output([
             '192.168.50.11 | SUCCESS | rc=0 >>',
             'Hello',
             '192.168.50.12 | SUCCESS | rc=0 >>',
@@ -31,10 +31,11 @@ class TestProcessPingOutput(unittest.TestCase):
                               '192.168.50.11',
                               '192.168.50.12']))
         self.assertEqual(failed, set())
+        self.assertEqual(unreachable, set())
 
     def test_process_ping_output_fail(self):
         """The output of a three-host scan"""
-        success, failed = host_discovery.process_ping_output([
+        success, failed, unreachable = host_discovery.process_ping_output([
             '192.168.50.11 | UNREACHABLE! => {',
             '     "changed": false,',
             '     "msg": "Failed to connect to the host via ssh ...",',
@@ -48,4 +49,5 @@ class TestProcessPingOutput(unittest.TestCase):
         self.assertEqual(success,
                          set(['192.168.50.10',
                               '192.168.50.12']))
-        self.assertEqual(failed, set(['192.168.50.11']))
+        self.assertEqual(failed, set())
+        self.assertEqual(unreachable, set(['192.168.50.11']))

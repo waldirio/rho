@@ -18,6 +18,7 @@ import re
 import sys
 import tempfile
 from shutil import move
+from datetime import datetime
 import sh
 from xdg.BaseDirectory import xdg_data_home, xdg_config_home
 from rho.translation import _
@@ -72,7 +73,8 @@ def setup_logging(verbosity):
 
     # Using basicConfig here means that all log messages, even
     # those not coming from rho, will go to the log file
-    logging.basicConfig(filename=RHO_LOG)
+    FORMAT = '%(asctime)-15s: %(message)s'
+    logging.basicConfig(filename=RHO_LOG, format=FORMAT)
     # but we only adjust the log level for the 'rho' logger.
     log.setLevel(log_level)
     # the StreamHandler sends warnings and above to stdout, but
@@ -88,6 +90,8 @@ def process_discovery_scan(line):
 
     :param line: a line from the discovery scan_log
     """
+    log_path = os.environ.get('RHO_ANSIBLE_LOG', None)
+    rho_cred = os.environ.get('RHO_CREDENTIAL_NAME', '')
     hosts_processed = int(os.environ.get('RHO_HOST_PROCESSED', '0'))
     hosts_successful = int(os.environ.get('RHO_HOST_SUCCESSFUL', '0'))
     hosts_unreachable = int(os.environ.get('RHO_HOST_UNREACHABLE', '0'))
@@ -116,14 +120,18 @@ def process_discovery_scan(line):
 
     # Display every 5 processed
     if hosts_processed % 5 == 0 and print_status:
-        print(_('%d hosts processed with the current credential. ' %
-                hosts_processed))
+        if log_path is not None:
+            with open(log_path, 'ab') as logfile:
+                logfile.write('******* %s *******' % (str(datetime.now())))
+                logfile.flush()
+        print(_('%d hosts processed with credential %s. ' %
+                (hosts_processed, rho_cred)))
         if hosts_successful > 0:
             print(_('%d hosts connected successfully with '
-                    'the current credential.' % hosts_successful))
+                    'credential %s.' % (hosts_successful, rho_cred)))
         if hosts_failed > 0:
-            print(_('%d hosts failed to connect with the '
-                    'current credential.' % hosts_failed))
+            print(_('%d hosts failed to connect with '
+                    'credential %s.' % (hosts_failed, rho_cred)))
         if hosts_unreachable > 0:
             print(_('%d hosts were unreachable.' % hosts_unreachable))
 
@@ -165,15 +173,20 @@ def process_host_scan(line):
         truncated = True
 
 
-def tail_log(path, ansible_verbosity, process_output):
+def tail_log(path, ansible_verbosity, process_output, env=None):
     """Follow and provide host scan output
 
     :param path: tuple containing the path to file to follow
     :param ansible_verbosity: the verbosity level
     :param process_output: the method to process the output
+    :param env: the enviroment to add to tail process
     """
     if len(path) > 0:  # pylint: disable=len-as-condition
         os.environ['ANSIBLE_VERBOSITY'] = str(ansible_verbosity)
+        os.environ['RHO_ANSIBLE_LOG'] = path
+        if env is not None and isinstance(env, dict):
+            for key, value in iteritems(env):
+                os.environ[key] = str(value)
         # pylint: disable=no-member
         process = sh.tail('-f', '-n', '+0', path, _out=process_output,
                           _bg=True, _bg_exc=False)

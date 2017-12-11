@@ -159,18 +159,18 @@ def inventory_scan(hosts_yml_path, facts_to_collect, report_path,
     for _, host_vars in utilities.iteritems(vars_by_host):
         this_host = {}
 
-        this_host.update(host_vars['connection'])
-        this_host.update(host_vars['cpu'])
-        this_host.update(host_vars['date'])
-        this_host.update(host_vars['dmi'])
-        this_host.update(host_vars['etc_release'])
-        this_host.update(host_vars['file_contents'])
-        this_host.update(host_vars['redhat_packages'])
-        this_host.update(host_vars['redhat_release'])
-        this_host.update(host_vars['subman'])
-        this_host.update(host_vars['uname'])
-        this_host.update(host_vars['virt'])
-        this_host.update(host_vars['virt_what'])
+        this_host.update(host_vars.get('connection', {}))
+        this_host.update(host_vars.get('cpu', {}))
+        this_host.update(host_vars.get('date', {}))
+        this_host.update(host_vars.get('dmi', {}))
+        this_host.update(host_vars.get('etc_release', {}))
+        this_host.update(host_vars.get('file_contents', {}))
+        this_host.update(host_vars.get('redhat_packages', {}))
+        this_host.update(host_vars.get('redhat_release', {}))
+        this_host.update(host_vars.get('subman', {}))
+        this_host.update(host_vars.get('uname', {}))
+        this_host.update(host_vars.get('virt', {}))
+        this_host.update(host_vars.get('virt_what', {}))
 
         this_host.update(
             postprocessing.process_jboss_versions(facts_to_collect, host_vars))

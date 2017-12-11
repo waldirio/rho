@@ -90,10 +90,12 @@ class AnsibleProcessException(Exception):
     pass
 
 
-# pylint: disable=too-many-arguments,too-many-branches,too-many-statements
+# pylint: disable=too-many-arguments,too-many-branches
+# pylint: disable=too-many-statements,too-many-locals
 def run_with_vault(cmd_string, vault_pass, env=None, log_path=None,
-                   log_to_stdout=None, ansible_verbosity=0,
-                   print_before_run=False, error_on_failure=True):
+                   log_to_stdout=None, log_to_stdout_env=None,
+                   ansible_verbosity=0, print_before_run=False,
+                   error_on_failure=True):
     """Runs ansible command allowing for password to be provided after
     process triggered.
 
@@ -106,6 +108,7 @@ def run_with_vault(cmd_string, vault_pass, env=None, log_path=None,
         'XDG_DATA_HOME/rho/ansible_log'.
     :param log_to_stdout: if not None, write Ansible's log to stdout using
         the provided function as a filter. Defaults to None.
+    :param log_to_stdout_env: a dictionary of environment variables
     :param ansible_verbosity: the number of v's of Ansible verbosity.
 
     :param print_before_run: if true, print the command string before running
@@ -138,7 +141,8 @@ def run_with_vault(cmd_string, vault_pass, env=None, log_path=None,
             if log_to_stdout is not None:
                 tail_process = utilities.tail_log(log_path,
                                                   ansible_verbosity,
-                                                  log_to_stdout)
+                                                  log_to_stdout,
+                                                  log_to_stdout_env)
 
             child.expect('Vault password:')
             child.sendline(vault_pass)
