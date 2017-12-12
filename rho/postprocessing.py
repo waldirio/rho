@@ -788,10 +788,12 @@ def process_fuse_on_eap(fact_names, host_vars):
     if err:
         return err
 
-    ls_bin_results, _ = process_indicator_files(
+    ls_bin_results, ls_bin_mr = process_indicator_files(
         JBOSS_FUSE_BIN_INDICATOR_FILES, ls_bin)
-    layers_conf_results, _ = process_cat_results('layers.conf', layers_conf)
-    ls_layers_results, _ = process_indicator_files(['fuse'], ls_layers)
+    layers_conf_results, layers_conf_mr = process_cat_results('layers.conf',
+                                                              layers_conf)
+    ls_layers_results, ls_layers_mr = process_indicator_files(['fuse'],
+                                                              ls_layers)
 
     eap_homes = ls_bin_results.keys()
     assert eap_homes == layers_conf_results.keys() == ls_layers_results.keys()
@@ -804,7 +806,13 @@ def process_fuse_on_eap(fact_names, host_vars):
                      ls_bin_results[eap_home],
                      layers_conf_results[eap_home],
                      ls_layers_results[eap_home])
-                for eap_home in eap_homes])}
+                for eap_home in eap_homes]),
+            JBOSS_FUSE_ON_EAP + MR:
+            {eap_home:
+             (ls_bin_mr[eap_home] or
+              layers_conf_mr[eap_home] or
+              ls_layers_mr[eap_home])
+             for eap_home in eap_homes}}
 
 
 JBOSS_FUSE_ON_KARAF_KARAF_HOME = 'jboss.fuse-on-karaf.karaf-home'
@@ -813,20 +821,30 @@ JBOSS_FUSE_ON_KARAF_KARAF_HOME = 'jboss.fuse-on-karaf.karaf-home'
 def process_karaf_home(fact_names, host_vars):
     """Process karaf_home indicators to detect Fuse-on-Karaf."""
 
-    if JBOSS_FUSE_ON_KARAF_KARAF_HOME not in fact_names:
+    log.info('In process_karaf_home')
+
+    if (JBOSS_FUSE_ON_KARAF_KARAF_HOME not in fact_names and
+        JBOSS_FUSE_SUMMARY not in fact_names):
         return {}
+
+    log.info('Past first return')
 
     if 'karaf_homes' not in host_vars:
         return {JBOSS_FUSE_ON_KARAF_KARAF_HOME:
                 'Error: fact karaf_homes not collected.'}
     karaf_homes = host_vars['karaf_homes']
 
+    log.info('Past second return')
+
     err, bin_fuse = raw_output_present(fact_names, host_vars,
                                        JBOSS_FUSE_ON_KARAF_KARAF_HOME,
                                        'karaf_home_bin_fuse',
                                        'ls -1 KARAF_HOME/bin/fuse')
+    log.info('Raw output: %s, %s', err, bin_fuse)
     if err is not None:
         return err
+
+    log.info('Past third return')
 
     err, system_org_jboss = raw_output_present(
         fact_names, host_vars,
@@ -836,24 +854,35 @@ def process_karaf_home(fact_names, host_vars):
     if err is not None:
         return err
 
-    system_org_jboss_results, _ = process_indicator_files(['fuse'],
-                                                          system_org_jboss)
+    log.info('Past fourth return')
+
+    system_org_jboss_results, system_org_jboss_mr = process_indicator_files(
+        ['fuse'], system_org_jboss)
+
+    bin_fuse_mr = {
+        result['item']: result['rc'] == 0
+        for result in bin_fuse['results']}
 
     bin_fuse_results = {
-        result['item']: ('/bin/fuse exists'
-                         if result['rc'] == 0
-                         else '/bin/fuse not found')
-        for result in bin_fuse['results']}
+        directory: '/bin/fuse exists' if result else '/bin/fuse not found'
+        for directory, result in iteritems(bin_fuse_mr)}
 
     assert list(system_org_jboss_results.keys()) == karaf_homes
     assert list(bin_fuse_results.keys()) == karaf_homes
+
+    log.info('system_org_jboss: %s', system_org_jboss_results)
+    log.info('bin_fuse: %s', bin_fuse_results)
 
     return {JBOSS_FUSE_ON_KARAF_KARAF_HOME:
             '; '.join(['{0}: {1}; {2}'.format(
                 karaf_home,
                 bin_fuse_results[karaf_home],
                 system_org_jboss_results[karaf_home])
-                       for karaf_home in karaf_homes])}  # noqa
+                       for karaf_home in karaf_homes]),
+            JBOSS_FUSE_ON_KARAF_KARAF_HOME + MR:
+            {karaf_home:
+             system_org_jboss_mr[karaf_home] or bin_fuse_mr[karaf_home]
+             for karaf_home in karaf_homes}}  # noqa
 
 
 JBOSS_FUSE_INIT_FILES = 'jboss.fuse.init-files'
@@ -918,6 +947,7 @@ def classify_kie_file(pathname):
 
 JBOSS_BRMS = 'jboss.brms'
 UNKNOWN_BASE = 'unknown base directory'
+JBOSS_BRMS_SUMMARY = 'jboss.brms.summary'
 
 
 # pylint: disable=too-many-locals, too-many-branches
@@ -1021,6 +1051,12 @@ def process_brms_output(fact_names, host_vars):
     if kie_versions_by_directory[UNKNOWN_BASE]:
         directories_for_output.append(UNKNOWN_BASE)
 
+    found_redhat_brms = (
+        any(('Red Hat' in manifest
+             for _, manifest in iteritems(manifest_mfs))) or
+        any((version
+             for _, version in iteritems(kie_versions_by_directory))))
+
     return {JBOSS_BRMS:
             '; '.join(
                 [format_directory_result(
@@ -1028,7 +1064,37 @@ def process_brms_output(fact_names, host_vars):
                     manifest_mfs[directory],
                     kie_versions_by_directory[directory])
                  for directory in directories_for_output] +
-                list(kie_files))}
+                list(kie_files)),
+            JBOSS_BRMS_SUMMARY:
+            ('Yes, BRMS installation present'
+             if found_redhat_brms else 'No BRMS installation detected')}
+
+
+JBOSS_FUSE_SUMMARY = 'jboss.fuse.summary'
+
+
+def generate_fuse_summary(facts_to_collect, facts):
+    """Generate a single summary fact about whether the machine has Fuse."""
+
+    if JBOSS_FUSE_SUMMARY not in facts_to_collect:
+        return {}
+
+    fuse_on_eap = facts.get(JBOSS_FUSE_FUSE_ON_EAP + MR)
+    fuse_on_karaf = facts.get(JBOSS_FUSE_ON_KARAF_KARAF_HOME + MR)
+    fuse_init_files = facts.get(JBOSS_FUSE_INIT_FILES + MR)
+
+    log.info('Fuse on eap: %s', fuse_on_eap)
+    log.info('Fuse on karaf: %s', fuse_on_karaf)
+    log.info('Fuse init files: %s', fuse_init_files)
+
+    if fuse_on_eap or fuse_on_karaf:
+        return {JBOSS_FUSE_SUMMARY: 'Yes, Fuse installation present'}
+
+    if fuse_init_files:
+        return {JBOSS_FUSE_SUMMARY:
+                'Maybe - a Fuse installation might be present'}
+
+    return {JBOSS_FUSE_SUMMARY: 'No Fuse installation detected'}
 
 
 def escape_characters(data):

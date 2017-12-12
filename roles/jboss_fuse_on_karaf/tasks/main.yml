@@ -28,7 +28,7 @@
       raw: ps -A -o args | egrep --invert-match '(^sed)|(\| sed)' | sed -n -e 's/.*-Dkaraf.base=\([^[:space:]]*\).*/\1/pg;s/.*-Dkaraf.home=\([^[:space:]]*\).*/\1/pg' | xargs -n 1 realpath 2> /dev/null
       register: karaf_running_processes
       ignore_errors: yes
-      when: '"jboss.fuse-on-karaf.karaf-home" in facts_to_collect'
+      when: '"jboss.fuse-on-karaf.karaf-home" in facts_to_collect or "jboss.fuse.summary" in facts_to_collect'
 
     - name: Use locate to look for karaf.jar
 
@@ -40,7 +40,7 @@
       raw: locate karaf.jar | sed -n -e 's/\(.*\)lib\/karaf\.jar$/\1/p' | xargs -n 1 realpath  2> /dev/null
       register: karaf_locate_karaf_jar
       ignore_errors: yes
-      when: 'have_locate and "jboss.fuse-on-karaf.karaf-home" in facts_to_collect'
+      when: 'have_locate and "jboss.fuse-on-karaf.karaf-home" in facts_to_collect or "jboss.fuse.summary" in facts_to_collect'
 
     - name: Use find to look for karaf.jar
       raw: find {{scan_dirs}} -xdev -type f -name karaf.jar 2> /dev/null | sed -n -e 's/\(.*\)lib\/karaf\.jar$/\1/p' | xargs -n 1 realpath  2> /dev/null | sort -u
@@ -56,7 +56,7 @@
                             karaf_locate_karaf_jar.get('stdout_lines', []) +
                             karaf_find_karaf_jar.get('stdout_lines', [])) | unique }}"
       ignore_errors: yes
-      when: '"jboss.fuse-on-karaf.karaf-home" in facts_to_collect'
+      when: '"jboss.fuse-on-karaf.karaf-home" in facts_to_collect or "jboss.fuse.summary" in facts_to_collect'
 
 # Look for fuse inside KARAF_HOME directories
 
@@ -65,14 +65,14 @@
       register: karaf_home_bin_fuse
       ignore_errors: yes
       with_items: "{{ karaf_homes }}"
-      when: '"jboss.fuse-on-karaf.karaf-home" in facts_to_collect'
+      when: '"jboss.fuse-on-karaf.karaf-home" in facts_to_collect or "jboss.fuse.summary" in facts_to_collect'
 
     - name: check system/org/jboss/fuse
       raw: ls -1 "{{ item }}/system/org/jboss"
       register: karaf_home_system_org_jboss
       ignore_errors: yes
       with_items: "{{ karaf_homes }}"
-      when: '"jboss.fuse-on-karaf.karaf-home" in facts_to_collect'
+      when: '"jboss.fuse-on-karaf.karaf-home" in facts_to_collect or "jboss.fuse.summary" in facts_to_collect'
 
 # Tests that can indicate the presence of Fuse, but can't tell us the
 # KARAF_HOME (or even whether it's Fuse-on-Karaf or Fuse-on-EAP).

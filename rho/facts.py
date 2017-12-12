@@ -202,6 +202,8 @@ new_fact('jboss.fuse.init-files', 'Fuse-related init files',
 new_fact('jboss.fuse-on-karaf.find-karaf-jar',
          'Use the find utility to locate karaf.jar',
          is_default=False)
+new_fact('jboss.fuse.summary', 'Summary of Fuse info',
+         is_default=True, categories=[JBOSS_FACTS])
 new_fact('jboss.fuse-on-karaf.karaf-home', 'Karaf home',
          is_default=True, categories=[JBOSS_FACTS])
 new_fact('redhat-packages.certs', 'the list of Red Hat certificates found',
