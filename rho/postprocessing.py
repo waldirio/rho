@@ -667,12 +667,13 @@ def process_jboss_eap_home(fact_names, host_vars):
     # likely EAP_HOME directories.
     results_mr = [directory
                   for directory in eap_homes
-                  if ls_results_mr[directory] or cat_results_mr[directory]]
+                  if ls_results_mr.get(directory) or
+                  cat_results_mr.get(directory)]
 
     return {JBOSS_EAP_EAP_HOME:
             '; '.join([directory +
-                       ': ' + ls_results[directory] +
-                       ', ' + cat_results[directory]
+                       ': ' + ls_results.get(directory, '') +
+                       ', ' + cat_results.get(directory, '')
                        for directory in eap_homes]),
             JBOSS_EAP_EAP_HOME + MR: results_mr}
 

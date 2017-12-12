@@ -42,7 +42,7 @@
   when: '"date.anaconda_log" in facts_to_collect'
 
 - name: gather date.machine_id fact
-  raw: ls --full-time /etc/machine-id | grep -o '[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}'
+  raw: ls --full-time /etc/machine-id 2> /dev/null | grep -o '[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}'
   register: date_machine_id
   ignore_errors: yes
   when: '"date.machine_id" in facts_to_collect'
