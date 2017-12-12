@@ -204,6 +204,10 @@ def inventory_scan(hosts_yml_path, facts_to_collect, report_path,
                 facts_to_collect, host_vars))
         this_host.update(
             postprocessing.process_brms_output(facts_to_collect, host_vars))
+        this_host.update(postprocessing.process_find_jboss_modules_jar(
+            facts_to_collect, host_vars))
+        this_host.update(postprocessing.process_find_karaf_jar(
+            facts_to_collect, host_vars))
 
         postprocessing.handle_systemid(facts_to_collect, this_host)
         postprocessing.handle_redhat_packages(facts_to_collect, this_host)

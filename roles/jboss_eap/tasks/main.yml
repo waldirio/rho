@@ -14,12 +14,19 @@
       ignore_errors: yes
       when: 'have_locate and ("jboss.eap.locate-jboss-modules-jar" in facts_to_collect or "jboss.eap.eap-home" in facts_to_collect or "jboss.fuse.fuse-on-eap" in facts_to_collect)'
 
+    - name: use find to look for jboss-modules.jar
+      raw: find {{scan_dirs}} -xdev -type f -name jboss-modules.jar 2> /dev/null | xargs -n 1 dirname 2> /dev/null | sort -u
+      register: jboss_eap_find_jboss_modules_jar
+      ignore_errors: yes
+      when: '"jboss.eap.find-jboss-modules-jar" in facts_to_collect'
+
 # Combine the outputs of the above into a single fact
 
     - name: combine EAP_HOME candidates into single list
       set_fact:
         eap_home_candidates: "{{ ((jboss_eap_running_paths['stdout_lines'] if 'stdout_lines' in jboss_eap_running_paths else []) +
-                    (jboss_eap_locate_jboss_modules_jar['stdout_lines'] if 'stdout_lines' in jboss_eap_locate_jboss_modules_jar else [])) | unique}}"
+                    (jboss_eap_locate_jboss_modules_jar['stdout_lines'] if 'stdout_lines' in jboss_eap_locate_jboss_modules_jar else []) +
+                    jboss_eap_find_jboss_modules_jar.get('stdout_lines', [])) | unique}}"
       ignore_errors: yes
 
 # Filters that will help us find true EAP_HOME directories
