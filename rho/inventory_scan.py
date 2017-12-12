@@ -228,7 +228,8 @@ def inventory_scan(hosts_yml_path, facts_to_collect, report_path,
     with open(normalized_path, 'w') as write_file:
         # Construct the CSV writer
         writer = csv.DictWriter(
-            write_file, sorted(facts_to_collect), delimiter=',')
+            write_file, sorted(facts_to_collect), delimiter=',',
+            extrasaction='ignore')
 
         # Write a CSV header if necessary
         file_size = os.path.getsize(normalized_path)
