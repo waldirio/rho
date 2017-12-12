@@ -807,7 +807,7 @@ def process_fuse_on_eap(fact_names, host_vars):
                      layers_conf_results[eap_home],
                      ls_layers_results[eap_home])
                 for eap_home in eap_homes]),
-            JBOSS_FUSE_ON_EAP + MR:
+            JBOSS_FUSE_FUSE_ON_EAP + MR:
             {eap_home:
              (ls_bin_mr[eap_home] or
               layers_conf_mr[eap_home] or
@@ -824,7 +824,7 @@ def process_karaf_home(fact_names, host_vars):
     log.info('In process_karaf_home')
 
     if (JBOSS_FUSE_ON_KARAF_KARAF_HOME not in fact_names and
-        JBOSS_FUSE_SUMMARY not in fact_names):
+            JBOSS_FUSE_SUMMARY not in fact_names):  # noqa
         return {}
 
     log.info('Past first return')
@@ -865,7 +865,7 @@ def process_karaf_home(fact_names, host_vars):
 
     bin_fuse_results = {
         directory: '/bin/fuse exists' if result else '/bin/fuse not found'
-        for directory, result in iteritems(bin_fuse_mr)}
+        for directory, result in utilities.iteritems(bin_fuse_mr)}
 
     assert list(system_org_jboss_results.keys()) == karaf_homes
     assert list(bin_fuse_results.keys()) == karaf_homes
@@ -1053,9 +1053,10 @@ def process_brms_output(fact_names, host_vars):
 
     found_redhat_brms = (
         any(('Red Hat' in manifest
-             for _, manifest in iteritems(manifest_mfs))) or
+             for _, manifest in utilities.iteritems(manifest_mfs))) or
         any((version
-             for _, version in iteritems(kie_versions_by_directory))))
+             for _, version
+             in utilities.iteritems(kie_versions_by_directory))))
 
     return {JBOSS_BRMS:
             '; '.join(
@@ -1066,7 +1067,7 @@ def process_brms_output(fact_names, host_vars):
                  for directory in directories_for_output] +
                 list(kie_files)),
             JBOSS_BRMS_SUMMARY:
-            ('Yes, BRMS installation present'
+            ('Yes - BRMS installation present'
              if found_redhat_brms else 'No BRMS installation detected')}
 
 
