@@ -821,30 +821,21 @@ JBOSS_FUSE_ON_KARAF_KARAF_HOME = 'jboss.fuse-on-karaf.karaf-home'
 def process_karaf_home(fact_names, host_vars):
     """Process karaf_home indicators to detect Fuse-on-Karaf."""
 
-    log.info('In process_karaf_home')
-
     if (JBOSS_FUSE_ON_KARAF_KARAF_HOME not in fact_names and
             JBOSS_FUSE_SUMMARY not in fact_names):  # noqa
         return {}
-
-    log.info('Past first return')
 
     if 'karaf_homes' not in host_vars:
         return {JBOSS_FUSE_ON_KARAF_KARAF_HOME:
                 'Error: fact karaf_homes not collected.'}
     karaf_homes = host_vars['karaf_homes']
 
-    log.info('Past second return')
-
     err, bin_fuse = raw_output_present(fact_names, host_vars,
                                        JBOSS_FUSE_ON_KARAF_KARAF_HOME,
                                        'karaf_home_bin_fuse',
                                        'ls -1 KARAF_HOME/bin/fuse')
-    log.info('Raw output: %s, %s', err, bin_fuse)
     if err is not None:
         return err
-
-    log.info('Past third return')
 
     err, system_org_jboss = raw_output_present(
         fact_names, host_vars,
@@ -853,8 +844,6 @@ def process_karaf_home(fact_names, host_vars):
         'ls -1 KARAF_HOME/system/org/jboss')
     if err is not None:
         return err
-
-    log.info('Past fourth return')
 
     system_org_jboss_results, system_org_jboss_mr = process_indicator_files(
         ['fuse'], system_org_jboss)
@@ -869,9 +858,6 @@ def process_karaf_home(fact_names, host_vars):
 
     assert list(system_org_jboss_results.keys()) == karaf_homes
     assert list(bin_fuse_results.keys()) == karaf_homes
-
-    log.info('system_org_jboss: %s', system_org_jboss_results)
-    log.info('bin_fuse: %s', bin_fuse_results)
 
     return {JBOSS_FUSE_ON_KARAF_KARAF_HOME:
             '; '.join(['{0}: {1}; {2}'.format(
@@ -1083,10 +1069,6 @@ def generate_fuse_summary(facts_to_collect, facts):
     fuse_on_eap = facts.get(JBOSS_FUSE_FUSE_ON_EAP + MR)
     fuse_on_karaf = facts.get(JBOSS_FUSE_ON_KARAF_KARAF_HOME + MR)
     fuse_init_files = facts.get(JBOSS_FUSE_INIT_FILES + MR)
-
-    log.info('Fuse on eap: %s', fuse_on_eap)
-    log.info('Fuse on karaf: %s', fuse_on_karaf)
-    log.info('Fuse init files: %s', fuse_init_files)
 
     if fuse_on_eap or fuse_on_karaf:
         return {JBOSS_FUSE_SUMMARY: 'Yes, Fuse installation present'}
