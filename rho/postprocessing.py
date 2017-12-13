@@ -605,6 +605,7 @@ def process_indicator_files(indicator_files, ls_out):
         directory = item['item']
         if item['rc']:
             ls_results[directory] = "Error in 'ls'"
+            ls_results_mr[directory] = []
             continue
 
         files = item['stdout_lines']
@@ -630,6 +631,7 @@ def process_cat_results(filename, cat_out):
         directory = item['item']
         if item['rc']:
             cat_results[directory] = "Error in 'cat {0}'".format(filename)
+            cat_results_mr[directory] = False
         else:
             file_contents = item['stdout'].strip()
             cat_results[directory] = file_contents
