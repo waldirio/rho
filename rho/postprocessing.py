@@ -1112,9 +1112,9 @@ def determine_pkg_facts(rh_packages):
         if pkg.install_time > max_install_time:
             max_install_time = pkg.install_time
             last_installed = pkg
-            if pkg.build_time > max_build_time:
-                max_build_time = pkg.build_time
-                last_built = pkg
+        if pkg.build_time > max_build_time:
+            max_build_time = pkg.build_time
+            last_built = pkg
 
     last_installed_val = (last_installed.details_install()
                           if last_installed else 'none')
@@ -1122,81 +1122,50 @@ def determine_pkg_facts(rh_packages):
     return is_red_hat, last_installed_val, last_built_val
 
 
+PREFIX = 'redhat-packages.gpg.'
+IS_REDHAT = PREFIX + 'is_redhat'
+NUM_RH = PREFIX + 'num_rh_packages'
+INSTALLED_PKG = PREFIX + 'num_installed_packages'
+LAST_INSTALLED = PREFIX + 'last_installed'
+LAST_BUILT = PREFIX + 'last_built'
+
+
 # pylint: disable=too-many-locals, too-many-branches, too-many-statements
 def handle_redhat_packages(facts, data):
     """ Process the output of redhat-packages.results
     and supply the appropriate output information
     """
-    if 'redhat-packages.results' in data:
-        rhpkg_prefix = 'redhat-packages.'
-        gpg_prefix = rhpkg_prefix + 'gpg.'
-        is_rhpkg_str = rhpkg_prefix + 'is_redhat'
-        num_rh_str = rhpkg_prefix + 'num_rh_packages'
-        installed_pkg_str = rhpkg_prefix + 'num_installed_packages'
-        last_installed_str = rhpkg_prefix + 'last_installed'
-        last_built_str = rhpkg_prefix + 'last_built'
-        gpg_is_rhpkg_str = gpg_prefix + 'is_redhat'
-        gpg_num_rh_str = gpg_prefix + 'num_rh_packages'
-        gpg_installed_pkg_str = gpg_prefix + 'num_installed_packages'
-        gpg_last_installed_str = gpg_prefix + 'last_installed'
-        gpg_last_built_str = gpg_prefix + 'last_built'
-        is_rhpkg_in_facts = is_rhpkg_str in facts
-        num_rh_in_facts = num_rh_str in facts
-        installed_pkg_in_facts = installed_pkg_str in facts
-        last_installed_in_facts = last_installed_str in facts
-        last_built_in_facts = last_built_str in facts
-        gpg_is_rhpkg_in_facts = gpg_is_rhpkg_str in facts
-        gpg_num_rh_in_facts = gpg_num_rh_str in facts
-        gpg_installed_pkg_in_facts = gpg_installed_pkg_str in facts
-        gpg_last_installed_in_facts = gpg_last_installed_str in facts
-        gpg_last_built_in_facts = gpg_last_built_str in facts
-        installed_packages = None
-        try:
-            installed_packages = [PkgInfo(line, "|")
-                                  for line in data['redhat-packages.results']]
-        except PkgInfoParseException:
-            # facts are already initialized as empty strings
-            # just remove the results field
-            del data['redhat-packages.results']
-            return data
+    if 'redhat-packages.results' not in data:
+        return
 
-        rh_packages = list(filter(PkgInfo.is_red_hat_pkg,
+    try:
+        installed_packages = [PkgInfo(line, "|")
+                              for line in data['redhat-packages.results']]
+    except PkgInfoParseException:
+        # facts are already initialized as empty strings
+        # just remove the results field
+        del data['redhat-packages.results']
+        return
+
+    rh_gpg_packages = list(filter(PkgInfo.is_gpg_red_hat_pkg,
                                   installed_packages))
 
-        rh_gpg_packages = list(filter(PkgInfo.is_gpg_red_hat_pkg,
-                                      installed_packages))
+    if INSTALLED_PKG in facts:
+        data[INSTALLED_PKG] = (len(installed_packages))
+    if NUM_RH in facts:
+        data[NUM_RH] = len(rh_gpg_packages)
 
-        if installed_pkg_in_facts:
-            data[installed_pkg_str] = (len(installed_packages))
-        if num_rh_in_facts:
-            data[num_rh_str] = len(rh_packages)
-        if gpg_installed_pkg_in_facts:
-            data[gpg_installed_pkg_str] = (len(installed_packages))
-        if gpg_num_rh_in_facts:
-            data[gpg_num_rh_str] = len(rh_gpg_packages)
+    if rh_gpg_packages:
+        is_red_hat, last_installed, last_built = \
+            determine_pkg_facts(rh_gpg_packages)
+        if IS_REDHAT in facts:
+            data[IS_REDHAT] = is_red_hat
+        if LAST_INSTALLED in facts:
+            data[LAST_INSTALLED] = last_installed
+        if LAST_BUILT:
+            data[LAST_BUILT] = last_built
 
-        if rh_packages:
-            is_red_hat, last_installed, last_built = \
-                determine_pkg_facts(rh_packages)
-            if is_rhpkg_in_facts:
-                data[is_rhpkg_str] = is_red_hat
-            if last_installed_in_facts:
-                data[last_installed_str] = last_installed
-            if last_built_in_facts:
-                data[last_built_str] = last_built
-
-        if rh_gpg_packages:
-            is_red_hat, last_installed, last_built = \
-                determine_pkg_facts(rh_gpg_packages)
-            if gpg_is_rhpkg_in_facts:
-                data[gpg_is_rhpkg_str] = is_red_hat
-            if gpg_last_installed_in_facts:
-                data[gpg_last_installed_str] = last_installed
-            if gpg_last_built_in_facts:
-                data[gpg_last_built_str] = last_built
-
-        del data['redhat-packages.results']
-    return data
+    del data['redhat-packages.results']
 
 
 # pylint: disable=too-many-instance-attributes
@@ -1243,14 +1212,7 @@ class PkgInfo(object):
                 if self.is_red_hat_gpg:
                     break
 
-            # Helper methods to help with recording data in
-            # requested fields.
-
-    def is_red_hat_pkg(self):
-        """Determines if package is a Red Hat package.
-        :returns: True if Red Hat, False otherwise
-        """
-        return self.is_red_hat
+    # Helper methods to help with recording data in requested fields.
 
     def is_gpg_red_hat_pkg(self):
         """Determines if package is a Red Hat package with known GPG key.
