@@ -146,104 +146,52 @@ class TestProcessRPMPackages(unittest.TestCase):
                     ["ghc-semigroups|0.8.5|3.el7|1506981888|Fedora Project|1480663695|buildhw-09.phx2.fedoraproject.org|ghc-semigroups-0.8.5-3.el7.src.rpm|BSD|Fedora Project|Mon 02 Oct 2017 06:04:48 PM EDT|Fri 02 Dec 2016 02:28:15 AM EST|(none)|RSA/SHA256, Fri 09 Dec 2016 01:17:53 AM EST, Key ID 6a2faea2352c64e5|(none)|RSA/SHA256, Fri 09 Dec 2016 01:17:53 AM EST, Key ID 6a2faea2352c64e5|",  # noqa: E501
                      "dhclient|4.2.5|58.el7|1500397510|Red Hat, Inc.|1494940069|x86-030.build.eng.bos.redhat.com|dhcp-4.2.5-58.el7.src.rpm|ISC|Red Hat, Inc. <http://bugzilla.redhat.com/bugzilla>|Tue 18 Jul 2017 01:05:10 PM EDT|Tue 16 May 2017 09:07:49 AM EDT|(none)|RSA/SHA256, Tue 16 May 2017 09:40:41 AM EDT, Key ID 199e2f91fd431d51|(none)|RSA/SHA256, Tue 16 May 2017 09:40:40 AM EDT, Key ID 199e2f91fd431d51|",  # noqa: E501
                      "setup|2.8.71|7.el7|1500397469|Red Hat, Inc.|1462364954|arm64-018.build.eng.bos.redhat.com|setup-2.8.71-7.el7.src.rpm|Public Domain|Red Hat, Inc. <http://bugzilla.redhat.com/bugzilla>|Tue 18 Jul 2017 01:04:29 PM EDT|Wed 04 May 2016 08:29:14 AM EDT|(none)|RSA/SHA256, Fri 23 Sep 2016 06:55:43 AM EDT, Key ID 199e2f91fd431d51|(none)|RSA/SHA256, Fri 23 Sep 2016 06:55:43 AM EDT, Key ID 199e2f91fd431d51|"],  # noqa: E501
-                'redhat-packages.num_installed_packages': '',
-                'redhat-packages.is_redhat': '',
-                'redhat-packages.num_rh_packages': '',
-                'redhat-packages.last_installed': '',
-                'redhat-packages.last_built': '',
                 'redhat-packages.gpg.num_installed_packages': '',
                 'redhat-packages.gpg.is_redhat': '',
                 'redhat-packages.gpg.num_rh_packages': '',
                 'redhat-packages.gpg.last_installed': '',
                 'redhat-packages.gpg.last_built': ''}
-        facts = ['redhat-packages.num_installed_packages',
-                 'redhat-packages.is_redhat',
-                 'redhat-packages.num_rh_packages',
-                 'redhat-packages.last_installed',
-                 'redhat-packages.last_built',
-                 'redhat-packages.gpg.num_installed_packages',
+        facts = ['redhat-packages.gpg.num_installed_packages',
                  'redhat-packages.gpg.is_redhat',
                  'redhat-packages.gpg.num_rh_packages',
                  'redhat-packages.gpg.last_installed',
                  'redhat-packages.gpg.last_built']
-        results = postprocessing.handle_redhat_packages(facts, data)
-        self.assertIn('redhat-packages.num_installed_packages', results)
-        self.assertEqual(results['redhat-packages.num_installed_packages'], 3)
-        self.assertIn('redhat-packages.is_redhat', results)
-        self.assertEqual(results['redhat-packages.is_redhat'], 'Y')
-        self.assertIn('redhat-packages.num_rh_packages', results)
-        self.assertEqual(results['redhat-packages.num_rh_packages'], 2)
-        self.assertIn('redhat-packages.last_installed', results)
-        self.assertEqual(results['redhat-packages.last_installed'],
-                         'dhclient-4.2.5-58.el7 Installed: Tue 18'
-                         ' Jul 2017 01:05:10 PM EDT')
-        self.assertIn('redhat-packages.last_built', results)
-        self.assertEqual(results['redhat-packages.last_built'],
-                         'dhclient-4.2.5-58.el7 Built: Tue 16 May'
-                         ' 2017 09:07:49 AM EDT')
 
-        self.assertIn('redhat-packages.gpg.num_installed_packages', results)
-        self.assertEqual(results['redhat-packages.gpg.num_installed_packages'],
-                         3)
-        self.assertIn('redhat-packages.gpg.is_redhat', results)
-        self.assertEqual(results['redhat-packages.gpg.is_redhat'], 'Y')
-        self.assertIn('redhat-packages.gpg.num_rh_packages', results)
-        self.assertEqual(results['redhat-packages.gpg.num_rh_packages'], 2)
-        self.assertIn('redhat-packages.gpg.last_installed', results)
-        self.assertEqual(results['redhat-packages.gpg.last_installed'],
+        postprocessing.handle_redhat_packages(facts, data)
+
+        self.assertEqual(
+            data.get('redhat-packages.gpg.num_installed_packages'), 3)
+        self.assertEqual(data.get('redhat-packages.gpg.is_redhat'), 'Y')
+        self.assertEqual(data.get('redhat-packages.gpg.num_rh_packages'), 2)
+        self.assertEqual(data.get('redhat-packages.gpg.last_installed'),
                          'dhclient-4.2.5-58.el7 Installed: Tue 18'
                          ' Jul 2017 01:05:10 PM EDT')
-        self.assertIn('redhat-packages.gpg.last_built', results)
-        self.assertEqual(results['redhat-packages.gpg.last_built'],
+        self.assertEqual(data.get('redhat-packages.gpg.last_built'),
                          'dhclient-4.2.5-58.el7 Built: Tue 16 May'
                          ' 2017 09:07:49 AM EDT')
 
     def test_rpm_packages_no_rpm(self):
         data = {'redhat-packages.results': 'N/A (rpm not found)',
-                'redhat-packages.num_installed_packages': '',
-                'redhat-packages.is_redhat': '',
-                'redhat-packages.num_rh_packages': '',
-                'redhat-packages.last_installed': '',
-                'redhat-packages.last_built': '',
                 'redhat-packages.gpg.num_installed_packages': '',
                 'redhat-packages.gpg.is_redhat': '',
                 'redhat-packages.gpg.num_rh_packages': '',
                 'redhat-packages.gpg.last_installed': '',
                 'redhat-packages.gpg.last_built': ''}
 
-        facts = ['redhat-packages.num_installed_packages',
-                 'redhat-packages.is_redhat',
-                 'redhat-packages.num_rh_packages',
-                 'redhat-packages.last_installed',
-                 'redhat-packages.last_built',
-                 'redhat-packages.gpg.num_installed_packages',
+        facts = ['redhat-packages.gpg.num_installed_packages',
                  'redhat-packages.gpg.is_redhat',
                  'redhat-packages.gpg.num_rh_packages',
                  'redhat-packages.gpg.last_installed',
                  'redhat-packages.gpg.last_built']
-        results = postprocessing.handle_redhat_packages(facts, data)
-        self.assertIn('redhat-packages.num_installed_packages', results)
-        self.assertEqual(results['redhat-packages.num_installed_packages'], '')
-        self.assertIn('redhat-packages.is_redhat', results)
-        self.assertEqual(results['redhat-packages.is_redhat'], '')
-        self.assertIn('redhat-packages.num_rh_packages', results)
-        self.assertEqual(results['redhat-packages.num_rh_packages'], '')
-        self.assertIn('redhat-packages.last_installed', results)
-        self.assertEqual(results['redhat-packages.last_installed'], '')
-        self.assertIn('redhat-packages.last_built', results)
-        self.assertEqual(results['redhat-packages.last_built'], '')
 
-        self.assertIn('redhat-packages.gpg.num_installed_packages', results)
-        self.assertEqual(results['redhat-packages.gpg.num_installed_packages'],
-                         '')
-        self.assertIn('redhat-packages.gpg.is_redhat', results)
-        self.assertEqual(results['redhat-packages.gpg.is_redhat'], '')
-        self.assertIn('redhat-packages.gpg.num_rh_packages', results)
-        self.assertEqual(results['redhat-packages.gpg.num_rh_packages'], '')
-        self.assertIn('redhat-packages.gpg.last_installed', results)
-        self.assertEqual(results['redhat-packages.gpg.last_installed'], '')
-        self.assertIn('redhat-packages.gpg.last_built', results)
-        self.assertEqual(results['redhat-packages.gpg.last_built'], '')
+        postprocessing.handle_redhat_packages(facts, data)
+
+        self.assertEqual(
+            data.get('redhat-packages.gpg.num_installed_packages'), '')
+        self.assertEqual(data.get('redhat-packages.gpg.is_redhat'), '')
+        self.assertEqual(data.get('redhat-packages.gpg.num_rh_packages'), '')
+        self.assertEqual(data.get('redhat-packages.gpg.last_installed'), '')
+        self.assertEqual(data.get('redhat-packages.gpg.last_built'), '')
 
 
 class TestProcessJbossLocateJbossModulesJar(unittest.TestCase):
