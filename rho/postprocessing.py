@@ -1152,30 +1152,13 @@ def handle_redhat_packages(facts, data):
         del data['redhat-packages.results']
         return data
 
-    rh_packages = list(filter(PkgInfo.is_red_hat_pkg,
-                              installed_packages))
-
     rh_gpg_packages = list(filter(PkgInfo.is_gpg_red_hat_pkg,
                                   installed_packages))
 
-    if installed_pkg_in_facts:
-        data[installed_pkg_str] = (len(installed_packages))
-    if num_rh_in_facts:
-        data[num_rh_str] = len(rh_packages)
     if gpg_installed_pkg_in_facts:
         data[gpg_installed_pkg_str] = (len(installed_packages))
     if gpg_num_rh_in_facts:
         data[gpg_num_rh_str] = len(rh_gpg_packages)
-
-    if rh_packages:
-        is_red_hat, last_installed, last_built = \
-            determine_pkg_facts(rh_packages)
-        if is_rhpkg_in_facts:
-            data[is_rhpkg_str] = is_red_hat
-        if last_installed_in_facts:
-            data[last_installed_str] = last_installed
-        if last_built_in_facts:
-            data[last_built_str] = last_built
 
     if rh_gpg_packages:
         is_red_hat, last_installed, last_built = \

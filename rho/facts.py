@@ -225,18 +225,6 @@ new_fact('redhat-packages.gpg.num_rh_packages',
 new_fact('redhat-packages.gpg.num_installed_packages',
          'number of installed packages filtered by GPG keys',
          is_default=True, categories=[RHEL_FACTS])
-new_fact('redhat-packages.is_redhat',
-         'determines if package is a Red Hat package',
-         is_default=True, categories=[RHEL_FACTS])
-new_fact('redhat-packages.last_installed', 'last installed package',
-         is_default=True, categories=[RHEL_FACTS])
-new_fact('redhat-packages.last_built', 'last built package',
-         is_default=True, categories=[RHEL_FACTS])
-new_fact('redhat-packages.num_rh_packages', 'number of Red Hat packages',
-         is_default=True, categories=[RHEL_FACTS])
-new_fact('redhat-packages.num_installed_packages',
-         'number of installed packages',
-         is_default=True, categories=[RHEL_FACTS])
 new_fact('redhat-release.name',
          "name of package that provides 'redhat-release'",
          is_default=True, categories=[RHEL_FACTS])
