@@ -136,10 +136,10 @@ def raw_output_present(fact_names, host_vars, this_fact, this_var, command):
         ... process output ...
     """
 
-    if this_fact not in fact_names:
-        return {}, None
-
     if this_var not in host_vars:
+        if this_fact not in fact_names:
+            return {}, None
+
         return {this_fact: 'Error: "{0}" not run'.format(command)}, None
 
     raw_output = host_vars[this_var]
