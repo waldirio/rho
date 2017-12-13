@@ -214,6 +214,8 @@ def inventory_scan(hosts_yml_path, facts_to_collect, report_path,
         postprocessing.escape_characters(this_host)
         this_host.update(postprocessing.generate_eap_summary(
             facts_to_collect, this_host))
+        this_host.update(postprocessing.generate_fuse_summary(
+            facts_to_collect, this_host))
 
         # After all of the facts have been generated, remove -mr facts
         # which were for machine use only.

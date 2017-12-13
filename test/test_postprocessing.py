@@ -417,7 +417,7 @@ class TestProcessKarafHome(unittest.TestCase):
              'karaf_home_system_org_jboss': system_org_jboss})
 
         self.assertIsInstance(val, dict)
-        self.assertEqual(len(val), 1)
+        self.assertEqual(len(val), 2)
         self.assertIn(postprocessing.JBOSS_FUSE_ON_KARAF_KARAF_HOME, val)
 
         return val[postprocessing.JBOSS_FUSE_ON_KARAF_KARAF_HOME]

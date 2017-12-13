@@ -41,11 +41,13 @@
 - ``jboss.eap.running-paths`` - Paths of running installs of JBoss EAP
 - ``jboss.eap.summary`` - Summary of JBoss EAP information
 - ``jboss.activemq-ver`` - ActiveMQ version
+- ``jboss.brms.summary`` - Summary of BRMS information
 - ``jboss.camel-ver`` - Camel version
 - ``jboss.cxf-ver`` - CXF version
 - ``jboss.fuse.fuse-on-eap`` - Fuse on EAP
 - ``jboss.fuse.init-files`` - Fuse-related init files
 - ``jboss.fuse-on-karaf.find-karaf-jar`` - Use the find utility to locate karaf.jar
+- ``jboss.fuse.summary`` - Summary of Fuse information
 - ``jboss.fuse-on-karaf.karaf-home`` - Karaf home
 - ``redhat-packages.certs`` - the list of Red Hat certificates found
 - ``redhat-packages.gpg.is_redhat`` - determines if package is a Red Hat package filtered by GPG keys

@@ -193,6 +193,8 @@ new_fact('jboss.eap.running-paths', 'Paths of running installs of JBoss EAP',
 new_fact('jboss.eap.summary', 'Summary of JBoss EAP information',
          is_default=True, categories=[JBOSS_FACTS])
 new_fact('jboss.activemq-ver', 'ActiveMQ version', is_default=False)
+new_fact('jboss.brms.summary', 'Summary of BRMS information',
+         is_default=True, categories=[JBOSS_FACTS])
 new_fact('jboss.camel-ver', 'Camel version', is_default=False)
 new_fact('jboss.cxf-ver', 'CXF version', is_default=False)
 new_fact('jboss.fuse.fuse-on-eap', 'Fuse on EAP',
@@ -202,6 +204,8 @@ new_fact('jboss.fuse.init-files', 'Fuse-related init files',
 new_fact('jboss.fuse-on-karaf.find-karaf-jar',
          'Use the find utility to locate karaf.jar',
          is_default=False)
+new_fact('jboss.fuse.summary', 'Summary of Fuse information',
+         is_default=True, categories=[JBOSS_FACTS])
 new_fact('jboss.fuse-on-karaf.karaf-home', 'Karaf home',
          is_default=True, categories=[JBOSS_FACTS])
 new_fact('redhat-packages.certs', 'the list of Red Hat certificates found',
