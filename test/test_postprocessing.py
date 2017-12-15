@@ -394,10 +394,45 @@ class TestProcessFuseInitFiles(unittest.TestCase):
                  'rc': 0, 'stdout_lines': ['baz', 'bot']}})
 
         self.assertIsInstance(val, dict)
-        self.assertEqual(len(val), 1)
+        self.assertEqual(len(val), 2)
         self.assertIn(postprocessing.JBOSS_FUSE_INIT_FILES, val)
 
         out = val[postprocessing.JBOSS_FUSE_INIT_FILES]
 
         self.assertEqual(out,
                          'systemctl: foo; bar; chkconfig: baz; bot')
+
+        self.assertEqual(val[postprocessing.JBOSS_FUSE_INIT_FILES +
+                             postprocessing.MR],
+                         True)
+
+
+class TestGenerateFuseSummary(unittest.TestCase):
+    def run_func(self, fuse_on_eap, fuse_on_karaf, init_files):
+        val = postprocessing.generate_fuse_summary(
+            [postprocessing.JBOSS_FUSE_SUMMARY],
+            {postprocessing.JBOSS_FUSE_FUSE_ON_EAP + postprocessing.MR:
+             fuse_on_eap,
+             postprocessing.JBOSS_FUSE_ON_KARAF_KARAF_HOME + postprocessing.MR:
+             fuse_on_karaf,
+             postprocessing.JBOSS_FUSE_INIT_FILES + postprocessing.MR:
+             init_files})
+
+        self.assertIsInstance(val, dict)
+        self.assertEqual(len(val), 1)
+        self.assertIn(postprocessing.JBOSS_FUSE_SUMMARY, val)
+
+        return val[postprocessing.JBOSS_FUSE_SUMMARY]
+
+    def test_no_data(self):
+        val = self.run_func({}, {}, False)
+
+        self.assertTrue(val.startswith('No'))
+
+    def test_fuse_on_eap(self):
+        val = self.run_func({'/eap': True}, {}, False)
+        self.assertTrue(val.startswith('Yes'))
+
+    def test_fuse_on_karaf(self):
+        val = self.run_func({}, {'/karaf': True}, False)
+        self.assertTrue(val.startswith('Yes'))

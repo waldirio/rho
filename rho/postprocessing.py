@@ -903,7 +903,10 @@ def process_fuse_init_files(fact_names, host_vars):
     return {JBOSS_FUSE_INIT_FILES:
             'systemctl: {0}; chkconfig: {1}'.format(
                 '; '.join(systemctl_out['stdout_lines']),
-                '; '.join(chkconfig_out['stdout_lines']))}
+                '; '.join(chkconfig_out['stdout_lines'])),
+            JBOSS_FUSE_INIT_FILES + MR:
+            bool(systemctl_out['stdout_lines']) or
+            bool(chkconfig_out['stdout_lines'])}
 
 
 def classify_kie_file(pathname):
@@ -1072,7 +1075,8 @@ def generate_fuse_summary(facts_to_collect, facts):
     fuse_on_karaf = facts.get(JBOSS_FUSE_ON_KARAF_KARAF_HOME + MR)
     fuse_init_files = facts.get(JBOSS_FUSE_INIT_FILES + MR)
 
-    if fuse_on_eap or fuse_on_karaf:
+    if ((fuse_on_eap and any(fuse_on_eap.values())) or
+            (fuse_on_karaf and any(fuse_on_karaf.values()))):
         return {JBOSS_FUSE_SUMMARY: 'Yes, Fuse installation present'}
 
     if fuse_init_files:
