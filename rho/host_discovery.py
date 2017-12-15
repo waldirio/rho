@@ -146,7 +146,8 @@ def create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
     except ansible_utils.AnsibleTimeoutException:
         # If the discovery scan times out, we'll just parse whatever
         # information we have in the log file.
-        log.warning('Host discovery timed out before completion.')
+        log.warning('Host discovery timed out. Gathering available host '
+                    'information to proceed with scan.')
 
     with open(PING_LOG_PATH, 'r') as ping_log:
         success_hosts, failed_hosts, unreachable_hosts = \
