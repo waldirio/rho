@@ -132,29 +132,24 @@ class Vault(object):
         """
         return json.loads(self.load_secure_file(secure_file).decode('UTF-8'))
 
-    def dump(self, data, stream=None):
-        """ Encrypt data and print stdout or write to stream
+    def dump_to_stream(self, data, stream):
+        """ Encrypt data and write to stream
 
         :param data: The information to be encrypted
         :param stream: If not None the location to write the encrypted data to.
-        :returns: If stream is None then the encrypted bytes otherwise None.
         """
         encrypted = self.vault.encrypt(data)
-        if stream:
-            stream.write(encrypted)
-        else:
-            return encrypted
+        stream.write(encrypted)
 
-    def dump_as_json(self, obj, stream=None):
+    def dump_as_json(self, obj, stream):
         """ Convert object to json and encrypt the data.
 
         :param obj: Python object to convert to json
-        :param stream: If not None the location to write the encrypted data to.
+        :param stream: The location to write the encrypted data to.
             If this is a file in Python 3, it must be open in binary mode.
-        :returns: If stream is None then the encrypted bytes otherwise None.
         """
         data = json.dumps(obj, separators=(',', ': '))
-        return self.dump(data, stream)
+        self.dump_to_stream(data, stream)
 
     def dump_as_json_to_file(self, obj, file_path):
         """ Convert object to json and encrypt the data.
@@ -167,15 +162,14 @@ class Vault(object):
         data_temp.close()
         move(data_temp.name, os.path.abspath(file_path))
 
-    def dump_as_yaml(self, obj, stream=None):
+    def dump_as_yaml(self, obj, stream):
         """ Convert object to yaml and encrypt the data.
 
         :param obj: Python object to convert to yaml
-        :param stream: If not None the location to write the encrypted data to.
-        :returns: If stream is None then the encrypted bytes otherwise None.
+        :param stream: The location to write the encrypted data to.
         """
         data = yaml.dump(obj, default_flow_style=False)
-        return self.dump(data, stream)
+        self.dump_to_stream(data, stream)
 
     def dump_as_yaml_to_file(self, obj, file_path):
         """ Convert object to yaml and encrypt the data.

@@ -181,16 +181,19 @@ def tail_log(path, ansible_verbosity, process_output, env=None):
     :param process_output: the method to process the output
     :param env: the enviroment to add to tail process
     """
-    if len(path) > 0:  # pylint: disable=len-as-condition
-        os.environ['ANSIBLE_VERBOSITY'] = str(ansible_verbosity)
-        os.environ['RHO_ANSIBLE_LOG'] = path
-        if env is not None and isinstance(env, dict):
-            for key, value in iteritems(env):
-                os.environ[key] = str(value)
-        # pylint: disable=no-member
-        process = sh.tail('-f', '-n', '+0', path, _out=process_output,
-                          _bg=True, _bg_exc=False)
-        return process
+
+    if not path:
+        raise ValueError('tail_log must have a nonempty path for logs')
+
+    os.environ['ANSIBLE_VERBOSITY'] = str(ansible_verbosity)
+    os.environ['RHO_ANSIBLE_LOG'] = path
+    if env is not None and isinstance(env, dict):
+        for key, value in iteritems(env):
+            os.environ[key] = str(value)
+    # pylint: disable=no-member
+    process = sh.tail('-f', '-n', '+0', path, _out=process_output,
+                      _bg=True, _bg_exc=False)
+    return process
 
 
 def ensure_config_dir_exists():
