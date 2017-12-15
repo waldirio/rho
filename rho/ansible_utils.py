@@ -139,10 +139,13 @@ def run_with_vault(cmd_string, vault_pass, env=None, log_path=None,
                                   env=env)
 
             if log_to_stdout is not None:
-                tail_process = utilities.tail_log(log_path,
-                                                  ansible_verbosity,
-                                                  log_to_stdout,
-                                                  log_to_stdout_env)
+                try:
+                    tail_process = utilities.tail_log(log_path,
+                                                      ansible_verbosity,
+                                                      log_to_stdout,
+                                                      log_to_stdout_env)
+                except ValueError as ex:
+                    log.error('Unable to tail Ansible log: %s', ex)
 
             child.expect('Vault password:')
             child.sendline(vault_pass)
