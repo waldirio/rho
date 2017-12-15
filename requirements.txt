@@ -2,6 +2,7 @@ ansible
 pexpect
 future
 sh
+stopit
 pyxdg
 
 # These requirements are for DEVELOPMENT ONLY!
