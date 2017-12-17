@@ -90,12 +90,18 @@ class AnsibleProcessException(Exception):
     pass
 
 
+class AnsibleTimeoutException(Exception):
+    """Exception raised when an Ansible process times out."""
+
+    pass
+
+
 # pylint: disable=too-many-arguments,too-many-branches
 # pylint: disable=too-many-statements,too-many-locals
 def run_with_vault(cmd_string, vault_pass, env=None, log_path=None,
                    log_to_stdout=None, log_to_stdout_env=None,
-                   ansible_verbosity=0, print_before_run=False,
-                   error_on_failure=True):
+                   ansible_verbosity=0, timeout=None,
+                   print_before_run=False, error_on_failure=True):
     """Runs ansible command allowing for password to be provided after
     process triggered.
 
@@ -110,6 +116,7 @@ def run_with_vault(cmd_string, vault_pass, env=None, log_path=None,
         the provided function as a filter. Defaults to None.
     :param log_to_stdout_env: a dictionary of environment variables
     :param ansible_verbosity: the number of v's of Ansible verbosity.
+    :param timeout: timeout, in seconds, for the called process.
 
     :param print_before_run: if true, print the command string before running
         it. Defaults to False.
@@ -135,7 +142,7 @@ def run_with_vault(cmd_string, vault_pass, env=None, log_path=None,
             log.debug('Running Ansible: %s', cmd_string)
             if print_before_run:
                 print('Running:', cmd_string)
-            child = pexpect.spawn(cmd_string, timeout=None,
+            child = pexpect.spawn(cmd_string, timeout=timeout,
                                   env=env)
 
             if log_to_stdout is not None:
@@ -183,10 +190,15 @@ def run_with_vault(cmd_string, vault_pass, env=None, log_path=None,
             tail_process.terminate()
         sys.exit(1)
     except pexpect.TIMEOUT:
-        print('Error: unexpected Ansible output')
+        child.terminate()
         if tail_process is not None:
             tail_process.terminate()
-        sys.exit(1)
+
+        if not timeout:
+            print('Error: unexpected Ansible output')
+            sys.exit(1)
+
+        raise AnsibleTimeoutException()
 
     if tail_process is not None:
         tail_process.terminate()

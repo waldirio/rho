@@ -51,3 +51,17 @@ class TestProcessPingOutput(unittest.TestCase):
                               '192.168.50.12']))
         self.assertEqual(failed, set())
         self.assertEqual(unreachable, set(['192.168.50.11']))
+
+    def test_partial_output(self):
+        """Partial lines of output, for instance from a timeout."""
+        success, failed, unreachable = host_discovery.process_ping_output([
+            '192.168.50.11 | UNREACH',
+            'Hello',
+            '192.168.50.12 | ',
+            'Hello',
+            '192.168',
+            'Hello'])
+
+        self.assertEqual(success, set())
+        self.assertEqual(failed, set())
+        self.assertEqual(unreachable, set())

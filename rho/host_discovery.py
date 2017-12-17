@@ -133,12 +133,21 @@ def create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
     # verbosity can break our parsing of Ansible's output. This is
     # a temporary fix - a better solution would be less-fragile
     # output parsing.
-    ansible_utils.run_with_vault(cmd_string, vault_pass,
-                                 log_path=PING_LOG_PATH,
-                                 env=my_env,
-                                 log_to_stdout=process_discovery_scan,
-                                 log_to_stdout_env=log_env,
-                                 ansible_verbosity=0, error_on_failure=False)
+    try:
+        ansible_utils.run_with_vault(
+            cmd_string, vault_pass,
+            log_path=PING_LOG_PATH,
+            env=my_env,
+            log_to_stdout=process_discovery_scan,
+            log_to_stdout_env=log_env,
+            ansible_verbosity=0,
+            timeout=30 * 60,
+            error_on_failure=False)
+    except ansible_utils.AnsibleTimeoutException:
+        # If the discovery scan times out, we'll just parse whatever
+        # information we have in the log file.
+        log.warning('Host discovery timed out. Gathering available host '
+                    'information to proceed with scan.')
 
     with open(PING_LOG_PATH, 'r') as ping_log:
         success_hosts, failed_hosts, unreachable_hosts = \
