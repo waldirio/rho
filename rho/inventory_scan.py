@@ -110,7 +110,6 @@ def inventory_scan(hosts_yml_path, facts_to_collect, report_path,
         'rho-fact-temp-' + str(time.time()))
 
     ansible_vars = {'facts_to_collect': list(facts_to_collect),
-                    'report_path': report_path,
                     'scan_dirs': ' '.join(scan_dirs or []),
                     'variables_path': variables_path}
 
