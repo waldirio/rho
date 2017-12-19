@@ -132,6 +132,14 @@ class Vault(object):
         """
         return json.loads(self.load_secure_file(secure_file).decode('UTF-8'))
 
+    def load_as_yaml(self, secure_file):
+        """ Read vault secured file and return YAML decoded object
+
+        :param secure_file: The file to read data from as yaml
+        :returns: The YAML data
+        """
+        return yaml.load(self.load_secure_file(secure_file).decode('UTF-8'))
+
     def dump_to_stream(self, data, stream):
         """ Encrypt data and write to stream
 

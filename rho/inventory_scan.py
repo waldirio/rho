@@ -19,6 +19,7 @@ import tempfile
 import time
 
 from rho import ansible_utils, postprocessing, utilities
+from rho import vault as vault_module
 from rho.translation import _ as t
 from rho.utilities import str_to_ascii
 
@@ -29,31 +30,35 @@ from rho.utilities import str_to_ascii
 # processed and the valid mapping as been figured out by
 # pinging.
 # pylint: disable=too-many-locals
-def make_inventory_dict(hosts, port_map, auth_map):
+def make_inventory_dict(hosts, port_map, auth_map, group_size=10):
     """Make the inventory for the scan, as a dict.
 
     :param hosts: a list of hosts for the inventory
     :param port_map: mapping from hosts to SSH ports
     :param auth_map: map from host IP to a list of auths it works with
+    :param group_size: write hosts in groups of this size
 
     :returns: a dict with the structure:
 
         .. code-block:: python
 
-            {'alpha':
-                {'hosts':
-                    {'IP address 1': {'host-vars-1'},
-                     'IP address 2': {'host-vars-2'},
-                     # ...
-                    }
-                }
+            {'group1':
+                 {'hosts':
+                     {'IP address 1': {'host-vars-1'},
+                      'IP address 2': {'host-vars-2'},
+                      # ...
+                     }
+                 },
+             'group2':
+                 {'hosts':
+                      ....
+                 },
+             ....
             }
     """
 
-    yml_dict = {}
-
-    # Create section of successfully connected hosts
-    alpha_hosts = {}
+    # Create dict of successfully connected hosts
+    host_dict = {}
     for host in hosts:
         ascii_host = str_to_ascii(host)
         ascii_port = str_to_ascii(str(port_map[host]))
@@ -61,11 +66,18 @@ def make_inventory_dict(hosts, port_map, auth_map):
                      'ansible_port': ascii_port}
         host_vars.update(
             ansible_utils.auth_as_ansible_host_vars(auth_map[host][0]))
-        alpha_hosts[ascii_host] = host_vars
+        host_dict[ascii_host] = host_vars
 
-    yml_dict['alpha'] = {'hosts': alpha_hosts}
+    result = {}
+    keys = sorted(host_dict.keys())
+    for group_num in range((len(keys) + group_size - 1) // group_size):
+        start = group_num * group_size
+        group_name = 'group' + str(group_num)
+        result[group_name] = {'hosts': {}}
+        for key in keys[start:start + group_size]:
+            result[group_name]['hosts'][key] = host_dict[key]
 
-    return yml_dict
+    return result
 
 
 def create_main_inventory(vault, hosts, port_map, auth_map, path):
@@ -83,7 +95,28 @@ def create_main_inventory(vault, hosts, port_map, auth_map, path):
     ansible_utils.log_yaml_inventory('Main inventory', yml_dict)
 
 
-# pylint: disable=too-many-arguments, too-many-statements
+# We can't just pass the group names from create_main_inventory to
+# inventory_scan, because we might never call create_main_inventory if
+# we use --cache. So we have to read the groups from the inventory
+# file.
+def hosts_by_group(yml_dict):
+    """Get the hosts in each group from an inventory YAML file.
+
+    Note: this works on inventory files written by
+    create_main_inventory, but not on any Ansible inventory file.
+
+    :param yml_dict: the Ansible inventory file, as a Python dict.
+
+    :returns: a dict of the form
+        {'group name': ['host1', 'host2', ...],
+         ... }
+    """
+
+    return {group: list(yml_dict[group]['hosts'].keys())
+            for group in yml_dict.keys()}
+
+
+# pylint: disable=too-many-arguments, too-many-statements, too-many-branches
 def inventory_scan(hosts_yml_path, facts_to_collect, report_path,
                    vault_pass, base_name, forks=None,
                    scan_dirs=None, log_path=None, verbosity=0):
@@ -105,13 +138,13 @@ def inventory_scan(hosts_yml_path, facts_to_collect, report_path,
     hosts_yml = base_name + utilities.PROFILE_HOSTS_SUFIX
     hosts_yml_path = utilities.get_config_path(hosts_yml)
 
-    variables_path = os.path.join(
-        tempfile.gettempdir(),
-        'rho-fact-temp-' + str(time.time()))
+    vault = vault_module.Vault(vault_pass)
+    hosts_dict = vault.load_as_yaml(hosts_yml_path)
+    host_groups = hosts_by_group(hosts_dict)
 
-    ansible_vars = {'facts_to_collect': list(facts_to_collect),
-                    'scan_dirs': ' '.join(scan_dirs or []),
-                    'variables_path': variables_path}
+    variables_prefix = os.path.join(
+        tempfile.gettempdir(),
+        'rho-fact-temp-' + str(time.time()) + '-')
 
     if os.path.isfile(utilities.PLAYBOOK_DEV_PATH):
         playbook = utilities.PLAYBOOK_DEV_PATH
@@ -122,36 +155,79 @@ def inventory_scan(hosts_yml_path, facts_to_collect, report_path,
               % playbook)
         sys.exit(1)
 
-    cmd_string = ('ansible-playbook {playbook} '
-                  '-i {inventory} -f {forks} '
-                  '--ask-vault-pass '
-                  '--extra-vars \'{vars}\'').format(
-                      playbook=playbook,
-                      inventory=hosts_yml_path,
-                      forks=forks,
-                      vars=json.dumps(ansible_vars))
-
     log_path = log_path or utilities.SCAN_LOG_PATH
 
     my_env = os.environ.copy()
     my_env["ANSIBLE_HOST_KEY_CHECKING"] = "False"
     my_env["ANSIBLE_NOCOLOR"] = "True"
 
-    try:
-        ansible_utils.run_with_vault(
-            cmd_string, vault_pass,
-            env=my_env,
-            log_path=log_path,
-            log_to_stdout=utilities.process_host_scan,
-            ansible_verbosity=verbosity,
-            print_before_run=True)
-    except ansible_utils.AnsibleProcessException as ex:
-        print(t("An error has occurred during the scan. Please review" +
-                " the output to resolve the given issue: %s" % str(ex)))
-        sys.exit(1)
+    vars_by_host = {}
 
-    with open(variables_path, 'r') as variables_file:
-        vars_by_host = json.load(variables_file)
+    for group in host_groups.keys():
+        variables_path = variables_prefix + group
+
+        ansible_vars = {'facts_to_collect': list(facts_to_collect),
+                        'scan_dirs': ' '.join(scan_dirs or []),
+                        'variables_path': variables_path}
+
+        cmd_string = ('ansible-playbook {playbook} '
+                      '--limit {group},localhost '
+                      '-i {inventory} -f {forks} '
+                      '--ask-vault-pass '
+                      '--extra-vars \'{vars}\'').format(
+                          group=group,
+                          playbook=playbook,
+                          inventory=hosts_yml_path,
+                          forks=forks,
+                          vars=json.dumps(ansible_vars))
+
+        rho_host_scan_timeout = os.getenv('RHO_HOST_SCAN_TIMEOUT', 30 * 60)
+        try:
+            ansible_utils.run_with_vault(
+                cmd_string, vault_pass,
+                env=my_env,
+                log_path=log_path,
+                log_to_stdout=utilities.process_host_scan,
+                ansible_verbosity=verbosity,
+                timeout=rho_host_scan_timeout,
+                print_before_run=True)
+        except ansible_utils.AnsibleProcessException as ex:
+            print(t("An error has occurred during the scan. Please review" +
+                    " the output to resolve the given issue: %s" % str(ex)))
+            sys.exit(1)
+        except ansible_utils.AnsibleTimeoutException as ex:
+            utilities.log.warning('Scan for group "%s" timed out. Hosts \n'
+                                  '%s\nwill be skipped. The rest of the scan '
+                                  'is not affected.',
+                                  group, host_groups[group])
+            continue
+
+        if os.path.isfile(variables_path):
+            with open(variables_path, 'r') as variables_file:
+                update_json = json.load(variables_file)
+                hosts = host_groups.get(group, [])
+                for host in hosts:
+                    host_facts = update_json.get(host, {})
+                    vars_by_host[host] = host_facts
+                utilities.log.info('Processing scan data for %d more systems.',
+                                   len(hosts))
+                utilities.log.info('Completed scanning %d systems.',
+                                   len(vars_by_host.keys()))
+                print('\nProcessing scan data for %d more systems.' %
+                      (len(hosts)))
+                print('Completed scanning %d systems.\n' %
+                      (len(vars_by_host.keys())))
+            os.remove(variables_path)
+        else:
+            utilities.log.error('Error collecting data for group %s.'
+                                'output file %s not found.',
+                                group, variables_path)
+
+    if vars_by_host == {}:
+        print(t("An error has occurred during the scan. " +
+                "No data was collected for any groups. " +
+                "Please review the output to resolve the given issues"))
+        sys.exit(1)
 
     # Postprocess Ansible output
     facts_out = []

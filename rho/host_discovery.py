@@ -133,6 +133,7 @@ def create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
     # verbosity can break our parsing of Ansible's output. This is
     # a temporary fix - a better solution would be less-fragile
     # output parsing.
+    rho_discovery_timeout = os.getenv('RHO_DISCOVERY_TIMEOUT', 30 * 60)
     try:
         ansible_utils.run_with_vault(
             cmd_string, vault_pass,
@@ -141,7 +142,7 @@ def create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
             log_to_stdout=process_discovery_scan,
             log_to_stdout_env=log_env,
             ansible_verbosity=0,
-            timeout=30 * 60,
+            timeout=rho_discovery_timeout,
             error_on_failure=False)
     except ansible_utils.AnsibleTimeoutException:
         # If the discovery scan times out, we'll just parse whatever

@@ -228,7 +228,7 @@ def process_jboss_versions(fact_names, host_vars):
 
         if val:
             return val
-        if not host_vars['have_java']:
+        if not host_vars.get('have_java'):
             return 'N/A (java not found)'
         return '({0} not found)'.format(name)
 
@@ -491,7 +491,7 @@ def process_jboss_eap_locate(fact_names, host_vars):
     :returns: a dict of key, value pairs to add to the output.
     """
 
-    if not host_vars['have_locate']:
+    if not host_vars.get('have_locate'):
         return {JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR:
                 'N/A (locate not found)'}
 

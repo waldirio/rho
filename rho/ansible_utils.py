@@ -19,7 +19,7 @@ import pexpect
 import yaml
 
 from rho import utilities
-from rho.utilities import log, ANSIBLE_LOG_PATH, str_to_ascii, iteritems
+from rho.utilities import log, ANSIBLE_LOG_PATH, str_to_ascii
 
 
 def auth_as_ansible_host_vars(auth):
@@ -69,16 +69,17 @@ def log_yaml_inventory(label, inventory):
 
     :param inventory: A dictionary of the ansible inventory
     """
-    alpha = inventory.get('alpha')
-    hosts_dict = alpha.get('hosts')
-    vars_dict = alpha.get('vars')
+
     redact_key_list = ['ansible_become_pass', 'ansible_ssh_pass']
 
-    # pylint: disable=unused-variable
-    for host, host_dict in iteritems(hosts_dict):
-        host_dict = redact_dict(redact_key_list, host_dict)
+    for group in inventory.keys():
+        hosts_dict = inventory[group].get('hosts')
+        vars_dict = inventory[group].get('vars')
 
-    vars_dict = redact_dict(redact_key_list, vars_dict)
+        for host_dict in hosts_dict.values():
+            host_dict = redact_dict(redact_key_list, host_dict)
+
+        vars_dict = redact_dict(redact_key_list, vars_dict)
 
     log.debug('%s:\n%s', label, yaml.dump(inventory))
     return inventory
