@@ -122,7 +122,8 @@ def process_discovery_scan(line):
     if hosts_processed % 5 == 0 and print_status:
         if log_path is not None:
             with open(log_path, 'ab') as logfile:
-                logfile.write('******* %s *******' % (str(datetime.now())))
+                logfile.write('******* %s *******' %
+                              (str(datetime.now()).encode('utf-8')))
                 logfile.flush()
         print(_('%d hosts processed with credential %s. ' %
                 (hosts_processed, rho_cred)))
