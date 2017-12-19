@@ -28,6 +28,7 @@
     - brms
     - fuse
     - jboss_fuse_on_karaf
+    - cleanup
 
 
 - name: write facts first to a variable and then to csv locally

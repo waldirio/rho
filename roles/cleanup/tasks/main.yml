@@ -1,0 +1,11 @@
+---
+
+- name: cleanup ssh fact
+  set_fact:
+    ansible_ssh_pass: "********"
+  when: "ansible_ssh_pass is defined"
+
+- name: cleanup become fact
+  set_fact:
+    ansible_become_pass: "********"
+  when: "ansible_become_pass is defined"
