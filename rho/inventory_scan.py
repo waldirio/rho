@@ -272,12 +272,19 @@ def inventory_scan(hosts_yml_path, facts_to_collect, report_path,
     my_env["ANSIBLE_HOST_KEY_CHECKING"] = "False"
     my_env["ANSIBLE_NOCOLOR"] = "True"
 
-    vars_by_host = {}
     facts_out = []
+    total_hosts_count = 0
+    for group in host_groups.keys():
+        hosts = host_groups.get(group, [])
+        total_hosts_count += len(hosts)
 
+    utilities.log.info('Starting scan of %d systems broken into %d groups.',
+                       total_hosts_count, len(host_groups.keys()))
+    print('\nStarting scan of %d systems broken into %d groups.' %
+          (total_hosts_count, len(host_groups.keys())))
     for group in host_groups.keys():
         variables_path = variables_prefix + group
-
+        hosts = host_groups.get(group, [])
         ansible_vars = {'facts_to_collect': list(facts_to_collect),
                         'scan_dirs': ' '.join(scan_dirs or []),
                         'variables_path': variables_path}
@@ -293,7 +300,15 @@ def inventory_scan(hosts_yml_path, facts_to_collect, report_path,
                           forks=forks,
                           vars=json.dumps(ansible_vars))
 
-        rho_host_scan_timeout = os.getenv('RHO_HOST_SCAN_TIMEOUT', 30 * 60)
+        rho_host_scan_timeout = os.getenv('RHO_HOST_SCAN_TIMEOUT', 10)
+        host_scan_timeout = ((len(hosts) // int(forks)) + 1) \
+            * rho_host_scan_timeout
+        utilities.log.info('Starting scan for group "%s" with %d systems'
+                           ' with timeout of %d minutes.',
+                           group, len(hosts), host_scan_timeout)
+        print('\nStarting scan for group "%s" with %d systems'
+              ' with timeout of %d minutes.\n' %
+              (group, len(hosts), host_scan_timeout))
         try:
             ansible_utils.run_with_vault(
                 cmd_string, vault_pass,
@@ -301,7 +316,7 @@ def inventory_scan(hosts_yml_path, facts_to_collect, report_path,
                 log_path=log_path,
                 log_to_stdout=utilities.process_host_scan,
                 ansible_verbosity=verbosity,
-                timeout=rho_host_scan_timeout,
+                timeout=host_scan_timeout * 60,
                 print_before_run=True)
         except ansible_utils.AnsibleProcessException as ex:
             print(t("An error has occurred during the scan. Please review" +
@@ -316,28 +331,29 @@ def inventory_scan(hosts_yml_path, facts_to_collect, report_path,
 
         if os.path.isfile(variables_path):
             with open(variables_path, 'r') as variables_file:
+                vars_by_host = {}
                 update_json = json.load(variables_file)
-                hosts = host_groups.get(group, [])
                 for host in hosts:
                     host_facts = update_json.get(host, {})
                     vars_by_host[host] = host_facts
+                os.remove(variables_path)
                 utilities.log.info('Processing scan data for %d more systems.',
                                    len(hosts))
-                utilities.log.info('Completed scanning %d systems.',
-                                   len(vars_by_host.keys()))
                 print('\nProcessing scan data for %d more systems.' %
                       (len(hosts)))
+                group_facts = process_host_vars(facts_to_collect, vars_by_host)
+                facts_out += group_facts
+                utilities.log.info('Completed scanning %d systems.',
+                                   len(facts_out))
                 print('Completed scanning %d systems.\n' %
-                      (len(vars_by_host.keys())))
-            os.remove(variables_path)
-            group_facts = process_host_vars(facts_to_collect, vars_by_host)
-            facts_out += group_facts
+                      (len(facts_out)))
+
         else:
             utilities.log.error('Error collecting data for group %s.'
                                 'output file %s not found.',
                                 group, variables_path)
 
-    if vars_by_host == {}:
+    if facts_out == []:
         print(t("An error has occurred during the scan. " +
                 "No data was collected for any groups. " +
                 "Please review the output to resolve the given issues"))

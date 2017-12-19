@@ -13,10 +13,11 @@ from __future__ import print_function
 from collections import defaultdict
 import os
 import re
-
+from ansible.parsing.utils.addresses import parse_address
+from ansible.plugins.inventory import detect_range, expand_hostname_range
 from rho import ansible_utils
 from rho.translation import _
-from rho.utilities import (log, str_to_ascii, PING_INVENTORY_PATH,
+from rho.utilities import (log, PING_INVENTORY_PATH,
                            PING_LOG_PATH,
                            process_discovery_scan)
 
@@ -63,6 +64,34 @@ def process_ping_output(out_lines):
     return success_hosts, failed_hosts, unreachable_hosts
 
 
+def _expand_hostpattern(hostpattern):
+    """Expands pattern into list of hosts.
+
+    Takes a single host pattern and returns a list of hostnames.
+    :param hostpattern: a single host pattern
+    :returns: list of hostnames
+    """
+    # Can the given hostpattern be parsed as a host with an optional port
+    # specification?
+
+    try:
+        # pylint: disable=unused-variable
+        (pattern, port) = parse_address(hostpattern, allow_ranges=True)
+    except:  # noqa pylint: disable=bare-except
+        # not a recognizable host pattern
+        pattern = hostpattern
+
+    # Once we have separated the pattern, we expand it into list of one or
+    # more hostnames, depending on whether it contains any [x:y] ranges.
+
+    if detect_range(pattern):
+        hostnames = expand_hostname_range(pattern)
+    else:
+        hostnames = [pattern]
+
+    return hostnames
+
+
 # Creates the inventory for pinging all hosts and records
 # successful auths and the hosts they worked on
 # pylint: disable=too-many-statements, too-many-arguments, unused-argument
@@ -86,6 +115,7 @@ def create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
     """
 
     # pylint: disable=too-many-locals
+    all_hosts = []
     success_hosts = set()
     failed_hosts = set()
     unreachable_hosts = set()
@@ -94,15 +124,12 @@ def create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
     hosts_dict = {}
 
     for profile_range in profile_ranges:
-        # pylint: disable=anomalous-backslash-in-string
-        reg = "[0-9]*.[0-9]*.[0-9]*.\[[0-9]*:[0-9]*\]"
-        profile_range = profile_range.strip(',').strip()
-        hostname = str_to_ascii(profile_range)
-        if not re.match(reg, profile_range):
-            hosts_dict[profile_range] = {'ansible_host': profile_range,
-                                         'ansible_port': profile_port}
-        else:
-            hosts_dict[hostname] = None
+        hosts = _expand_hostpattern(profile_range)
+        all_hosts += hosts
+
+    for host in all_hosts:
+        hosts_dict[host] = {'ansible_host': host,
+                            'ansible_port': profile_port}
 
     vars_dict = ansible_utils.auth_as_ansible_host_vars(credential)
 
@@ -110,10 +137,17 @@ def create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
     vault.dump_as_yaml_to_file(yml_dict, PING_INVENTORY_PATH)
     ansible_utils.log_yaml_inventory('Ping inventory', yml_dict)
 
-    log.info('Attempting connection discovery with auth "%s".',
-             credential.get('name'))
-    print(_('Attempting connection discovery with auth "%s".' %
-            (credential.get('name'))))
+    total_hosts_count = len(all_hosts)
+    rho_discovery_timeout = os.getenv('RHO_DISCOVERY_TIMEOUT', 5)
+    discovery_timeout = ((total_hosts_count // int(forks)) + 1) \
+        * rho_discovery_timeout
+
+    log.info('Attempting connection discovery to %d systems'
+             ' with auth "%s" using a timeout of %d minutes.',
+             total_hosts_count, credential.get('name'), discovery_timeout)
+    print(_('Attempting connection discovery to %d systems'
+            ' with auth "%s" using a timeout of %d minutes.' %
+            (total_hosts_count, credential.get('name'), discovery_timeout)))
 
     cmd_string = 'ansible alpha -m raw' \
                  ' -i ' + PING_INVENTORY_PATH \
@@ -133,7 +167,6 @@ def create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
     # verbosity can break our parsing of Ansible's output. This is
     # a temporary fix - a better solution would be less-fragile
     # output parsing.
-    rho_discovery_timeout = os.getenv('RHO_DISCOVERY_TIMEOUT', 30 * 60)
     try:
         ansible_utils.run_with_vault(
             cmd_string, vault_pass,
@@ -142,7 +175,7 @@ def create_ping_inventory(vault, vault_pass, profile_ranges, profile_port,
             log_to_stdout=process_discovery_scan,
             log_to_stdout_env=log_env,
             ansible_verbosity=0,
-            timeout=rho_discovery_timeout,
+            timeout=discovery_timeout * 60,
             error_on_failure=False)
     except ansible_utils.AnsibleTimeoutException:
         # If the discovery scan times out, we'll just parse whatever
