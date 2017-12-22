@@ -142,7 +142,7 @@ def raw_output_present(fact_names, host_vars, this_fact, this_var, command):
 
         return {this_fact: 'Error: "{0}" not run'.format(command)}, None
 
-    raw_output = host_vars[this_var]
+    raw_output = host_vars.get(this_var)
 
     if (('rc' not in raw_output or
          'stdout_lines' not in raw_output) and 'results' not in raw_output):
@@ -234,11 +234,12 @@ def process_jboss_versions(fact_names, host_vars):
 
     if JBOSS_EAP_INSTALLED_VERSIONS in fact_names:
         val[JBOSS_EAP_INSTALLED_VERSIONS] = (
-            empty_output_message('; '.join(jboss_releases), 'jboss'))
+            empty_output_message(encode_and_join('; ', jboss_releases),
+                                 'jboss'))
         val[JBOSS_EAP_INSTALLED_VERSIONS + MR] = jboss_releases
     if JBOSS_EAP_DEPLOY_DATES in fact_names:
         val[JBOSS_EAP_DEPLOY_DATES] = (
-            empty_output_message('; '.join(deploy_dates), 'jboss'))
+            empty_output_message(encode_and_join('; ', deploy_dates), 'jboss'))
         val[JBOSS_EAP_DEPLOY_DATES + MR] = deploy_dates
     if JBOSS_EAP_RUNNING_PATHS in fact_names:
         err, output = raw_output_present(fact_names, host_vars,
@@ -269,7 +270,7 @@ def classify_releases(lines, classifications):
             else:
                 releases.append('Unknown-Release: ' + line)
 
-    return '; '.join(releases)
+    return encode_and_join('; ', releases)
 
 
 def process_addon_versions(fact_names, host_vars):
@@ -372,7 +373,10 @@ def process_jboss_eap_common_files(fact_names, host_vars):
         directory = item['item']
 
         if 'rc' in item and item['rc'] == 0:
-            out_list.append(directory)
+            if sys.version_info[0] == 2:
+                out_list.append(directory.encode('utf-8'))
+            else:
+                out_list.append(directory)
 
         # If 'rc' is in item but is nonzero, the directory wasn't
         # present. If 'rc' isn't in item, there was an error and the
@@ -380,9 +384,12 @@ def process_jboss_eap_common_files(fact_names, host_vars):
         # get logs out of spit_results, so we'll have to hope the
         # scan_log is enough to debug any problems we have. :(
 
+    out_dirs = []
+    for directory in out_list:
+        out_dir = '{0} found'.format(directory)
+        out_dirs.append(out_dir)
     return {JBOSS_EAP_COMMON_FILES:
-            ';'.join(('{0} found'.format(directory)
-                      for directory in out_list)),
+            encode_and_join(';', out_dirs),
             JBOSS_EAP_COMMON_FILES + MR: out_list}
 
 
@@ -504,7 +511,7 @@ def process_jboss_eap_locate(fact_names, host_vars):
 
     if not output['rc'] and output['stdout_lines']:
         return {JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR:
-                ';'.join(output['stdout_lines']),
+                encode_and_join(';', output.get('stdout_lines', [])),
                 JBOSS_EAP_LOCATE_JBOSS_MODULES_JAR + MR:
                 output['stdout_lines']}
 
@@ -582,7 +589,7 @@ def process_jboss_eap_init_files(fact_names, host_vars):
 
     if found_services:
         return {JBOSS_EAP_INIT_FILES:
-                '; '.join(found_services),
+                encode_and_join('; ', found_services),
                 JBOSS_EAP_INIT_FILES + MR:
                 found_services}
 
@@ -613,7 +620,7 @@ def process_indicator_files(indicator_files, ls_out):
                         if filename in files]
         if found_in_dir:
             ls_results[directory] = (
-                directory + ' contains ' + ','.join(found_in_dir))
+                directory + ' contains ' + encode_and_join(',', found_in_dir))
             ls_results_mr[directory] = found_in_dir
         else:
             ls_results[directory] = 'No indicator files found'
@@ -672,11 +679,12 @@ def process_jboss_eap_home(fact_names, host_vars):
                   if ls_results_mr.get(directory) or
                   cat_results_mr.get(directory)]
 
+    eap_home_dirs = [directory +
+                     ': ' + ls_results.get(directory, '') +
+                     ', ' + cat_results.get(directory, '')
+                     for directory in eap_homes]
     return {JBOSS_EAP_EAP_HOME:
-            '; '.join([directory +
-                       ': ' + ls_results.get(directory, '') +
-                       ', ' + cat_results.get(directory, '')
-                       for directory in eap_homes]),
+            encode_and_join('; ', eap_home_dirs),
             JBOSS_EAP_EAP_HOME + MR: results_mr}
 
 
@@ -737,7 +745,8 @@ def process_find_jboss_modules_jar(fact_names, host_vars):
     if err is not None:
         return err
 
-    return {JBOSS_EAP_FIND_JBOSS_MODULES_JAR: '; '.join(out['stdout_lines'])}
+    return {JBOSS_EAP_FIND_JBOSS_MODULES_JAR:
+            encode_and_join('; ', out['stdout_lines'])}
 
 
 FIND_KARAF_JAR = 'jboss.fuse-on-karaf.find-karaf-jar'
@@ -756,7 +765,7 @@ def process_find_karaf_jar(fact_names, host_vars):
     if err is not None:
         return err
 
-    return {FIND_KARAF_JAR: '; '.join(out['stdout_lines'])}
+    return {FIND_KARAF_JAR: encode_and_join('; ', out['stdout_lines'])}
 
 
 JBOSS_FUSE_FUSE_ON_EAP = 'jboss.fuse.fuse-on-eap'
@@ -800,15 +809,17 @@ def process_fuse_on_eap(fact_names, host_vars):
     eap_homes = ls_bin_results.keys()
     assert eap_homes == layers_conf_results.keys() == ls_layers_results.keys()
 
+    fuse_on_eap_dirs = [
+        ('{0}: /bin={1}, /modules/layers.conf={2},'
+         ' /modules/system/layers={3}').format(
+             eap_home,
+             ls_bin_results[eap_home],
+             layers_conf_results[eap_home],
+             ls_layers_results[eap_home])
+        for eap_home in eap_homes]
+
     return {JBOSS_FUSE_FUSE_ON_EAP:
-            '; '.join([
-                ('{0}: /bin={1}, /modules/layers.conf={2},'
-                 ' /modules/system/layers={3}').format(
-                     eap_home,
-                     ls_bin_results[eap_home],
-                     layers_conf_results[eap_home],
-                     ls_layers_results[eap_home])
-                for eap_home in eap_homes]),
+            encode_and_join('; ', fuse_on_eap_dirs),
             JBOSS_FUSE_FUSE_ON_EAP + MR:
             {eap_home:
              (ls_bin_mr[eap_home] or
@@ -861,12 +872,13 @@ def process_karaf_home(fact_names, host_vars):
     assert list(system_org_jboss_results.keys()) == karaf_homes
     assert list(bin_fuse_results.keys()) == karaf_homes
 
+    fuse_on_karaf_dirs = ['{0}: {1}; {2}'.format(
+        karaf_home,
+        bin_fuse_results[karaf_home],
+        system_org_jboss_results[karaf_home])
+                          for karaf_home in karaf_homes]  # noqa E126
     return {JBOSS_FUSE_ON_KARAF_KARAF_HOME:
-            '; '.join(['{0}: {1}; {2}'.format(
-                karaf_home,
-                bin_fuse_results[karaf_home],
-                system_org_jboss_results[karaf_home])
-                       for karaf_home in karaf_homes]),
+            encode_and_join('; ', fuse_on_karaf_dirs),
             JBOSS_FUSE_ON_KARAF_KARAF_HOME + MR:
             {karaf_home:
              system_org_jboss_mr[karaf_home] or bin_fuse_mr[karaf_home]
@@ -902,8 +914,8 @@ def process_fuse_init_files(fact_names, host_vars):
 
     return {JBOSS_FUSE_INIT_FILES:
             'systemctl: {0}; chkconfig: {1}'.format(
-                '; '.join(systemctl_out['stdout_lines']),
-                '; '.join(chkconfig_out['stdout_lines'])),
+                encode_and_join('; ', systemctl_out['stdout_lines']),
+                encode_and_join('; ', chkconfig_out['stdout_lines'])),
             JBOSS_FUSE_INIT_FILES + MR:
             bool(systemctl_out['stdout_lines']) or
             bool(chkconfig_out['stdout_lines'])}
@@ -1032,7 +1044,7 @@ def process_brms_output(fact_names, host_vars):
                 ': ' +
                 ('Red Hat manifest ' if 'Red Hat' in manifest else '') +
                 'kie-api versions ' +
-                '(' + '; '.join(kie_versions) + ')')  # noqa
+                '(' + encode_and_join('; ', kie_versions) + ')')  # noqa
 
     directories_for_output = [
         directory
@@ -1049,14 +1061,14 @@ def process_brms_output(fact_names, host_vars):
              for _, version
              in utilities.iteritems(kie_versions_by_directory))))
 
+    jboss_vals = [format_directory_result(
+        directory,
+        manifest_mfs[directory],
+        kie_versions_by_directory[directory])
+                  for directory in directories_for_output]  # noqa E126
+    jboss_vals += list(kie_files)
     return {JBOSS_BRMS:
-            '; '.join(
-                [format_directory_result(
-                    directory,
-                    manifest_mfs[directory],
-                    kie_versions_by_directory[directory])
-                 for directory in directories_for_output] +
-                list(kie_files)),
+            encode_and_join('; ', jboss_vals),
             JBOSS_BRMS_SUMMARY:
             ('Yes - BRMS installation present'
              if found_redhat_brms else 'No BRMS installation detected')}
@@ -1097,6 +1109,23 @@ def escape_characters(data):
             except UnicodeEncodeError:
                 data[key] = ''
     return data
+
+
+def encode_and_join(join_char, list_of_strings):
+    """Create a list of utf-8 encoded strings and join them.
+
+    :param join_char: The character to join on
+    :param list_of_strings: Strings to encode and join
+    :returns: joined encoded string
+    """
+    new_strings = []
+    for unencoded in list_of_strings:
+        if sys.version_info[0] == 2:
+            out = unencoded.encode('utf-8')
+        else:
+            out = unencoded
+        new_strings.append(out)
+    return join_char.join(new_strings)
 
 
 # pylint: disable=no-self-use

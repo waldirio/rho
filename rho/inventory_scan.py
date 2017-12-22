@@ -127,72 +127,83 @@ def process_host_vars(facts_to_collect, vars_by_host):
     for _, host_vars in utilities.iteritems(vars_by_host):
         this_host = {}
 
-        this_host.update(host_vars.get('connection', {}))
-        this_host.update(host_vars.get('cpu', {}))
-        this_host.update(host_vars.get('date', {}))
-        this_host.update(host_vars.get('dmi', {}))
-        this_host.update(host_vars.get('etc_release', {}))
-        this_host.update(host_vars.get('file_contents', {}))
-        this_host.update(host_vars.get('redhat_packages', {}))
-        this_host.update(host_vars.get('redhat_release', {}))
-        this_host.update(host_vars.get('subman', {}))
-        this_host.update(host_vars.get('uname', {}))
-        this_host.update(host_vars.get('virt', {}))
-        this_host.update(host_vars.get('virt_what', {}))
+        try:
+            this_host.update(host_vars.get('connection', {}))
+            this_host.update(host_vars.get('cpu', {}))
+            this_host.update(host_vars.get('date', {}))
+            this_host.update(host_vars.get('dmi', {}))
+            this_host.update(host_vars.get('etc_release', {}))
+            this_host.update(host_vars.get('file_contents', {}))
+            this_host.update(host_vars.get('redhat_packages', {}))
+            this_host.update(host_vars.get('redhat_release', {}))
+            this_host.update(host_vars.get('subman', {}))
+            this_host.update(host_vars.get('uname', {}))
+            this_host.update(host_vars.get('virt', {}))
+            this_host.update(host_vars.get('virt_what', {}))
 
-        this_host.update(
-            postprocessing.process_jboss_versions(facts_to_collect, host_vars))
-        this_host.update(
-            postprocessing.process_addon_versions(facts_to_collect, host_vars))
-        this_host.update(
-            postprocessing.process_id_u_jboss(facts_to_collect, host_vars))
-        this_host.update(
-            postprocessing.process_jboss_eap_common_files(
+            this_host.update(
+                postprocessing.process_jboss_versions(facts_to_collect,
+                                                      host_vars))
+            this_host.update(
+                postprocessing.process_addon_versions(facts_to_collect,
+                                                      host_vars))
+            this_host.update(
+                postprocessing.process_id_u_jboss(facts_to_collect,
+                                                  host_vars))
+            this_host.update(
+                postprocessing.process_jboss_eap_common_files(
+                    facts_to_collect, host_vars))
+            this_host.update(
+                postprocessing.process_jboss_eap_processes(
+                    facts_to_collect, host_vars))
+            this_host.update(
+                postprocessing.process_jboss_eap_packages(
+                    facts_to_collect, host_vars))
+            this_host.update(
+                postprocessing.process_jboss_eap_locate(
+                    facts_to_collect, host_vars))
+            this_host.update(
+                postprocessing.process_jboss_eap_init_files(
+                    facts_to_collect, host_vars))
+            this_host.update(
+                postprocessing.process_jboss_eap_home(facts_to_collect,
+                                                      host_vars))
+            this_host.update(
+                postprocessing.process_fuse_on_eap(facts_to_collect,
+                                                   host_vars))
+            this_host.update(
+                postprocessing.process_karaf_home(facts_to_collect,
+                                                  host_vars))
+            this_host.update(
+                postprocessing.process_fuse_init_files(
+                    facts_to_collect, host_vars))
+            this_host.update(
+                postprocessing.process_brms_output(facts_to_collect,
+                                                   host_vars))
+            this_host.update(postprocessing.process_find_jboss_modules_jar(
                 facts_to_collect, host_vars))
-        this_host.update(
-            postprocessing.process_jboss_eap_processes(
+            this_host.update(postprocessing.process_find_karaf_jar(
                 facts_to_collect, host_vars))
-        this_host.update(
-            postprocessing.process_jboss_eap_packages(
-                facts_to_collect, host_vars))
-        this_host.update(
-            postprocessing.process_jboss_eap_locate(
-                facts_to_collect, host_vars))
-        this_host.update(
-            postprocessing.process_jboss_eap_init_files(
-                facts_to_collect, host_vars))
-        this_host.update(
-            postprocessing.process_jboss_eap_home(facts_to_collect, host_vars))
-        this_host.update(
-            postprocessing.process_fuse_on_eap(facts_to_collect, host_vars))
-        this_host.update(
-            postprocessing.process_karaf_home(facts_to_collect, host_vars))
-        this_host.update(
-            postprocessing.process_fuse_init_files(
-                facts_to_collect, host_vars))
-        this_host.update(
-            postprocessing.process_brms_output(facts_to_collect, host_vars))
-        this_host.update(postprocessing.process_find_jboss_modules_jar(
-            facts_to_collect, host_vars))
-        this_host.update(postprocessing.process_find_karaf_jar(
-            facts_to_collect, host_vars))
 
-        postprocessing.handle_systemid(facts_to_collect, this_host)
-        postprocessing.handle_redhat_packages(facts_to_collect, this_host)
-        postprocessing.escape_characters(this_host)
-        this_host.update(postprocessing.generate_eap_summary(
-            facts_to_collect, this_host))
-        this_host.update(postprocessing.generate_fuse_summary(
-            facts_to_collect, this_host))
+            postprocessing.handle_systemid(facts_to_collect, this_host)
+            postprocessing.handle_redhat_packages(facts_to_collect, this_host)
+            postprocessing.escape_characters(this_host)
+            this_host.update(postprocessing.generate_eap_summary(
+                facts_to_collect, this_host))
+            this_host.update(postprocessing.generate_fuse_summary(
+                facts_to_collect, this_host))
 
-        # After all of the facts have been generated, remove -mr facts
-        # which were for machine use only.
-        keys = list(this_host.keys())
-        for key in keys:
-            if key[-3:] == '-mr':
-                del this_host[key]
+            # After all of the facts have been generated, remove -mr facts
+            # which were for machine use only.
+            keys = list(this_host.keys())
+            for key in keys:
+                if key[-3:] == '-mr':
+                    del this_host[key]
 
-        facts_out.append(this_host)
+            facts_out.append(this_host)
+        except Exception as processing_error:  # pylint: disable=broad-except
+            utilities.log.error('Error during processing %s', processing_error)
+
     return facts_out
 
 
