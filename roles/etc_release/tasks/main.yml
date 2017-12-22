@@ -153,6 +153,8 @@
   when:
     - '"etc_release.name" in facts_to_collect'
     - 'redhat_release_found["stdout_lines"][0] == "Y"'
+    - '"stdout_lines" in redhat_release_found_release'
+    - 'redhat_release_found_release["stdout_lines"]|length > 0'
     - '"release" in redhat_release_found_release["stdout_lines"][0]'
 
 - name: gather etc_release.version based on redhat_release_found_release
@@ -160,12 +162,18 @@
   when:
     - '"etc_release.version" in facts_to_collect'
     - 'redhat_release_found["stdout_lines"][0] == "Y"'
+    - '"stdout_lines" in redhat_release_found_release'
+    - 'redhat_release_found_release["stdout_lines"]|length > 0'
     - '"release" in redhat_release_found_release["stdout_lines"][0]'
 
 - name: gather etc_release.release based on redhat_release_found_release
   set_fact:
     etc_release_release: "{{ redhat_release_found_release['stdout_lines'][0] }}"
-  when: '"etc_release.release" in facts_to_collect and redhat_release_found["stdout_lines"][0] == "Y"'
+  when:
+    - '"etc_release.release" in facts_to_collect'
+    - 'redhat_release_found["stdout_lines"][0] == "Y"'
+    - '"stdout_lines" in redhat_release_found_release'
+    - 'redhat_release_found_release["stdout_lines"]|length > 0'
 
 - name: set rel for etc_release data based on etc_release_found
   raw: cat /etc/release
