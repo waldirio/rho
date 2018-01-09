@@ -2,7 +2,7 @@
 
 Name: rho
 Version: 0.0.31
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: An SSH system profiler
 
 Group: Applications/Internet
@@ -63,6 +63,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/ansible/%{name}/roles/*
 
 %changelog
+* Tue Jan 9 2018 Christopher Hambridge <chambrid@redhat.com> 0.0.31-2
+- Enhancements to handle target system timeouts (chambrid@redhat.com)
+- Enhancements to capture JBoss products installation state (nlavine@redhat.com)
+- Bug fix to resolve RHEL6 install support (chambrid@redhat.com)
 * Wed Nov 29 2017 Noah Lavine <nlavine@redhat.com> 0.0.31-1
 - Enhancements to capture presence of JBoss Fuse from init subscriptions
 - Enhancements to find common JBoss Fuse files using locate command

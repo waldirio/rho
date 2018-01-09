@@ -111,9 +111,10 @@ def hosts_by_group(yml_dict):
         {'group name': ['host1', 'host2', ...],
          ... }
     """
+    hosts_by_group_dict = dict((group, list(yml_dict[group]['hosts'].keys()))
+                               for i, group in enumerate(yml_dict.keys()))
 
-    return {group: list(yml_dict[group]['hosts'].keys())
-            for group in yml_dict.keys()}
+    return hosts_by_group_dict
 
 
 def process_host_vars(facts_to_collect, vars_by_host):
