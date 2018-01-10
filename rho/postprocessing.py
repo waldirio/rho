@@ -772,6 +772,7 @@ JBOSS_FUSE_FUSE_ON_EAP = 'jboss.fuse.fuse-on-eap'
 JBOSS_FUSE_BIN_INDICATOR_FILES = ['fuseconfig.sh', 'fusepatch.sh']
 
 
+# pylint: disable=too-many-locals
 def process_fuse_on_eap(fact_names, host_vars):
     """Find JBoss Fuse when it is layered on top of JBoss EAP."""
 
@@ -818,14 +819,15 @@ def process_fuse_on_eap(fact_names, host_vars):
              ls_layers_results[eap_home])
         for eap_home in eap_homes]
 
+    eap_home_dict = dict((eap_home,
+                          (ls_bin_mr[eap_home] or
+                           layers_conf_mr[eap_home] or
+                           ls_layers_mr[eap_home]))
+                         for i, eap_home in enumerate(eap_homes))
+
     return {JBOSS_FUSE_FUSE_ON_EAP:
             encode_and_join('; ', fuse_on_eap_dirs),
-            JBOSS_FUSE_FUSE_ON_EAP + MR:
-            {eap_home:
-             (ls_bin_mr[eap_home] or
-              layers_conf_mr[eap_home] or
-              ls_layers_mr[eap_home])
-             for eap_home in eap_homes}}
+            JBOSS_FUSE_FUSE_ON_EAP + MR: eap_home_dict}
 
 
 JBOSS_FUSE_ON_KARAF_KARAF_HOME = 'jboss.fuse-on-karaf.karaf-home'
@@ -861,13 +863,14 @@ def process_karaf_home(fact_names, host_vars):
     system_org_jboss_results, system_org_jboss_mr = process_indicator_files(
         ['fuse'], system_org_jboss)
 
-    bin_fuse_mr = {
-        result['item']: result['rc'] == 0
-        for result in bin_fuse['results']}
+    bin_fuse_mr = dict((result['item'], result['rc'] == 0)
+                       for i, result in enumerate(bin_fuse['results']))
 
-    bin_fuse_results = {
-        directory: '/bin/fuse exists' if result else '/bin/fuse not found'
-        for directory, result in utilities.iteritems(bin_fuse_mr)}
+    bin_fuse_results = dict((directory,
+                             '/bin/fuse exists' if result
+                             else '/bin/fuse not found')
+                            for directory, result
+                            in utilities.iteritems(bin_fuse_mr))
 
     assert list(system_org_jboss_results.keys()) == karaf_homes
     assert list(bin_fuse_results.keys()) == karaf_homes
@@ -877,12 +880,12 @@ def process_karaf_home(fact_names, host_vars):
         bin_fuse_results[karaf_home],
         system_org_jboss_results[karaf_home])
                           for karaf_home in karaf_homes]  # noqa E126
+    karaf_home_dict = dict((karaf_home, (system_org_jboss_mr[karaf_home] or
+                                         bin_fuse_mr[karaf_home]))
+                           for i, karaf_home in enumerate(karaf_homes))
     return {JBOSS_FUSE_ON_KARAF_KARAF_HOME:
             encode_and_join('; ', fuse_on_karaf_dirs),
-            JBOSS_FUSE_ON_KARAF_KARAF_HOME + MR:
-            {karaf_home:
-             system_org_jboss_mr[karaf_home] or bin_fuse_mr[karaf_home]
-             for karaf_home in karaf_homes}}  # noqa
+            JBOSS_FUSE_ON_KARAF_KARAF_HOME + MR: karaf_home_dict}  # noqa
 
 
 JBOSS_FUSE_INIT_FILES = 'jboss.fuse.init-files'
