@@ -1,4 +1,4 @@
-node('rhel7-np') {
+node('rhel7-os') {
     stage('Setup') {
         sh "whoami"
         withCredentials([file(credentialsId: 'd7ad70b5-0d27-47bb-882b-b50ebe39c5e3', variable: 'RHEL7_REPO')]) {
