@@ -260,6 +260,11 @@ class ScanCommand(CliCommand):
                 success_hosts = success_hosts + success_hosts_
                 remaining_hosts = remaining_hosts_
                 unreachalbe_hosts = unreachalbe_hosts_
+                # If credential used ssh keyfile then re-process unreachable
+                # systems due to issue #576
+                if cred_item.get('ssh_key_file'):
+                    remaining_hosts = remaining_hosts_ + unreachalbe_hosts_
+
                 success_port_map.update(success_port_map_)
                 auth_map.update(auth_map_)
                 log.info('Discovery with credential %s completed.',

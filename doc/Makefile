@@ -28,8 +28,8 @@ manpage:
 	pandoc source/man.rst \
 	  --standalone -t man -o rho.1 \
 	  --variable=section:1 \
-	  --variable=date:'November 29, 2017' \
-	  --variable=footer:'version 0.0.31' \
+	  --variable=date:'February 8, 2018' \
+	  --variable=footer:'version 0.0.32' \
 	  --variable=header:'rho User Commands'
 
 man-html:

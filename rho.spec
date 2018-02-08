@@ -1,8 +1,8 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 Name: rho
-Version: 0.0.31
-Release: 2%{?dist}
+Version: 0.0.32
+Release: 1%{?dist}
 Summary: An SSH system profiler
 
 Group: Applications/Internet
@@ -63,6 +63,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/ansible/%{name}/roles/*
 
 %changelog
+* Thu Feb 8 2018 Christopher Hambridge <chambrid@redhat.com> 0.0.32-1
+- Bug fix to resolve unreachable processing when using sshkeyfile for connection
 * Tue Jan 9 2018 Christopher Hambridge <chambrid@redhat.com> 0.0.31-2
 - Enhancements to handle target system timeouts (chambrid@redhat.com)
 - Enhancements to capture JBoss products installation state (nlavine@redhat.com)
