@@ -65,6 +65,7 @@ rm -rf $RPM_BUILD_ROOT
 %changelog
 * Thu Feb 8 2018 Christopher Hambridge <chambrid@redhat.com> 0.0.32-1
 - Bug fix to resolve unreachable processing when using sshkeyfile for connection
+- Bug fix for cpu core count on vmware
 * Tue Jan 9 2018 Christopher Hambridge <chambrid@redhat.com> 0.0.31-2
 - Enhancements to handle target system timeouts (chambrid@redhat.com)
 - Enhancements to capture JBoss products installation state (nlavine@redhat.com)

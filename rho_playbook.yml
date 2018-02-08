@@ -12,6 +12,7 @@
   roles:
     - check_dependencies
     - connection
+    - virt
     - cpu
     - date
     - dmi
@@ -21,7 +22,6 @@
     - redhat_packages
     - subman
     - uname
-    - virt
     - virt_what
     - jboss_eap
     - jboss_eap_scan
