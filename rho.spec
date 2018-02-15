@@ -2,14 +2,13 @@
 
 Name: rho
 Version: 0.0.32
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: An SSH system profiler
 
 Group: Applications/Internet
 License: GPLv2
 URL: http://github.com/quipucords/rho
 Source0: http://github.com/quipucords/rho/archive/master.tar.gz
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildArch: noarch
 BuildRequires: python-devel
@@ -49,9 +48,6 @@ mkdir -p %{buildroot}%{_datadir}/ansible/%{name}
 cp rho_playbook.yml %{buildroot}%{_datadir}/ansible/%{name}
 cp -rp roles %{buildroot}%{_datadir}/ansible/%{name}/
 
-%clean
-rm -rf $RPM_BUILD_ROOT
-
 %files
 %defattr(-,root,root,-)
 %doc README.rst AUTHORS.rst COPYING
@@ -63,9 +59,16 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/ansible/%{name}/roles/*
 
 %changelog
-* Thu Feb 8 2018 Christopher Hambridge <chambrid@redhat.com> 0.0.32-1
+* Thu Feb 15 2018 Christopher Hambridge <chambrid@redhat.com> 0.0.32-2
+- Bug fix to resolve missing release Engineering clean up
+
+* Wed Feb 14 2018 Christopher Hambridge <chambrid@redhat.com> 0.0.32-1
 - Bug fix to resolve unreachable processing when using sshkeyfile for connection
 - Bug fix for cpu core count on vmware
+
+- * Fri Feb 09 2018 Fedora Release Engineering <releng@fedoraproject.org> - 0.0.31-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_28_Mass_Rebuild
+
 * Tue Jan 9 2018 Christopher Hambridge <chambrid@redhat.com> 0.0.31-2
 - Enhancements to handle target system timeouts (chambrid@redhat.com)
 - Enhancements to capture JBoss products installation state (nlavine@redhat.com)
