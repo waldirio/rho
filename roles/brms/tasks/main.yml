@@ -36,7 +36,7 @@
       when: '"jboss.brms" in facts_to_collect or "jboss.brms.summary" in facts_to_collect'
 
     - name: cat MANIFEST.MF files
-      raw: cat {{ item }}/META-INF/MANIFEST.MF
+      raw: cat '{{ item }}/META-INF/MANIFEST.MF'
       register: jboss_brms_manifest_mf
       ignore_errors: yes
       with_items: "{{ business_central_candidates + kie_server_candidates }}"
