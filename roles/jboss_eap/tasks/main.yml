@@ -39,7 +39,7 @@
       when: '"jboss.eap.eap-home" in facts_to_collect or "jboss.fuse.fuse-on-eap" in facts_to_collect or "jboss.fuse.summary" in facts_to_collect'
 
     - name: get version.txt from EAP_HOME candidates
-      raw: cat "{{ item }}"/version.txt
+      raw: cat '{{ item }}/version.txt'
       register: eap_home_candidates_version_txt
       ignore_errors: yes
       with_items: "{{ eap_home_candidates }}"
@@ -55,7 +55,7 @@
       when: '"jboss.fuse.fuse-on-eap" in facts_to_collect or "jboss.fuse.summary" in facts_to_collect'
 
     - name: check JBoss layers.conf
-      raw: cat "{{ item }}"/modules/layers.conf
+      raw: cat '{{ item }}/modules/layers.conf'
       register: eap_home_candidates_layers_conf
       ignore_errors: yes
       with_items: "{{ eap_home_candidates }}"
