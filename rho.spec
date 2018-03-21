@@ -1,8 +1,8 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 Name: rho
-Version: 0.0.32
-Release: 2%{?dist}
+Version: 0.0.33
+Release: 1%{?dist}
 Summary: An SSH system profiler
 
 Group: Applications/Internet
@@ -59,14 +59,17 @@ cp -rp roles %{buildroot}%{_datadir}/ansible/%{name}/
 %{_datadir}/ansible/%{name}/roles/*
 
 %changelog
-* Thu Feb 15 2018 Christopher Hambridge <chambrid@redhat.com> 0.0.32-2
+* Wed Mar 21 2018 Noah Lavine <nlavine@redhat.com> 0.0.33-1
+- Bug fix to Ansible task bash globbing (nlavine@redhat.com)
+- Bug fix for unicode truncation (chambrid@redhat.com)
+
+* Thu Feb 15 2018 Christopher Hambridge <chambrid@redhat.com> 0.0.32-6
 - Bug fix to resolve missing release Engineering clean up
 
 * Wed Feb 14 2018 Christopher Hambridge <chambrid@redhat.com> 0.0.32-1
 - Bug fix to resolve unreachable processing when using sshkeyfile for connection
 - Bug fix for cpu core count on vmware
-
-- * Fri Feb 09 2018 Fedora Release Engineering <releng@fedoraproject.org> - 0.0.31-3
+* Fri Feb 09 2018 Fedora Release Engineering <releng@fedoraproject.org> - 0.0.31-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_28_Mass_Rebuild
 
 * Tue Jan 9 2018 Christopher Hambridge <chambrid@redhat.com> 0.0.31-2

@@ -165,7 +165,10 @@ def process_host_scan(line):
         line_len = len(line)
         char_truncate = truncate * 100
         if line_len > char_truncate:
-            print(line[0:char_truncate] + '...')
+            try:
+                print(line[0:char_truncate] + '...')
+            except Exception:  # pylint: disable=W0703
+                print('...')
         else:
             print(line)
         print_line = print_line - 1

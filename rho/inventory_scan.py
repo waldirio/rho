@@ -203,7 +203,8 @@ def process_host_vars(facts_to_collect, vars_by_host):
 
             facts_out.append(this_host)
         except Exception as processing_error:  # pylint: disable=broad-except
-            utilities.log.error('Error during processing %s', processing_error)
+            utilities.log.error('Error during processing.')
+            utilities.log.exception(processing_error)
 
     return facts_out
 
