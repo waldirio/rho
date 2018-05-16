@@ -386,7 +386,7 @@ def process_jboss_eap_common_files(fact_names, host_vars):
 
     out_dirs = []
     for directory in out_list:
-        out_dir = '{0} found'.format(directory)
+        out_dir = u'{0} found'.format(directory)
         out_dirs.append(out_dir)
     return {JBOSS_EAP_COMMON_FILES:
             encode_and_join(';', out_dirs),
@@ -448,7 +448,7 @@ def process_jboss_eap_processes(fact_names, host_vars):
                 num_procs)}
 
     return {JBOSS_EAP_PROCESSES:
-            '{0} EAP processes found'.format(num_procs - 2),
+            u'{0} EAP processes found'.format(num_procs - 2),
             JBOSS_EAP_PROCESSES + MR: num_procs - 2}
 
 
@@ -485,7 +485,7 @@ def process_jboss_eap_packages(fact_names, host_vars):
     num_packages = len(output['stdout_lines'])
 
     return {JBOSS_EAP_PACKAGES:
-            '{0} JBoss-related packages found'.format(num_packages),
+            u'{0} JBoss-related packages found'.format(num_packages),
             JBOSS_EAP_PACKAGES + MR: num_packages}
 
 
@@ -811,7 +811,7 @@ def process_fuse_on_eap(fact_names, host_vars):
     assert eap_homes == layers_conf_results.keys() == ls_layers_results.keys()
 
     fuse_on_eap_dirs = [
-        ('{0}: /bin={1}, /modules/layers.conf={2},'
+        (u'{0}: /bin={1}, /modules/layers.conf={2},'
          ' /modules/system/layers={3}').format(
              eap_home,
              ls_bin_results[eap_home],
@@ -875,7 +875,7 @@ def process_karaf_home(fact_names, host_vars):
     assert list(system_org_jboss_results.keys()) == karaf_homes
     assert list(bin_fuse_results.keys()) == karaf_homes
 
-    fuse_on_karaf_dirs = ['{0}: {1}; {2}'.format(
+    fuse_on_karaf_dirs = [u'{0}: {1}; {2}'.format(
         karaf_home,
         bin_fuse_results[karaf_home],
         system_org_jboss_results[karaf_home])
