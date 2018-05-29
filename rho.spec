@@ -20,17 +20,20 @@ BuildArch: noarch
 BuildRequires: %{py2_prefix}-devel
 BuildRequires: %{py2_prefix}-setuptools
 BuildRequires: pandoc
-Requires: %{py2_prefix}-netaddr
 BuildRequires: %{py2_prefix}-crypto
+Requires: %{py2_prefix}-netaddr
 Requires: ansible
-Requires: %{py2_prefix}-pexpect
+%{?fedora:Requires: python2-pexpect}
+%{?rhel:Requires: pexpect}
 Requires: %{py2_prefix}-six
 Requires: %{py2_prefix}-enum34
-Requires: %{py2_prefix}-pyyaml
+%{?fedora:Requires: python2-pyyaml}
+%{?rhel:Requires: PyYAML}
 %{?rhel:Requires: epel-release}
-Requires: %{py2_prefix}-future
-Requires: %{py2_prefix}-sh
-Requires: %{py2_prefix}-pyxdg
+Requires: python2-future
+Requires: python2-sh
+%{?fedora:Requires: python2-pyxdg}
+%{?rhel:Requires: pyxdg}
 
 %description
 Rho is a tool for scanning your network, logging into systems via SSH, and
