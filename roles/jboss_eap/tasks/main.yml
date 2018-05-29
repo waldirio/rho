@@ -101,7 +101,7 @@
       ignore_errors: yes
       when: '"jboss.eap.processes" in facts_to_collect'
     - name: check for jboss packages
-      raw: rpm -qa --qf "%{NAME}|%{VERSION}|%{RELEASE}|%{INSTALLTIME}|%{VENDOR}|%{BUILDTIME}|%{BUILDHOST}|%{SOURCERPM}|%{LICENSE}|%{PACKAGER}|%{INSTALLTIME:date}|%{BUILDTIME:date}\n" | grep -E '(eap7)|(jbossas)' | sort
+      raw: rpm -qa --qf "%{NAME}|%{VERSION}|%{RELEASE}|%{INSTALLTIME}|%{VENDOR}|%{BUILDTIME}|%{BUILDHOST}|%{SOURCERPM}|%{LICENSE}|%{PACKAGER}|%{INSTALLTIME:date}|%{BUILDTIME:date}\n" 2> /dev/null | grep -E '(eap7)|(jbossas)' | sort
       register: jboss.eap.packages
       ignore_errors: yes
       when: '"jboss.eap.packages" in facts_to_collect'

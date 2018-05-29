@@ -1,7 +1,7 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 Name: rho
-Version: 0.0.33
+Version: 0.0.34
 Release: 1%{?dist}
 Summary: An SSH system profiler
 
@@ -10,23 +10,27 @@ License: GPLv2
 URL: http://github.com/quipucords/rho
 Source0: http://github.com/quipucords/rho/archive/master.tar.gz
 
+%if 0%{?rhel}
+%global py2_prefix python
+%else
+%global py2_prefix python2
+%endif
+
 BuildArch: noarch
-BuildRequires: python-devel
-%{?fedora:BuildRequires: python2-setuptools}
-%{?rhel:BuildRequires: python-setuptools}
+BuildRequires: %{py2_prefix}-devel
+BuildRequires: %{py2_prefix}-setuptools
 BuildRequires: pandoc
-Requires: python-netaddr
-%{?fedora:BuildRequires: python2-crypto}
-%{?rhel:BuildRequires: python-crypto}
+Requires: %{py2_prefix}-netaddr
+BuildRequires: %{py2_prefix}-crypto
 Requires: ansible
-Requires: pexpect
-Requires: python-six
-Requires: python-enum34
-Requires: PyYAML
+Requires: %{py2_prefix}-pexpect
+Requires: %{py2_prefix}-six
+Requires: %{py2_prefix}-enum34
+Requires: %{py2_prefix}-pyyaml
 %{?rhel:Requires: epel-release}
-Requires: python2-future
-Requires: python2-sh
-Requires: pyxdg
+Requires: %{py2_prefix}-future
+Requires: %{py2_prefix}-sh
+Requires: %{py2_prefix}-pyxdg
 
 %description
 Rho is a tool for scanning your network, logging into systems via SSH, and
@@ -59,6 +63,15 @@ cp -rp roles %{buildroot}%{_datadir}/ansible/%{name}/
 %{_datadir}/ansible/%{name}/roles/*
 
 %changelog
+* Mon May 28 2018 Christopher Hambridge <chambrid@redhat.com> 0.0.34-1
+- Update Python 2 dependency for EPEL support
+- Bug fix for unicode processing (mdvickst@redhat.com)
+- Bug fix for rpm output to /dev/null (mdvickst@redhat.com)
+
+* Thu Apr 19 2018 Iryna Shcherbina <shcherbina.iryna@gmail.com> - 0.0.33-2
+- Update Python 2 dependency declarations to new packaging standards
+  (See https://fedoraproject.org/wiki/FinalizingFedoraSwitchtoPython3)
+
 * Wed Mar 21 2018 Noah Lavine <nlavine@redhat.com> 0.0.33-1
 - Bug fix to Ansible task bash globbing (nlavine@redhat.com)
 - Bug fix for unicode truncation (chambrid@redhat.com)
